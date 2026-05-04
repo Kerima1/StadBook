@@ -1,0 +1,18 @@
+{
+  "name": "StadBook",
+  "short_name": "StadBook",
+  "description": "Gestion de terrain de foot",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0D0F18",
+  "theme_color": "#00D48A",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <rect width="200" height="200" rx="44" fill="#060810"/>
+  <!-- Ambient glow -->
+  <ellipse cx="100" cy="88" rx="85" ry="65" fill="#00D48A" opacity="0.05"/>
+  <!-- Stadium outer oval -->
+  <ellipse cx="100" cy="88" rx="78" ry="55" fill="none" stroke="#00D48A" stroke-width="3"/>
+  <!-- Stadium inner field -->
+  <ellipse cx="100" cy="88" rx="62" ry="41" fill="#0a2010" stroke="#00D48A" stroke-width="1.5" opacity="0.9"/>
+  <!-- Center circle -->
+  <circle cx="100" cy="88" r="16" fill="none" stroke="#00D48A" stroke-width="1.5" opacity="0.7"/>
+  <!-- Center dot -->
+  <circle cx="100" cy="88" r="3" fill="#00D48A"/>
+  <!-- Halfway line -->
+  <line x1="38" y1="88" x2="162" y2="88" stroke="#00D48A" stroke-width="1.5" opacity="0.6"/>
+  <!-- Goal boxes -->
+  <rect x="38" y="77" width="22" height="22" fill="none" stroke="#00D48A" stroke-width="1.2" opacity="0.7"/>
+  <rect x="140" y="77" width="22" height="22" fill="none" stroke="#00D48A" stroke-width="1.2" opacity="0.7"/>
+  <!-- Corner arcs -->
+  <path d="M38,50 Q45,50 45,57" fill="none" stroke="#00D48A" stroke-width="1" opacity="0.5"/>
+  <path d="M162,50 Q155,50 155,57" fill="none" stroke="#00D48A" stroke-width="1" opacity="0.5"/>
+  <path d="M38,126 Q45,126 45,119" fill="none" stroke="#00D48A" stroke-width="1" opacity="0.5"/>
+  <path d="M162,126 Q155,126 155,119" fill="none" stroke="#00D48A" stroke-width="1" opacity="0.5"/>
+  <!-- Football -->
+  <circle cx="100" cy="160" r="23" fill="white"/>
+  <!-- Pentagon patches -->
+  <polygon points="100,138 109,145 106,155 94,155 91,145" fill="#111"/>
+  <polygon points="120,152 122,163 114,169 106,164 107,154" fill="#111"/>
+  <polygon points="80,152 78,163 86,169 94,164 93,154" fill="#111"/>
+  <polygon points="113,170 107,178 100,179 93,178 87,170 94,164 106,164" fill="#222" opacity="0.6"/>
+  <!-- Ball outline glow -->
+  <circle cx="100" cy="160" r="23" fill="none" stroke="#00D48A" stroke-width="2.5"/>
+  <!-- Shine -->
+  <ellipse cx="92" cy="149" rx="7" ry="5" fill="white" opacity="0.4"/>
+</svg>
