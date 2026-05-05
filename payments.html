@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+<meta name="theme-color" content="#0D0F18"/>
+<title>StadBook — Paiements</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#0D0F18;font-family:'Nunito',sans-serif;}
+input,button{font-family:inherit;outline:none;}
+button{cursor:pointer;}
+::-webkit-scrollbar{width:0;}
+@keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyBsXXdzbcN-32NQh7wDTVB8oHhyZVnOM1A",
+  authDomain:"stadbook-ade2e.firebaseapp.com",
+  projectId:"stadbook-ade2e",
+  storageBucket:"stadbook-ade2e.firebasestorage.app",
+  messagingSenderId:"95034341479",
+  appId:"1:95034341479:web:a92c479b8b23cb8be0bcc2"
+});
+const auth=firebase.auth();
+const db=firebase.firestore();
+</script>
+<script type="text/babel">
+const {useState,useEffect}=React;
+const G="#00D48A",BG="#0D0F18",CARD="#111420",BORDER="#1c2030";
+const ADMIN_EMAIL="fatimetousidiboba@gmail.com";
+
+const T={
+  fr:{
+    title:"Paiements",price:"Prix mensuel par terrain",edit:"Modifier",month:"MOIS",
+    received:"REÇU",missing:"MANQUANT",expected:"ATTENDU",currency:"MRU",
+    paid:"Payé",unpaid:"Non payé",markPaid:"Reçu ✓",pending:"En attente",
+    collected:"collecté ce mois",terrains:"TERRAINS",login:"Connexion",
+    email:"Email",password:"Mot de passe",loginBtn:"Se connecter",
+    errorAccess:"Accès admin uniquement.",loading:"Chargement...",
+    perMonth:"MRU/mois",signOut:"Déconnexion",language:"Langue",
+    noUsers:"Aucun utilisateur actif",due:"dû",
+  },
+  en:{
+    title:"Payments",price:"Monthly price per stadium",edit:"Edit",month:"MONTH",
+    received:"RECEIVED",missing:"MISSING",expected:"EXPECTED",currency:"MRU",
+    paid:"Paid",unpaid:"Unpaid",markPaid:"Received ✓",pending:"Pending",
+    collected:"collected this month",terrains:"STADIUMS",login:"Sign In",
+    email:"Email",password:"Password",loginBtn:"Sign In",
+    errorAccess:"Admin access only.",loading:"Loading...",
+    perMonth:"MRU/month",signOut:"Sign Out",language:"Language",
+    noUsers:"No active users",due:"due",
+  },
+  ar:{
+    title:"المدفوعات",price:"السعر الشهري لكل ملعب",edit:"تعديل",month:"الشهر",
+    received:"المستلم",missing:"المتبقي",expected:"المتوقع",currency:"أوقية",
+    paid:"تم الدفع",unpaid:"لم يدفع",markPaid:"تم الاستلام ✓",pending:"في الانتظار",
+    collected:"تم تحصيله هذا الشهر",terrains:"الملاعب",login:"تسجيل الدخول",
+    email:"البريد الإلكتروني",password:"كلمة المرور",loginBtn:"تسجيل الدخول",
+    errorAccess:"للمشرف فقط.",loading:"جارٍ التحميل...",
+    perMonth:"أوقية/شهر",signOut:"تسجيل الخروج",language:"اللغة",
+    noUsers:"لا يوجد مستخدمون نشطون",due:"مستحق",
+  },
+};
+
+const FLAGS={fr:"🇫🇷",en:"🇬🇧",ar:"🇲🇷"};
+const LANG_LABELS={fr:"FR",en:"EN",ar:"AR"};
+
+const MONTHS={
+  fr:["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"],
+  en:["January","February","March","April","May","June","July","August","September","October","November","December"],
+  ar:["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"],
+};
+
+function App(){
+  const [lang,setLang]=useState("fr");
+  const [authUser,setAuthUser]=useState(undefined);
+  const [error,setError]=useState("");
+
+  useEffect(()=>{
+    const unsub=auth.onAuthStateChanged(u=>setAuthUser(u));
+    return unsub;
+  },[]);
+
+  if(authUser===undefined) return(
+    <div style={{background:BG,minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}}>
+      <div style={{width:36,height:36,border:`3px solid ${G}`,borderTopColor:"transparent",borderRadius:"50%",animation:"spin 0.8s linear infinite"}}/>
+    </div>
+  );
+
+  if(!authUser) return <LoginScreen lang={lang} setLang={setLang} onError={setError} error={error}/>;
+  if(authUser.email!==ADMIN_EMAIL){
+    auth.signOut();
+    return <div style={{background:BG,minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",color:"#ff5555",fontSize:16,fontWeight:800}}>{T[lang].errorAccess}</div>;
+  }
+
+  return <PaymentsScreen lang={lang} setLang={setLang}/>;
+}
+
+function LoginScreen({lang,setLang,onError,error}){
+  const t=T[lang],isRTL=lang==="ar";
+  const [email,setEmail]=useState("");
+  const [password,setPassword]=useState("");
+  const [loading,setLoading]=useState(false);
+
+  const handleLogin=async()=>{
+    setLoading(true);
+    try{
+      await auth.signInWithEmailAndPassword(email,password);
+    } catch(e){ onError(t.errorAccess); }
+    setLoading(false);
+  };
+
+  return(
+    <div style={{fontFamily:isRTL?"'Cairo',sans-serif":"'Nunito',sans-serif",direction:isRTL?"rtl":"ltr",background:BG,minHeight:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:24}}>
+      <div style={{fontSize:48,marginBottom:8}}>⚽</div>
+      <div style={{fontSize:26,fontWeight:900,color:G,marginBottom:4}}>StadBook</div>
+      <div style={{fontSize:12,color:"#444",marginBottom:32}}>{t.title}</div>
+      <div style={{display:"flex",gap:8,marginBottom:24}}>
+        {["fr","en","ar"].map(l=>(
+          <button key={l} onClick={()=>setLang(l)} style={{background:lang===l?G:CARD,border:`1.5px solid ${lang===l?G:BORDER}`,borderRadius:10,padding:"6px 12px",fontWeight:800,fontSize:12,color:lang===l?"#001a0e":"#555"}}>
+            {FLAGS[l]} {LANG_LABELS[l]}
+          </button>
+        ))}
+      </div>
+      <div style={{background:CARD,borderRadius:20,padding:"24px 20px",width:"100%",maxWidth:360,border:`1px solid ${BORDER}`}}>
+        <div style={{marginBottom:14}}>
+          <div style={{fontSize:10,color:"#555",fontWeight:700,marginBottom:6}}>{t.email.toUpperCase()}</div>
+          <input value={email} onChange={e=>setEmail(e.target.value)} type="email"
+            style={{width:"100%",background:BG,border:`2px solid ${BORDER}`,borderRadius:12,padding:"12px 14px",color:"#fff",fontSize:15}}
+            onFocus={e=>e.target.style.borderColor=G} onBlur={e=>e.target.style.borderColor=BORDER}/>
+        </div>
+        <div style={{marginBottom:20}}>
+          <div style={{fontSize:10,color:"#555",fontWeight:700,marginBottom:6}}>{t.password.toUpperCase()}</div>
+          <input value={password} onChange={e=>setPassword(e.target.value)} type="password"
+            onKeyDown={e=>e.key==="Enter"&&handleLogin()}
+            style={{width:"100%",background:BG,border:`2px solid ${BORDER}`,borderRadius:12,padding:"12px 14px",color:"#fff",fontSize:15}}
+            onFocus={e=>e.target.style.borderColor=G} onBlur={e=>e.target.style.borderColor=BORDER}/>
+        </div>
+        {error&&<div style={{background:"#1f0e0e",border:"1px solid #2e1414",borderRadius:10,padding:"10px 14px",color:"#ff5555",fontSize:13,marginBottom:14,fontWeight:700}}>{error}</div>}
+        <button onClick={handleLogin} disabled={loading} style={{width:"100%",background:G,color:"#001a0e",border:"none",borderRadius:12,padding:"14px",fontWeight:900,fontSize:15,opacity:loading?0.7:1}}>
+          {loading?t.loading:t.loginBtn}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function PaymentsScreen({lang,setLang}){
+  const t=T[lang],isRTL=lang==="ar";
+  const now=new Date();
+  const [users,setUsers]=useState([]);
+  const [price,setPrice]=useState(500);
+  const [editingPrice,setEditingPrice]=useState(false);
+  const [tempPrice,setTempPrice]=useState(500);
+  const [selectedMonth,setSelectedMonth]=useState(now.getMonth());
+  const [selectedYear,setSelectedYear]=useState(now.getFullYear());
+  const [payments,setPayments]=useState({});
+  const [loading,setLoading]=useState(true);
+
+  // Load users from Firebase
+  useEffect(()=>{
+    const unsub=db.collection("users").onSnapshot(snap=>{
+      setUsers(snap.docs.map(d=>({id:d.id,...d.data()})).filter(u=>u.active));
+      setLoading(false);
+    });
+    return unsub;
+  },[]);
+
+  // Load payments and price from Firebase
+  useEffect(()=>{
+    const unsub=db.collection("payments").doc("data").onSnapshot(snap=>{
+      if(snap.exists){
+        const data=snap.data();
+        if(data.payments) setPayments(data.payments);
+        if(data.price) setPrice(data.price);
+      }
+    });
+    return unsub;
+  },[]);
+
+  const saveToFirebase=async(newPayments,newPrice)=>{
+    await db.collection("payments").doc("data").set({payments:newPayments,price:newPrice},{merge:true});
+  };
+
+  const monthKey=`${selectedYear}-${selectedMonth}`;
+
+  const togglePaid=async(userId)=>{
+    const newPayments={...payments,[monthKey]:{...(payments[monthKey]||{}),[userId]:!payments[monthKey]?.[userId]}};
+    setPayments(newPayments);
+    await saveToFirebase(newPayments,price);
+  };
+
+  const savePrice=async(newPrice)=>{
+    setPrice(newPrice);
+    setEditingPrice(false);
+    await saveToFirebase(payments,newPrice);
+  };
+
+  const isPaid=(userId)=>payments[monthKey]?.[userId]||false;
+  const paidCount=users.filter(u=>isPaid(u.id)).length;
+  const unpaidCount=users.length-paidCount;
+  const totalReceived=paidCount*price;
+  const totalMissing=unpaidCount*price;
+  const totalExpected=users.length*price;
+  const pct=users.length>0?Math.round((paidCount/users.length)*100):0;
+
+  return(
+    <div style={{fontFamily:isRTL?"'Cairo',sans-serif":"'Nunito',sans-serif",direction:isRTL?"rtl":"ltr",maxWidth:430,margin:"0 auto",minHeight:"100vh",background:BG,color:"#f0f0f0",paddingBottom:40}}>
+
+      {/* Header */}
+      <div style={{background:CARD,padding:"14px 16px",borderBottom:`1px solid ${BORDER}`,position:"sticky",top:0,zIndex:10,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <div>
+          <div style={{fontSize:18,fontWeight:900,color:G}}>⚽ StadBook</div>
+          <div style={{fontSize:10,color:"#444",fontWeight:700,letterSpacing:1}}>{t.title.toUpperCase()}</div>
+        </div>
+        <div style={{display:"flex",gap:6,alignItems:"center"}}>
+          {["fr","en","ar"].map(l=>(
+            <button key={l} onClick={()=>setLang(l)} style={{background:lang===l?G:"#1c2030",border:"none",borderRadius:8,padding:"5px 8px",fontWeight:800,fontSize:10,color:lang===l?"#001a0e":"#555"}}>
+              {FLAGS[l]} {LANG_LABELS[l]}
+            </button>
+          ))}
+          <button onClick={()=>auth.signOut()} style={{background:"#1f0e0e",color:"#ff5555",border:"1px solid #2e1414",borderRadius:8,padding:"6px 10px",fontWeight:700,fontSize:11,marginLeft:4}}>{t.signOut}</button>
+        </div>
+      </div>
+
+      <div style={{padding:"16px"}}>
+
+        {/* Price */}
+        <div style={{background:CARD,borderRadius:16,padding:"16px",border:`1px solid ${BORDER}`,marginBottom:14}}>
+          <div style={{fontSize:10,color:"#444",fontWeight:700,letterSpacing:0.5,marginBottom:10}}>{t.price.toUpperCase()}</div>
+          {editingPrice?(
+            <div style={{display:"flex",gap:8}}>
+              <input type="number" value={tempPrice} onChange={e=>setTempPrice(Number(e.target.value))} autoFocus
+                style={{flex:1,background:BG,border:`2px solid ${G}`,borderRadius:10,padding:"10px 12px",color:"#fff",fontSize:15}}/>
+              <button onClick={()=>savePrice(tempPrice)} style={{background:G,color:"#001a0e",border:"none",borderRadius:10,padding:"10px 16px",fontWeight:900,fontSize:13}}>✓</button>
+              <button onClick={()=>setEditingPrice(false)} style={{background:"#1c2030",color:"#888",border:"none",borderRadius:10,padding:"10px 14px",fontWeight:700,fontSize:13}}>✕</button>
+            </div>
+          ):(
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <span style={{fontSize:22,fontWeight:900,color:G}}>{price} <span style={{fontSize:13,color:"#444"}}>{t.perMonth}</span></span>
+              <button onClick={()=>{setTempPrice(price);setEditingPrice(true);}} style={{background:`${G}18`,color:G,border:`1px solid ${G}44`,borderRadius:10,padding:"7px 14px",fontSize:12,fontWeight:800}}>✏️ {t.edit}</button>
+            </div>
+          )}
+        </div>
+
+        {/* Month selector */}
+        <div style={{background:CARD,borderRadius:16,padding:"14px 16px",border:`1px solid ${BORDER}`,marginBottom:14}}>
+          <div style={{fontSize:10,color:"#444",fontWeight:700,letterSpacing:0.5,marginBottom:10}}>{t.month}</div>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+            <button onClick={()=>{if(selectedMonth===0){setSelectedMonth(11);setSelectedYear(y=>y-1);}else setSelectedMonth(m=>m-1);}}
+              style={{background:"#1c2030",border:"none",borderRadius:8,padding:"8px 16px",color:"#888",fontWeight:900,fontSize:18}}>‹</button>
+            <div style={{fontWeight:900,fontSize:16,color:"#fff"}}>{MONTHS[lang][selectedMonth]} {selectedYear}</div>
+            <button onClick={()=>{if(selectedMonth===11){setSelectedMonth(0);setSelectedYear(y=>y+1);}else setSelectedMonth(m=>m+1);}}
+              style={{background:"#1c2030",border:"none",borderRadius:8,padding:"8px 16px",color:"#888",fontWeight:900,fontSize:18}}>›</button>
+          </div>
+        </div>
+
+        {/* Summary cards */}
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:16}}>
+          {[
+            {label:t.received,value:totalReceived,color:G,bg:"#0b2018"},
+            {label:t.missing,value:totalMissing,color:"#ff5555",bg:"#1f0e0e"},
+            {label:t.expected,value:totalExpected,color:"#aaa",bg:CARD},
+          ].map((s,i)=>(
+            <div key={i} style={{background:s.bg,borderRadius:14,padding:"12px 10px",border:`1px solid ${BORDER}`,textAlign:"center"}}>
+              <div style={{fontSize:8,color:"#555",fontWeight:700,marginBottom:6}}>{s.label}</div>
+              <div style={{fontSize:16,fontWeight:900,color:s.color}}>{s.value}</div>
+              <div style={{fontSize:9,color:"#444",marginTop:2}}>{t.currency}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Progress bar */}
+        <div style={{background:CARD,borderRadius:16,padding:"14px 16px",border:`1px solid ${BORDER}`,marginBottom:16}}>
+          <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}>
+            <div style={{fontSize:12,fontWeight:700,color:G}}>{paidCount} {t.paid}</div>
+            <div style={{fontSize:12,fontWeight:700,color:"#ff5555"}}>{unpaidCount} {t.unpaid}</div>
+          </div>
+          <div style={{background:"#1c2030",borderRadius:10,height:12,overflow:"hidden"}}>
+            <div style={{background:`linear-gradient(90deg,${G},#00a86b)`,height:"100%",width:`${pct}%`,borderRadius:10,transition:"width 0.4s"}}/>
+          </div>
+          <div style={{textAlign:"center",marginTop:8,fontSize:11,color:"#555"}}>{pct}% {t.collected}</div>
+        </div>
+
+        {/* Users list */}
+        <div style={{fontSize:11,color:"#555",fontWeight:700,letterSpacing:0.5,marginBottom:10}}>{t.terrains}</div>
+
+        {loading&&<div style={{textAlign:"center",color:"#444",padding:"30px 0"}}>{t.loading}</div>}
+        {!loading&&users.length===0&&<div style={{textAlign:"center",color:"#333",padding:"30px 0"}}>{t.noUsers}</div>}
+
+        <div style={{display:"flex",flexDirection:"column",gap:8}}>
+          {users.map(u=>{
+            const paid=isPaid(u.id);
+            return(
+              <div key={u.id} style={{background:paid?"#071510":CARD,borderRadius:14,padding:"13px 15px",border:`1.5px solid ${paid?G+"44":BORDER}`,display:"flex",alignItems:"center",justifyContent:"space-between",gap:10}}>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontWeight:800,fontSize:14,color:paid?"#555":"#fff"}}>{u.stadiumName}</div>
+                  <div style={{fontSize:11,color:"#444",marginTop:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{u.email}</div>
+                  <div style={{fontSize:11,marginTop:3,color:paid?G:"#ff5555",fontWeight:700}}>
+                    {paid?`✓ ${t.paid} — ${price} ${t.currency}`:`● ${price} ${t.currency} ${t.due}`}
+                  </div>
+                </div>
+                <button onClick={()=>togglePaid(u.id)} style={{
+                  background:paid?"#0b2018":"#ff555518",
+                  color:paid?G:"#ff5555",
+                  border:`1.5px solid ${paid?G+"55":"#ff555533"}`,
+                  borderRadius:10,padding:"8px 12px",fontWeight:900,fontSize:11,
+                  flexShrink:0,whiteSpace:"nowrap"
+                }}>
+                  {paid?`✓ ${t.paid}`:t.markPaid}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
