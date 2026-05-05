@@ -148,7 +148,7 @@ const T={
 };
 
 const DAYS_SHORT={en:["Su","Mo","Tu","We","Th","Fr","Sa"],fr:["Di","Lu","Ma","Me","Je","Ve","Sa"],ar:["أح","اث","ثل","أر","خم","جم","سب"]};
-const FLAGS={fr:"🇫🇷",en:"🇬🇧",ar:"🇸🇦"};
+const FLAGS={fr:"🇫🇷",en:"🇬🇧",ar:"🇲🇷"};
 const LANG_LABELS={fr:"FR",en:"EN",ar:"AR"};
 
 // ── ICONS ────────────────────────────────────────────────────────────────────
@@ -881,7 +881,7 @@ function StadBookApp({lang,setLang,user,uid}){
       <div style={{background:CARD,borderRadius:16,padding:"16px",border:`1px solid ${BORDER}`,marginBottom:12}}>
         <div style={{fontSize:10,color:"#444",fontWeight:700,letterSpacing:0.5,marginBottom:10}}>{t.language.toUpperCase()}</div>
         <div style={{display:"flex",gap:8}}>
-          {[["ar","🇸🇦 AR"],["fr","🇫🇷 FR"],["en","🇬🇧 EN"]].map(([l,label])=>(
+          {[["ar","🇲🇷 AR"],["fr","🇫🇷 FR"],["en","🇬🇧 EN"]].map(([l,label])=>(
             <button key={l} onClick={()=>setLang(l)} style={{flex:1,padding:"10px 0",borderRadius:10,border:"none",fontWeight:800,fontSize:13,background:lang===l?G:"#1c2030",color:lang===l?"#001a0e":"#666",transition:"background 0.1s,color 0.1s"}}>{label}</button>
           ))}
         </div>
