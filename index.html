@@ -96,7 +96,6 @@ selectDays:“Select Days”,subTotal:“Total Price”,subPaid:“Paid”,subRe
 addPayment:“Add Payment”,editPayment:“Edit Payment”,payments:“Payments”,
 noPayments:“No payments yet”,noSubs:“No subscriptions yet”,
 subDelConfirm:“Delete this subscription?”,maxAmount:“Maximum”,
-confirmPlay:“Mark as played?”,confirmCancel:“Cancel this booking?”,yes:“Yes”,
 },
 fr:{
 appName:“StadBook”,home:“Accueil”,schedule:“Planning”,earnings:“Recettes”,settings:“Paramètres”,
@@ -132,7 +131,6 @@ selectDays:“Choisir les Jours”,subTotal:“Prix Total”,subPaid:“Payé”
 addPayment:“Ajouter Paiement”,editPayment:“Modifier Paiement”,payments:“Paiements”,
 noPayments:“Aucun paiement”,noSubs:“Aucun abonnement”,
 subDelConfirm:“Supprimer cet abonnement ?”,maxAmount:“Maximum”,
-confirmPlay:“Marquer comme joué ?”,confirmCancel:“Annuler cette réservation ?”,yes:“Oui”,
 },
 ar:{
 appName:“ستاد بوك”,home:“الرئيسية”,schedule:“الجدول”,earnings:“الأرباح”,settings:“الإعدادات”,
@@ -168,7 +166,6 @@ selectDays:“اختر الأيام”,subTotal:“السعر الإجمالي�
 addPayment:“إضافة دفعة”,editPayment:“تعديل الدفعة”,payments:“الدفعات”,
 noPayments:“لا توجد دفعات”,noSubs:“لا توجد اشتراكات”,
 subDelConfirm:“حذف هذا الاشتراك؟”,maxAmount:“الحد الأقصى”,
-confirmPlay:“تأكيد تشغيل المباراة؟”,confirmCancel:“إلغاء هذا الحجز؟”,yes:“نعم”,
 },
 };
 
@@ -751,8 +748,6 @@ const [subModal,setSubModal]=useState(null); // null|“new”|“edit”|“add
 const [subForm,setSubForm]=useState({name:””,phone:””,hour:10,month:new Date().getMonth(),year:new Date().getFullYear(),days:[],totalPrice:””});
 const [editPayData,setEditPayData]=useState(null);
 const [payAmount,setPayAmount]=useState(””);
-const [confirmPlay,setConfirmPlay]=useState(null); // {dk,h}
-const [confirmCancel,setConfirmCancel]=useState(null); // {dk,h}
 
 const t=T[lang],isRTL=lang===“ar”;
 const todayKey=toKey(new Date());
@@ -937,10 +932,6 @@ const NAV=[{id:“home”,icon:<HomeIcon/>,label:t.home},{id:“schedule”,icon
 const SlotCard=({h,dk})=>{
 const slot=getSlot(dk,h),isPlayed=slot?.status===“played”,isReserved=slot?.status===“reserved”;
 const isPast=!slot&&toKey(new Date(dk+“T12:00:00”))<todayKey;
-const slotDateStr=dk+“T12:00:00”;
-const slotDay=new Date(slotDateStr);slotDay.setHours(0,0,0,0);
-const todayDay=new Date();todayDay.setHours(0,0,0,0);
-const isFuture=slotDay>todayDay;
 return(
 <div style={{background:isPlayed?”#071510”:isReserved?”#0b1a13”:CARD,border:`1.5px solid ${isPlayed?G+"44":isReserved?G+"66":BORDER}`,borderRadius:14,padding:“11px 13px”,display:“flex”,alignItems:“center”,justifyContent:“space-between”,opacity:isPast?0.3:1}}>
 <div style={{display:“flex”,alignItems:“center”,gap:10}}>
@@ -959,8 +950,8 @@ return(
 <div style={{display:“flex”,gap:6,alignItems:“center”}}>
 {isPlayed?<Check size={28} color={G}/>
 :isReserved?(<>
-{!slot.subId&&<button onClick={()=>setConfirmCancel({dk,h})} style={{background:”#1f0e0e”,color:”#ff5555”,border:“1px solid #2e1414”,borderRadius:8,padding:“6px 10px”,fontWeight:700,fontSize:11}}>{t.cancel}</button>}
-<button onClick={()=>{if(isFuture)return;setConfirmPlay({dk,h});}} style={{background:G,color:G_DARK,border:“none”,borderRadius:8,padding:“6px 10px”,fontWeight:900,fontSize:11,display:“flex”,alignItems:“center”,gap:4,opacity:isFuture?0.35:1}}>
+{!slot.subId&&<button onClick={()=>cancelSlot(dk,h)} style={{background:”#1f0e0e”,color:”#ff5555”,border:“1px solid #2e1414”,borderRadius:8,padding:“6px 10px”,fontWeight:700,fontSize:11}}>{t.cancel}</button>}
+<button onClick={()=>playSlot(dk,h)} style={{background:G,color:G_DARK,border:“none”,borderRadius:8,padding:“6px 10px”,fontWeight:900,fontSize:11,display:“flex”,alignItems:“center”,gap:4}}>
 <svg width="10" height="10" viewBox="0 0 12 12" fill={G_DARK}><polygon points="2,1 11,6 2,11"/></svg>{t.play}
 </button>
 {!slot.subId&&<button onClick={()=>{setEditModal({dk,h,slot});setBookName(slot.name);setBookPhone(slot.phone);setBookPrice(String(slot.price||””));}} style={{background:”#1c2030”,color:G,border:`1px solid ${G}44`,borderRadius:8,padding:“6px 9px”,fontWeight:700,fontSize:11,display:“flex”,alignItems:“center”}}><PenIcon/></button>}
@@ -1553,35 +1544,6 @@ onFocus={e=>e.target.style.borderColor=G} onBlur={e=>e.target.style.borderColor=
       </div>
     )}
 
-    {/* Play confirmation modal */}
-    {confirmPlay&&(
-      <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.88)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:99,padding:20}} onClick={()=>setConfirmPlay(null)}>
-        <div onClick={e=>e.stopPropagation()} style={{background:CARD,borderRadius:20,padding:"28px 24px",width:"100%",maxWidth:340,border:`1px solid ${G}44`,animation:"popIn 0.2s ease"}}>
-          <div style={{fontSize:32,textAlign:"center",marginBottom:14}}>▶️</div>
-          <div style={{fontWeight:900,fontSize:16,color:"#fff",textAlign:"center",marginBottom:8}}>{t.confirmPlay}</div>
-          <div style={{fontSize:13,color:"#555",textAlign:"center",marginBottom:24}}>{fmt24(confirmPlay.h)}</div>
-          <div style={{display:"flex",gap:10}}>
-            <button onClick={()=>setConfirmPlay(null)} style={{flex:1,background:"#1c2030",color:"#888",border:"none",borderRadius:12,padding:"13px",fontWeight:700,fontSize:14}}>{t.cancel}</button>
-            <button onClick={()=>{playSlot(confirmPlay.dk,confirmPlay.h);setConfirmPlay(null);}} style={{flex:1,background:G,color:"#001a0e",border:"none",borderRadius:12,padding:"13px",fontWeight:900,fontSize:14}}>{t.yes}</button>
-          </div>
-        </div>
-      </div>
-    )}
-
-    {/* Cancel confirmation modal */}
-    {confirmCancel&&(
-      <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.88)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:99,padding:20}} onClick={()=>setConfirmCancel(null)}>
-        <div onClick={e=>e.stopPropagation()} style={{background:CARD,borderRadius:20,padding:"28px 24px",width:"100%",maxWidth:340,border:"1px solid #2e1414",animation:"popIn 0.2s ease"}}>
-          <div style={{fontSize:32,textAlign:"center",marginBottom:14}}>⚠️</div>
-          <div style={{fontWeight:900,fontSize:16,color:"#fff",textAlign:"center",marginBottom:8}}>{t.confirmCancel}</div>
-          <div style={{fontSize:13,color:"#555",textAlign:"center",marginBottom:24}}>{fmt24(confirmCancel.h)}</div>
-          <div style={{display:"flex",gap:10}}>
-            <button onClick={()=>setConfirmCancel(null)} style={{flex:1,background:"#1c2030",color:"#888",border:"none",borderRadius:12,padding:"13px",fontWeight:700,fontSize:14}}>{t.cancel}</button>
-            <button onClick={()=>{cancelSlot(confirmCancel.dk,confirmCancel.h);setConfirmCancel(null);}} style={{flex:1,background:"#1f0e0e",color:"#ff5555",border:"1px solid #2e1414",borderRadius:12,padding:"13px",fontWeight:900,fontSize:14}}>{t.yes}</button>
-          </div>
-        </div>
-      </div>
-    )}
   </div>
 </>
 ```
