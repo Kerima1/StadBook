@@ -871,6 +871,25 @@ const nb={…bookings,[todayK]:{…(bookings[todayK]||{}),[“sub_”+newPayment
 await saveBookings(nb);
 },[subsData,saveSubs,bookings,saveBookings]);
 
+// Delete subscription and all its booking slots
+const deleteSubAndSlots=useCallback(async(subId)=>{
+const sub=subsData.find(s=>s.id===subId);
+if(!sub) return;
+let nb={…bookings};
+// Remove slots linked to this sub
+const newNb={};
+for(const dk of Object.keys(nb)){
+const daySlots={};
+for(const h of Object.keys(nb[dk])){
+if(nb[dk][h].subId!==subId) daySlots[h]=nb[dk][h];
+}
+newNb[dk]=daySlots;
+}
+await saveBookings(newNb);
+await saveSubs(subsData.filter(s=>s.id!==subId));
+setSubsView(“list”);setActiveSubId(null);setSubModal(null);
+},[subsData,bookings,saveBookings,saveSubs]);
+
 // Edit sub payment
 const editSubPayment=useCallback(async(subId,payId,newAmount)=>{
 const sub=subsData.find(s=>s.id===subId);
@@ -918,6 +937,10 @@ const NAV=[{id:“home”,icon:<HomeIcon/>,label:t.home},{id:“schedule”,icon
 const SlotCard=({h,dk})=>{
 const slot=getSlot(dk,h),isPlayed=slot?.status===“played”,isReserved=slot?.status===“reserved”;
 const isPast=!slot&&toKey(new Date(dk+“T12:00:00”))<todayKey;
+const slotDateStr=dk+“T12:00:00”;
+const slotDay=new Date(slotDateStr);slotDay.setHours(0,0,0,0);
+const todayDay=new Date();todayDay.setHours(0,0,0,0);
+const isFuture=slotDay>todayDay;
 return(
 <div style={{background:isPlayed?”#071510”:isReserved?”#0b1a13”:CARD,border:`1.5px solid ${isPlayed?G+"44":isReserved?G+"66":BORDER}`,borderRadius:14,padding:“11px 13px”,display:“flex”,alignItems:“center”,justifyContent:“space-between”,opacity:isPast?0.3:1}}>
 <div style={{display:“flex”,alignItems:“center”,gap:10}}>
@@ -937,7 +960,7 @@ return(
 {isPlayed?<Check size={28} color={G}/>
 :isReserved?(<>
 {!slot.subId&&<button onClick={()=>setConfirmCancel({dk,h})} style={{background:”#1f0e0e”,color:”#ff5555”,border:“1px solid #2e1414”,borderRadius:8,padding:“6px 10px”,fontWeight:700,fontSize:11}}>{t.cancel}</button>}
-<button onClick={()=>{const slotDate=new Date(dk+“T12:00:00”);const today=new Date();today.setHours(0,0,0,0);slotDate.setHours(0,0,0,0);if(slotDate>today)return;setConfirmPlay({dk,h});}} style={{background:G,color:G_DARK,border:“none”,borderRadius:8,padding:“6px 10px”,fontWeight:900,fontSize:11,display:“flex”,alignItems:“center”,gap:4,opacity:(()=>{const slotDate=new Date(dk+“T12:00:00”);const today=new Date();today.setHours(0,0,0,0);slotDate.setHours(0,0,0,0);return slotDate>today?0.35:1;})()}}>
+<button onClick={()=>{if(isFuture)return;setConfirmPlay({dk,h});}} style={{background:G,color:G_DARK,border:“none”,borderRadius:8,padding:“6px 10px”,fontWeight:900,fontSize:11,display:“flex”,alignItems:“center”,gap:4,opacity:isFuture?0.35:1}}>
 <svg width="10" height="10" viewBox="0 0 12 12" fill={G_DARK}><polygon points="2,1 11,6 2,11"/></svg>{t.play}
 </button>
 {!slot.subId&&<button onClick={()=>{setEditModal({dk,h,slot});setBookName(slot.name);setBookPhone(slot.phone);setBookPrice(String(slot.price||””));}} style={{background:”#1c2030”,color:G,border:`1px solid ${G}44`,borderRadius:8,padding:“6px 9px”,fontWeight:700,fontSize:11,display:“flex”,alignItems:“center”}}><PenIcon/></button>}
@@ -1316,22 +1339,7 @@ if(subsView==="detail"&&activeSub){
             <div style={{fontSize:13,color:"#ff5555",textAlign:"center",marginBottom:24}}>{activeSub.name}</div>
             <div style={{display:"flex",gap:10}}>
               <button onClick={()=>setSubModal(null)} style={{flex:1,background:"#1c2030",color:"#888",border:"none",borderRadius:12,padding:"13px",fontWeight:700,fontSize:14}}>{t.cancel}</button>
-              <button onClick={async()=>{
-                // Remove all booking slots linked to this sub
-                let nb={...bookings};
-                for(const [dk,slots] of Object.entries(nb)){
-                  const filtered=Object.fromEntries(Object.entries(slots).filter(([,s])=>s.subId!==activeSubId));
-                  nb={...nb,[dk]:filtered};
-                }
-                // Also remove sub payment entries
-                for(const [dk,slots] of Object.entries(nb)){
-                  const filtered=Object.fromEntries(Object.entries(slots).filter(([k])=>!k.startsWith("sub_")||true));
-                  nb={...nb,[dk]:filtered};
-                }
-                await saveBookings(nb);
-                await saveSubs(subsData.filter(s=>s.id!==activeSubId));
-                setSubsView("list");setActiveSubId(null);setSubModal(null);
-              }} style={{flex:1,background:"#1f0e0e",color:"#ff5555",border:"1px solid #2e1414",borderRadius:12,padding:"13px",fontWeight:900,fontSize:14}}>🗑️</button>
+              <button onClick={()=>deleteSubAndSlots(activeSubId)} style={{flex:1,background:"#1f0e0e",color:"#ff5555",border:"1px solid #2e1414",borderRadius:12,padding:"13px",fontWeight:900,fontSize:14}}>🗑️</button>
             </div>
           </div>
         </div>
