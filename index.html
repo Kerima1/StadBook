@@ -776,6 +776,11 @@ function StadBookApp({lang,setLang,user,uid}){
   const [payAmount,setPayAmount]=useState("");
   const [confirmPlaySlot,setConfirmPlaySlot]=useState(null); // {dk,h}
   const [confirmCancelSlot,setConfirmCancelSlot]=useState(null); // {dk,h}
+  const [earnMainTab,setEarnMainTab]=useState("matches"); // matches|subs|total
+  const [earnSubTab2,setEarnSubTab2]=useState("month"); // month|all
+  const [monthDetailMatches,setMonthDetailMatches]=useState(null);
+  const [monthDetailSubs,setMonthDetailSubs]=useState(null);
+  const [monthDetailTotal,setMonthDetailTotal]=useState(null);
 
   const t=T[lang],isRTL=lang==="ar";
   const todayKey=toKey(new Date());
@@ -994,7 +999,23 @@ function StadBookApp({lang,setLang,user,uid}){
     setBookName("");setBookPhone("");setBookPrice("");setEditModal(null);
   };
 
-  const cancelSlot=async(dk,h)=>{const day={...(bookings[dk]||{})};delete day[h];await saveBookings({...bookings,[dk]:day});};
+  const cancelSlot=async(dk,h)=>{
+    await db.collection("bookings").doc(uid).update({
+      [`data.${dk}.${h}`]: firebase.firestore.FieldValue.delete()
+    }).catch(()=>{});
+    const day={...(bookings[dk]||{})};
+    delete day[h];
+    const nb={...bookings};
+    if(Object.keys(day).length===0){
+      delete nb[dk];
+      await db.collection("bookings").doc(uid).update({
+        [`data.${dk}`]: firebase.firestore.FieldValue.delete()
+      }).catch(()=>{});
+    } else {
+      nb[dk]=day;
+    }
+    setBookings(nb);
+  };
   const playSlot=async(dk,h)=>await saveBookings({...bookings,[dk]:{...(bookings[dk]||{}),[h]:{...bookings[dk][h],status:"played"}}});
   const goToDay=d=>{setSelectedDate(new Date(d));setCalView("day");setTab("schedule");};
 
@@ -1141,20 +1162,46 @@ function StadBookApp({lang,setLang,user,uid}){
     );
   };
 
-  const EarningsTab=()=>{
+const EarningsTab=()=>{
     const now=new Date(),curYr=now.getFullYear(),curMo=now.getMonth();
-    const total=useMemo(()=>{let s=0;for(const dk of Object.keys(bookings))for(const x of Object.values(bookings[dk]))if(x.status==="played")s+=(x.price||0);return s;},[bookings]);
-    const monthE=useMemo(()=>{let s=0;for(const [dk,slots] of Object.entries(bookings)){const d=new Date(dk+"T12:00:00");if(d.getFullYear()===curYr&&d.getMonth()===curMo)for(const x of Object.values(slots))if(x.status==="played")s+=(x.price||0);}return s;},[bookings]);
-    const curMonthDays=Object.entries(bookings).filter(([dk])=>{const d=new Date(dk+"T12:00:00");return d.getFullYear()===curYr&&d.getMonth()===curMo&&Object.entries(bookings[dk]).some(([k,s])=>!isNaN(Number(k))&&s.status==="played");}).sort(([a],[b])=>b.localeCompare(a));
-    const allMonths=useMemo(()=>{const map={};for(const [dk,slots] of Object.entries(bookings)){const d=new Date(dk+"T12:00:00");const key=`${d.getFullYear()}-${d.getMonth()}`;if(!map[key])map[key]={year:d.getFullYear(),month:d.getMonth(),earned:0,count:0};for(const [k,x] of Object.entries(slots))if(x.status==="played"){map[key].earned+=(x.price||0);if(!isNaN(Number(k)))map[key].count++;}}return Object.values(map).sort((a,b)=>b.year-a.year||b.month-a.month);},[bookings]);
 
-    if(monthDetail){
-      const {year:my,month:mm}=monthDetail;
-      const days=Object.entries(bookings).filter(([dk])=>{const d=new Date(dk+"T12:00:00");return d.getFullYear()===my&&d.getMonth()===mm&&Object.values(bookings[dk]).some(s=>s.status==="played");}).sort(([a],[b])=>b.localeCompare(a));
-      const mTotal=days.reduce((s,[,sl])=>s+Object.values(sl).filter(x=>x.status==="played").reduce((a,x)=>a+(x.price||0),0),0);
+    // ── MATCHES DATA ──
+    const matchTodayE=useMemo(()=>Object.values(bookings[todayKey]||{}).filter(s=>s.status==="played"&&!s.subId).reduce((a,s)=>a+(s.price||0),0),[bookings,todayKey]);
+    const matchMonthE=useMemo(()=>{let s=0;for(const [dk,slots] of Object.entries(bookings)){const d=new Date(dk+"T12:00:00");if(d.getFullYear()===curYr&&d.getMonth()===curMo)for(const x of Object.values(slots))if(x.status==="played"&&!x.subId)s+=(x.price||0);}return s;},[bookings]);
+    const matchAllE=useMemo(()=>{let s=0;for(const dk of Object.keys(bookings))for(const x of Object.values(bookings[dk]))if(x.status==="played"&&!x.subId)s+=(x.price||0);return s;},[bookings]);
+    const matchCurMonthDays=Object.entries(bookings).filter(([dk])=>{const d=new Date(dk+"T12:00:00");return d.getFullYear()===curYr&&d.getMonth()===curMo&&Object.values(bookings[dk]).some(s=>s.status==="played"&&!s.subId);}).sort(([a],[b])=>b.localeCompare(a));
+    const matchAllMonths=useMemo(()=>{const map={};for(const [dk,slots] of Object.entries(bookings)){const d=new Date(dk+"T12:00:00");const key=`${d.getFullYear()}-${d.getMonth()}`;if(!map[key])map[key]={year:d.getFullYear(),month:d.getMonth(),earned:0,count:0};for(const x of Object.values(slots))if(x.status==="played"&&!x.subId){map[key].earned+=(x.price||0);map[key].count++;}}return Object.values(map).sort((a,b)=>b.year-a.year||b.month-a.month);},[bookings]);
+
+    // ── SUBS DATA ──
+    const subTodayE=useMemo(()=>subsData.reduce((a,s)=>a+s.payments.filter(p=>p.date===todayKey).reduce((b,p)=>b+(Number(p.amount)||0),0),0),[subsData,todayKey]);
+    const subMonthE=useMemo(()=>subsData.reduce((a,s)=>a+s.payments.filter(p=>{const d=new Date(p.date+"T12:00:00");return d.getFullYear()===curYr&&d.getMonth()===curMo;}).reduce((b,p)=>b+(Number(p.amount)||0),0),0),[subsData]);
+    const subAllE=useMemo(()=>subsData.reduce((a,s)=>a+s.payments.reduce((b,p)=>b+(Number(p.amount)||0),0),0),[subsData]);
+    const subAllMonths=useMemo(()=>{const map={};for(const s of subsData)for(const p of s.payments){const d=new Date(p.date+"T12:00:00");const key=`${d.getFullYear()}-${d.getMonth()}`;if(!map[key])map[key]={year:d.getFullYear(),month:d.getMonth(),earned:0,payments:[]};map[key].earned+=(Number(p.amount)||0);map[key].payments.push({...p,subName:s.name});}return Object.values(map).sort((a,b)=>b.year-a.year||b.month-a.month);},[subsData]);
+    const subCurMonthPayments=subsData.flatMap(s=>s.payments.filter(p=>{const d=new Date(p.date+"T12:00:00");return d.getFullYear()===curYr&&d.getMonth()===curMo;}).map(p=>({...p,subName:s.name}))).sort((a,b)=>b.date.localeCompare(a.date));
+    // group sub payments by date
+    const subCurMonthByDay=subCurMonthPayments.reduce((map,p)=>{if(!map[p.date])map[p.date]=[];map[p.date].push(p);return map;},{});
+
+    // ── TOTAL DATA ──
+    const totalTodayE=matchTodayE+subTodayE;
+    const totalMonthE=matchMonthE+subMonthE;
+    const totalAllE=matchAllE+subAllE;
+
+    const statCard=(label,value,color,bg,border)=>(
+      <div style={{background:bg,borderRadius:18,padding:"20px 18px",border:`1px solid ${border}`,marginBottom:12}}>
+        <div style={{fontSize:10,color:color+"99",fontWeight:700,letterSpacing:0.8,marginBottom:8}}>{label.toUpperCase()}</div>
+        <div style={{fontSize:38,fontWeight:900,color:color,lineHeight:1}}>{value}</div>
+        <div style={{fontSize:14,color:color+"77",marginTop:4}}>{t.currency}</div>
+      </div>
+    );
+
+    // ── MONTH DETAIL VIEWS ──
+    if(monthDetailMatches){
+      const {year:my,month:mm}=monthDetailMatches;
+      const days=Object.entries(bookings).filter(([dk])=>{const d=new Date(dk+"T12:00:00");return d.getFullYear()===my&&d.getMonth()===mm&&Object.values(bookings[dk]).some(s=>s.status==="played"&&!s.subId);}).sort(([a],[b])=>b.localeCompare(a));
+      const mTotal=days.reduce((s,[,sl])=>s+Object.values(sl).filter(x=>x.status==="played"&&!x.subId).reduce((a,x)=>a+(x.price||0),0),0);
       return(
         <div style={{padding:"16px 14px 120px"}}>
-          <button onClick={()=>setMonthDetail(null)} style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:10,padding:"8px 16px",color:"#888",fontWeight:700,fontSize:13,marginBottom:16}}>← {t.allMonths}</button>
+          <button onClick={()=>setMonthDetailMatches(null)} style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:10,padding:"8px 16px",color:"#888",fontWeight:700,fontSize:13,marginBottom:16}}>←</button>
           <div style={{background:"linear-gradient(135deg,#0b2018,#0e2a1e)",borderRadius:18,padding:"20px 18px",border:`1px solid ${G}44`,marginBottom:16}}>
             <div style={{fontSize:12,color:G+"99",fontWeight:700,marginBottom:4}}>{new Date(my,mm,1).toLocaleDateString(localeStr,{month:"long",year:"numeric"}).toUpperCase()}</div>
             <div style={{fontSize:38,fontWeight:900,color:G}}>{mTotal}</div>
@@ -1162,8 +1209,8 @@ function StadBookApp({lang,setLang,user,uid}){
           </div>
           <div style={{display:"flex",flexDirection:"column",gap:8}}>
             {days.map(([dk,slots])=>{
-              const earned=Object.values(slots).filter(s=>s.status==="played").reduce((a,s)=>a+(s.price||0),0);
-              const count=Object.values(slots).filter(s=>s.status==="played").length;
+              const earned=Object.values(slots).filter(s=>s.status==="played"&&!s.subId).reduce((a,s)=>a+(s.price||0),0);
+              const count=Object.values(slots).filter(s=>s.status==="played"&&!s.subId).length;
               const d=new Date(dk+"T12:00:00");
               return(<div key={dk} style={{background:CARD,borderRadius:14,padding:"13px 15px",border:`1px solid ${BORDER}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                 <div><div style={{fontWeight:800,fontSize:14}}>{d.toLocaleDateString(localeStr,{weekday:"short",day:"numeric",month:"short"})}</div><div style={{fontSize:11,color:"#444",marginTop:2}}>{count} {t.sessions}</div></div>
@@ -1175,35 +1222,104 @@ function StadBookApp({lang,setLang,user,uid}){
       );
     }
 
-    return(
-      <div style={{padding:"16px 14px 120px"}}>
-        <div style={{display:"flex",gap:8,marginBottom:16}}>
-          {[["month",t.thisMonth],["all",t.allMonths]].map(([v,l])=>(
-            <button key={v} onClick={()=>setEarnSubTab(v)} style={{flex:1,padding:"9px 0",borderRadius:10,border:"none",fontWeight:800,fontSize:13,background:earnSubTab===v?G:CARD,color:earnSubTab===v?"#001a0e":"#555"}}>{l}</button>
-          ))}
-        </div>
-        {earnSubTab==="month"&&(<>
-          <div style={{background:"linear-gradient(135deg,#0b2018,#0e2a1e)",borderRadius:18,padding:"20px 18px",border:`1px solid ${G}44`,marginBottom:12}}>
-            <div style={{fontSize:10,color:G+"99",fontWeight:700,letterSpacing:0.8,marginBottom:8}}>{t.todayEarnings.toUpperCase()}</div>
-            <div style={{fontSize:38,fontWeight:900,color:G,lineHeight:1}}>{todayEarnings}</div>
-            <div style={{fontSize:14,color:G+"77",marginTop:4}}>{t.currency}</div>
-          </div>
-          <div style={{background:"#0e1a28",borderRadius:18,padding:"20px 18px",border:"1px solid #00b8ff44",marginBottom:12}}>
-            <div style={{fontSize:10,color:"#00b8ff99",fontWeight:700,letterSpacing:0.8,marginBottom:8}}>{t.monthEarnings.toUpperCase()}</div>
-            <div style={{fontSize:38,fontWeight:900,color:"#00b8ff",lineHeight:1}}>{monthE}</div>
+    if(monthDetailSubs){
+      const {year:my,month:mm,payments:monthPayments}=monthDetailSubs;
+      const byDay=monthPayments.reduce((map,p)=>{if(!map[p.date])map[p.date]=[];map[p.date].push(p);return map;},{});
+      const mTotal=monthPayments.reduce((a,p)=>a+(Number(p.amount)||0),0);
+      return(
+        <div style={{padding:"16px 14px 120px"}}>
+          <button onClick={()=>setMonthDetailSubs(null)} style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:10,padding:"8px 16px",color:"#888",fontWeight:700,fontSize:13,marginBottom:16}}>←</button>
+          <div style={{background:"linear-gradient(135deg,#0b1a28,#0e2240)",borderRadius:18,padding:"20px 18px",border:"1px solid #00b8ff44",marginBottom:16}}>
+            <div style={{fontSize:12,color:"#00b8ff99",fontWeight:700,marginBottom:4}}>{new Date(my,mm,1).toLocaleDateString(localeStr,{month:"long",year:"numeric"}).toUpperCase()}</div>
+            <div style={{fontSize:38,fontWeight:900,color:"#00b8ff"}}>{mTotal}</div>
             <div style={{fontSize:14,color:"#00b8ff77",marginTop:4}}>{t.currency}</div>
           </div>
-          <div style={{background:CARD,borderRadius:18,padding:"20px 18px",border:`1px solid ${BORDER}`,marginBottom:20}}>
-            <div style={{fontSize:10,color:"#444",fontWeight:700,letterSpacing:0.8,marginBottom:8}}>{t.totalEarnings.toUpperCase()}</div>
-            <div style={{fontSize:38,fontWeight:900,color:"#fff",lineHeight:1}}>{total}</div>
+          <div style={{display:"flex",flexDirection:"column",gap:8}}>
+            {Object.entries(byDay).sort(([a],[b])=>b.localeCompare(a)).map(([dk,pays])=>{
+              const d=new Date(dk+"T12:00:00");
+              const dayTotal=pays.reduce((a,p)=>a+(Number(p.amount)||0),0);
+              return(<div key={dk} style={{background:CARD,borderRadius:14,padding:"13px 15px",border:`1px solid ${BORDER}`}}>
+                <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}>
+                  <div style={{fontWeight:800,fontSize:14}}>{d.toLocaleDateString(localeStr,{weekday:"short",day:"numeric",month:"short"})}</div>
+                  <div style={{fontSize:16,fontWeight:900,color:"#00b8ff"}}>{dayTotal} <span style={{fontSize:11,color:"#444"}}>{t.currency}</span></div>
+                </div>
+                {pays.map((p,i)=><div key={i} style={{fontSize:11,color:"#555",marginTop:2}}>• {p.subName}: {p.amount} {t.currency}</div>)}
+              </div>);
+            })}
+          </div>
+        </div>
+      );
+    }
+
+    if(monthDetailTotal){
+      const {year:my,month:mm}=monthDetailTotal;
+      const matchDays=Object.entries(bookings).filter(([dk])=>{const d=new Date(dk+"T12:00:00");return d.getFullYear()===my&&d.getMonth()===mm&&Object.values(bookings[dk]).some(s=>s.status==="played"&&!s.subId);});
+      const subPays=subsData.flatMap(s=>s.payments.filter(p=>{const d=new Date(p.date+"T12:00:00");return d.getFullYear()===my&&d.getMonth()===mm;}).map(p=>({...p,subName:s.name})));
+      const allDates=[...new Set([...matchDays.map(([dk])=>dk),...subPays.map(p=>p.date)])].sort((a,b)=>b.localeCompare(a));
+      const mMatchTotal=matchDays.reduce((s,[,sl])=>s+Object.values(sl).filter(x=>x.status==="played"&&!x.subId).reduce((a,x)=>a+(x.price||0),0),0);
+      const mSubTotal=subPays.reduce((a,p)=>a+(Number(p.amount)||0),0);
+      return(
+        <div style={{padding:"16px 14px 120px"}}>
+          <button onClick={()=>setMonthDetailTotal(null)} style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:10,padding:"8px 16px",color:"#888",fontWeight:700,fontSize:13,marginBottom:16}}>←</button>
+          <div style={{background:CARD,borderRadius:18,padding:"20px 18px",border:`1px solid ${BORDER}`,marginBottom:16}}>
+            <div style={{fontSize:12,color:"#aaa",fontWeight:700,marginBottom:4}}>{new Date(my,mm,1).toLocaleDateString(localeStr,{month:"long",year:"numeric"}).toUpperCase()}</div>
+            <div style={{fontSize:38,fontWeight:900,color:"#fff"}}>{mMatchTotal+mSubTotal}</div>
             <div style={{fontSize:14,color:"#444",marginTop:4}}>{t.currency}</div>
           </div>
+          <div style={{display:"flex",flexDirection:"column",gap:8}}>
+            {allDates.map(dk=>{
+              const d=new Date(dk+"T12:00:00");
+              const mEarned=bookings[dk]?Object.values(bookings[dk]).filter(s=>s.status==="played"&&!s.subId).reduce((a,s)=>a+(s.price||0),0):0;
+              const mCount=bookings[dk]?Object.values(bookings[dk]).filter(s=>s.status==="played"&&!s.subId).length:0;
+              const sPays=subPays.filter(p=>p.date===dk);
+              const sTotal=sPays.reduce((a,p)=>a+(Number(p.amount)||0),0);
+              return(<div key={dk} style={{background:CARD,borderRadius:14,padding:"13px 15px",border:`1px solid ${BORDER}`}}>
+                <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
+                  <div style={{fontWeight:800,fontSize:14}}>{d.toLocaleDateString(localeStr,{weekday:"short",day:"numeric",month:"short"})}</div>
+                  <div style={{fontSize:16,fontWeight:900,color:"#fff"}}>{mEarned+sTotal} <span style={{fontSize:11,color:"#444"}}>{t.currency}</span></div>
+                </div>
+                {mCount>0&&<div style={{fontSize:11,color:G+"aa",marginTop:2}}>⚽ {mCount} {t.sessions}: {mEarned} {t.currency}</div>}
+                {sPays.map((p,i)=><div key={i} style={{fontSize:11,color:"#00b8ffaa",marginTop:2}}>📋 {p.subName}: {p.amount} {t.currency}</div>)}
+              </div>);
+            })}
+          </div>
+        </div>
+      );
+    }
+
+    // ── MAIN VIEW ──
+    const mainTabs=[
+      ["matches",lang==="ar"?"المباريات":lang==="fr"?"Matchs":"Matches"],
+      ["subs",lang==="ar"?"الاشتراكات":lang==="fr"?"Abonnements":"Subs"],
+      ["total","Total"],
+    ];
+
+    return(
+      <div style={{padding:"16px 14px 120px"}}>
+        {/* 3 main tabs */}
+        <div style={{display:"flex",gap:6,marginBottom:14}}>
+          {mainTabs.map(([v,l])=>(
+            <button key={v} onClick={()=>{setEarnMainTab(v);setEarnSubTab2("month");}} style={{flex:1,padding:"9px 0",borderRadius:10,border:"none",fontWeight:800,fontSize:12,background:earnMainTab===v?G:CARD,color:earnMainTab===v?"#001a0e":"#555"}}>{l}</button>
+          ))}
+        </div>
+        {/* This Month / All Months sub tabs */}
+        <div style={{display:"flex",gap:8,marginBottom:16}}>
+          {[["month",t.thisMonth],["all",t.allMonths]].map(([v,l])=>(
+            <button key={v} onClick={()=>setEarnSubTab2(v)} style={{flex:1,padding:"8px 0",borderRadius:10,border:"none",fontWeight:800,fontSize:12,background:earnSubTab2===v?"#1c2030":BG,color:earnSubTab2===v?"#fff":"#444",borderBottom:earnSubTab2===v?`2px solid ${G}`:"2px solid transparent"}}>{l}</button>
+          ))}
+        </div>
+
+        {/* ── MATCHES TAB ── */}
+        {earnMainTab==="matches"&&earnSubTab2==="month"&&(<>
+          {statCard(t.todayEarnings,matchTodayE,G,"linear-gradient(135deg,#0b2018,#0e2a1e)",G+"44")}
+          {statCard(t.monthEarnings,matchMonthE,"#00b8ff","#0e1a28","#00b8ff44")}
+          {statCard(t.totalEarnings,matchAllE,"#fff",CARD,BORDER)}
           <div style={{fontSize:11,color:"#444",fontWeight:700,letterSpacing:0.5,marginBottom:12}}>{t.history}</div>
-          {curMonthDays.length===0?<div style={{textAlign:"center",color:"#333",padding:"30px 0"}}>—</div>:(
+          {matchCurMonthDays.length===0?<div style={{textAlign:"center",color:"#333",padding:"30px 0"}}>—</div>:(
             <div style={{display:"flex",flexDirection:"column",gap:8}}>
-              {curMonthDays.map(([dk,slots])=>{
-                const earned=Object.entries(slots).filter(([k,s])=>s.status==="played").reduce((a,[,s])=>a+(s.price||0),0);
-                const count=Object.entries(slots).filter(([k,s])=>!isNaN(Number(k))&&s.status==="played").length;
+              {matchCurMonthDays.map(([dk,slots])=>{
+                const earned=Object.values(slots).filter(s=>s.status==="played"&&!s.subId).reduce((a,s)=>a+(s.price||0),0);
+                const count=Object.values(slots).filter(s=>s.status==="played"&&!s.subId).length;
                 const d=new Date(dk+"T12:00:00");
                 return(<div key={dk} style={{background:CARD,borderRadius:14,padding:"13px 15px",border:`1px solid ${BORDER}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                   <div><div style={{fontWeight:800,fontSize:14}}>{d.toLocaleDateString(localeStr,{weekday:"short",day:"numeric",month:"short"})}</div><div style={{fontSize:11,color:"#444",marginTop:2}}>{count} {t.sessions}</div></div>
@@ -1213,12 +1329,11 @@ function StadBookApp({lang,setLang,user,uid}){
             </div>
           )}
         </>)}
-        {earnSubTab==="all"&&(<>
-          <div style={{fontSize:11,color:"#444",fontWeight:700,letterSpacing:0.5,marginBottom:12}}>{t.allMonths.toUpperCase()}</div>
-          {allMonths.length===0?<div style={{textAlign:"center",color:"#333",padding:"30px 0"}}>—</div>:(
+        {earnMainTab==="matches"&&earnSubTab2==="all"&&(<>
+          {matchAllMonths.length===0?<div style={{textAlign:"center",color:"#333",padding:"30px 0"}}>—</div>:(
             <div style={{display:"flex",flexDirection:"column",gap:10}}>
-              {allMonths.map(({year:my,month:mm,earned,count})=>(
-                <button key={`${my}-${mm}`} onClick={()=>setMonthDetail({year:my,month:mm})}
+              {matchAllMonths.map(({year:my,month:mm,earned,count})=>(
+                <button key={`${my}-${mm}`} onClick={()=>setMonthDetailMatches({year:my,month:mm})}
                   style={{background:CARD,borderRadius:16,padding:"16px",border:`1px solid ${BORDER}`,display:"flex",justifyContent:"space-between",alignItems:"center",width:"100%",textAlign:"left"}}>
                   <div>
                     <div style={{fontWeight:900,fontSize:15,color:"#fff"}}>{new Date(my,mm,1).toLocaleDateString(localeStr,{month:"long",year:"numeric"})}</div>
@@ -1232,6 +1347,105 @@ function StadBookApp({lang,setLang,user,uid}){
               ))}
             </div>
           )}
+        </>)}
+
+        {/* ── SUBS TAB ── */}
+        {earnMainTab==="subs"&&earnSubTab2==="month"&&(<>
+          {statCard(t.todayEarnings,subTodayE,G,"linear-gradient(135deg,#0b2018,#0e2a1e)",G+"44")}
+          {statCard(t.monthEarnings,subMonthE,"#00b8ff","#0e1a28","#00b8ff44")}
+          {statCard(t.totalEarnings,subAllE,"#fff",CARD,BORDER)}
+          <div style={{fontSize:11,color:"#444",fontWeight:700,letterSpacing:0.5,marginBottom:12}}>{t.history}</div>
+          {Object.keys(subCurMonthByDay).length===0?<div style={{textAlign:"center",color:"#333",padding:"30px 0"}}>—</div>:(
+            <div style={{display:"flex",flexDirection:"column",gap:8}}>
+              {Object.entries(subCurMonthByDay).sort(([a],[b])=>b.localeCompare(a)).map(([dk,pays])=>{
+                const d=new Date(dk+"T12:00:00");
+                const dayTotal=pays.reduce((a,p)=>a+(Number(p.amount)||0),0);
+                return(<div key={dk} style={{background:CARD,borderRadius:14,padding:"13px 15px",border:`1px solid ${BORDER}`}}>
+                  <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
+                    <div style={{fontWeight:800,fontSize:14}}>{d.toLocaleDateString(localeStr,{weekday:"short",day:"numeric",month:"short"})}</div>
+                    <div style={{fontSize:16,fontWeight:900,color:"#00b8ff"}}>{dayTotal} <span style={{fontSize:11,color:"#444"}}>{t.currency}</span></div>
+                  </div>
+                  {pays.map((p,i)=><div key={i} style={{fontSize:11,color:"#555",marginTop:2}}>• {p.subName}: {p.amount} {t.currency}</div>)}
+                </div>);
+              })}
+            </div>
+          )}
+        </>)}
+        {earnMainTab==="subs"&&earnSubTab2==="all"&&(<>
+          {subAllMonths.length===0?<div style={{textAlign:"center",color:"#333",padding:"30px 0"}}>—</div>:(
+            <div style={{display:"flex",flexDirection:"column",gap:10}}>
+              {subAllMonths.map(({year:my,month:mm,earned,payments:pays})=>(
+                <button key={`${my}-${mm}`} onClick={()=>setMonthDetailSubs({year:my,month:mm,payments:pays})}
+                  style={{background:CARD,borderRadius:16,padding:"16px",border:`1px solid ${BORDER}`,display:"flex",justifyContent:"space-between",alignItems:"center",width:"100%",textAlign:"left"}}>
+                  <div>
+                    <div style={{fontWeight:900,fontSize:15,color:"#fff"}}>{new Date(my,mm,1).toLocaleDateString(localeStr,{month:"long",year:"numeric"})}</div>
+                    <div style={{fontSize:11,color:"#444",marginTop:2}}>{pays.length} {t.payments}</div>
+                  </div>
+                  <div style={{display:"flex",alignItems:"center",gap:8}}>
+                    <div style={{fontSize:20,fontWeight:900,color:"#00b8ff"}}>{earned} <span style={{fontSize:11,color:"#444"}}>{t.currency}</span></div>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#444" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </>)}
+
+        {/* ── TOTAL TAB ── */}
+        {earnMainTab==="total"&&earnSubTab2==="month"&&(<>
+          {statCard(t.todayEarnings,totalTodayE,G,"linear-gradient(135deg,#0b2018,#0e2a1e)",G+"44")}
+          {statCard(t.monthEarnings,totalMonthE,"#00b8ff","#0e1a28","#00b8ff44")}
+          {statCard(t.totalEarnings,totalAllE,"#fff",CARD,BORDER)}
+          <div style={{fontSize:11,color:"#444",fontWeight:700,letterSpacing:0.5,marginBottom:12}}>{t.history}</div>
+          {(()=>{
+            const allDates=[...new Set([...matchCurMonthDays.map(([dk])=>dk),...Object.keys(subCurMonthByDay)])].sort((a,b)=>b.localeCompare(a));
+            if(allDates.length===0)return<div style={{textAlign:"center",color:"#333",padding:"30px 0"}}>—</div>;
+            return(<div style={{display:"flex",flexDirection:"column",gap:8}}>
+              {allDates.map(dk=>{
+                const d=new Date(dk+"T12:00:00");
+                const mEarned=bookings[dk]?Object.values(bookings[dk]).filter(s=>s.status==="played"&&!s.subId).reduce((a,s)=>a+(s.price||0),0):0;
+                const mCount=bookings[dk]?Object.values(bookings[dk]).filter(s=>s.status==="played"&&!s.subId).length:0;
+                const sPays=subCurMonthByDay[dk]||[];
+                const sTotal=sPays.reduce((a,p)=>a+(Number(p.amount)||0),0);
+                return(<div key={dk} style={{background:CARD,borderRadius:14,padding:"13px 15px",border:`1px solid ${BORDER}`}}>
+                  <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
+                    <div style={{fontWeight:800,fontSize:14}}>{d.toLocaleDateString(localeStr,{weekday:"short",day:"numeric",month:"short"})}</div>
+                    <div style={{fontSize:16,fontWeight:900,color:"#fff"}}>{mEarned+sTotal} <span style={{fontSize:11,color:"#444"}}>{t.currency}</span></div>
+                  </div>
+                  {mCount>0&&<div style={{fontSize:11,color:G+"aa",marginTop:2}}>⚽ {mCount} {t.sessions}: {mEarned} {t.currency}</div>}
+                  {sPays.map((p,i)=><div key={i} style={{fontSize:11,color:"#00b8ffaa",marginTop:2}}>📋 {p.subName}: {p.amount} {t.currency}</div>)}
+                </div>);
+              })}
+            </div>);
+          })()}
+        </>)}
+        {earnMainTab==="total"&&earnSubTab2==="all"&&(<>
+          {(()=>{
+            const allMonthKeys=[...new Set([...matchAllMonths.map(m=>`${m.year}-${m.month}`),...subAllMonths.map(m=>`${m.year}-${m.month}`)])].sort((a,b)=>b.localeCompare(a));
+            if(allMonthKeys.length===0)return<div style={{textAlign:"center",color:"#333",padding:"30px 0"}}>—</div>;
+            return(<div style={{display:"flex",flexDirection:"column",gap:10}}>
+              {allMonthKeys.map(key=>{
+                const [yr,mo]=key.split("-").map(Number);
+                const mData=matchAllMonths.find(m=>m.year===yr&&m.month===mo);
+                const sData=subAllMonths.find(m=>m.year===yr&&m.month===mo);
+                const total=(mData?.earned||0)+(sData?.earned||0);
+                return(
+                  <button key={key} onClick={()=>setMonthDetailTotal({year:yr,month:mo})}
+                    style={{background:CARD,borderRadius:16,padding:"16px",border:`1px solid ${BORDER}`,display:"flex",justifyContent:"space-between",alignItems:"center",width:"100%",textAlign:"left"}}>
+                    <div>
+                      <div style={{fontWeight:900,fontSize:15,color:"#fff"}}>{new Date(yr,mo,1).toLocaleDateString(localeStr,{month:"long",year:"numeric"})}</div>
+                      {mData&&<div style={{fontSize:10,color:G+"88",marginTop:2}}>⚽ {mData.earned} {t.currency}</div>}
+                      {sData&&<div style={{fontSize:10,color:"#00b8ff88",marginTop:1}}>📋 {sData.earned} {t.currency}</div>}
+                    </div>
+                    <div style={{display:"flex",alignItems:"center",gap:8}}>
+                      <div style={{fontSize:20,fontWeight:900,color:"#fff"}}>{total} <span style={{fontSize:11,color:"#444"}}>{t.currency}</span></div>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#444" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>);
+          })()}
         </>)}
       </div>
     );
@@ -1363,7 +1577,7 @@ function StadBookApp({lang,setLang,user,uid}){
                 <div style={{fontWeight:900,fontSize:18,marginBottom:20,color:"#fff"}}>{t.addPayment}</div>
                 <div style={{marginBottom:8}}>
                   <div style={{fontSize:10,color:"#555",fontWeight:700,marginBottom:6}}>{t.subTotal.toUpperCase()} ({t.currency})</div>
-                  <input defaultValue={payAmount} onChange={e=>setPayAmount(e.target.value.replace(/[^0-9]/g,""))} inputMode="numeric" pattern="[0-9]*"
+                  <input id="addPayInput" defaultValue="" inputMode="numeric" pattern="[0-9]*" onInput={e=>{e.target.value=e.target.value.replace(/[^0-9]/g,"");}}
                     style={{width:"100%",background:BG,border:`2px solid ${BORDER}`,borderRadius:12,padding:"13px 15px",color:"#fff",fontSize:15}}
                     onFocus={e=>e.target.style.borderColor=G} onBlur={e=>e.target.style.borderColor=BORDER}/>
                   <div style={{fontSize:11,color:"#444",marginTop:4}}>{t.maxAmount}: {remaining} {t.currency}</div>
@@ -1371,8 +1585,8 @@ function StadBookApp({lang,setLang,user,uid}){
                 <div style={{display:"flex",gap:10,marginTop:20}}>
                   <button onClick={()=>setSubModal(null)} style={{flex:1,background:"#1c2030",color:"#666",border:"none",borderRadius:12,padding:14,fontWeight:700,fontSize:14}}>{t.cancel}</button>
                   <button onClick={()=>{
-                    const amt=Number(payAmount);
-                    if(!payAmount||amt<=0||amt>remaining) return;
+                    const amt=Number(document.getElementById("addPayInput")?.value||0);
+                    if(!amt||amt<=0||amt>remaining) return;
                     addSubPayment(activeSubId,amt);
                     setSubModal(null);setPayAmount("");
                   }} style={{flex:2,background:G,color:"#001a0e",border:"none",borderRadius:12,padding:14,fontWeight:900,fontSize:15}}>{t.confirm}</button>
@@ -1388,16 +1602,17 @@ function StadBookApp({lang,setLang,user,uid}){
                 <div style={{fontWeight:900,fontSize:18,marginBottom:20,color:"#fff"}}>{t.editPayment}</div>
                 <div style={{marginBottom:20}}>
                   <div style={{fontSize:10,color:"#555",fontWeight:700,marginBottom:6}}>{t.subTotal.toUpperCase()} ({t.currency})</div>
-                  <input defaultValue={editPayData.amount} onChange={e=>setEditPayData(p=>({...p,amount:e.target.value.replace(/[^0-9]/g,"")}))} inputMode="numeric" pattern="[0-9]*"
+                  <input id="editPayInput" defaultValue={editPayData.amount} inputMode="numeric" pattern="[0-9]*" onInput={e=>{e.target.value=e.target.value.replace(/[^0-9]/g,"");}}
                     style={{width:"100%",background:BG,border:`2px solid ${BORDER}`,borderRadius:12,padding:"13px 15px",color:"#fff",fontSize:15}}
                     onFocus={e=>e.target.style.borderColor=G} onBlur={e=>e.target.style.borderColor=BORDER}/>
                 </div>
                 <div style={{display:"flex",gap:10}}>
                   <button onClick={()=>setSubModal(null)} style={{flex:1,background:"#1c2030",color:"#666",border:"none",borderRadius:12,padding:14,fontWeight:700,fontSize:14}}>{t.cancel}</button>
                   <button onClick={()=>{
+                    const val=document.getElementById("editPayInput")?.value||"";
                     const otherPaid=(activeSub.payments||[]).filter(p=>p.id!==editPayData.id).reduce((a,p)=>a+(Number(p.amount)||0),0);
-                    if(!editPayData.amount||Number(editPayData.amount)<=0||otherPaid+Number(editPayData.amount)>activeSub.totalPrice) return;
-                    editSubPayment(activeSubId,editPayData.id,Number(editPayData.amount));
+                    if(!val||Number(val)<=0||otherPaid+Number(val)>activeSub.totalPrice) return;
+                    editSubPayment(activeSubId,editPayData.id,Number(val));
                     setSubModal(null);setEditPayData(null);
                   }} style={{flex:2,background:G,color:"#001a0e",border:"none",borderRadius:12,padding:14,fontWeight:900,fontSize:15}}>{t.save}</button>
                 </div>
@@ -1443,7 +1658,20 @@ db.collection("bookings").doc(uid).update({
                   setSubForm(newData);
                 }} t={t} lang={lang} bookedDays={getBookedDaysForHour(subForm.hour,subForm.month,subForm.year,activeSub?.id)} playedDays={getPlayedDaysForSub(activeSub)} key="edit-sub-form"/>
                 <div style={{display:"flex",gap:10,marginTop:20}}>
-                  <button onClick={()=>setSubModal(null)} style={{flex:1,background:"#1c2030",color:"#666",border:"none",borderRadius:12,padding:14,fontWeight:700,fontSize:14}}>{t.cancel}</button>
+				<button onClick={async()=>{
+                    const originalDays=activeSub.days||[];
+                    const currentDays=subForm.days||[];
+                    const removedDays=originalDays.filter(d=>!currentDays.includes(d));
+                    if(removedDays.length>0){
+                      let nb={...bookings};
+                      for(const day of removedDays){
+                        const dk=`${activeSub.year}-${String(activeSub.month+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+                        nb={...nb,[dk]:{...(nb[dk]||{}),[activeSub.hour]:{name:activeSub.name,phone:activeSub.phone,price:0,status:"reserved",subId:activeSub.id}}};
+                      }
+                      await saveBookings(nb);
+                    }
+                    setSubModal(null);
+                  }} style={{flex:1,background:"#1c2030",color:"#666",border:"none",borderRadius:12,padding:14,fontWeight:700,fontSize:14}}>{t.cancel}</button>
                   <button onClick={()=>{
                     const updated={...activeSub,...subForm,totalPrice:Number(subForm.totalPrice)};
                     const newList=subsData.map(s=>s.id===activeSubId?updated:s);
@@ -1511,19 +1739,19 @@ db.collection("bookings").doc(uid).update({
       <div style={{padding:"16px 14px 120px"}}>
         {(()=>{
           const now=new Date(),curYr=now.getFullYear(),curMo=now.getMonth();
-          const curMonthSubEarnings=subsData.reduce((total,s)=>total+s.payments.filter(p=>{const d=new Date(p.date+"T12:00:00");return d.getFullYear()===curYr&&d.getMonth()===curMo;}).reduce((a,p)=>a+(Number(p.amount)||0),0),0);
-          const totalSubEarnings=subsData.reduce((total,s)=>total+s.payments.reduce((a,p)=>a+(Number(p.amount)||0),0),0);
+          const todaySubEarnings=subsData.reduce((total,s)=>total+s.payments.filter(p=>p.date===toKey(new Date())).reduce((a,p)=>a+(Number(p.amount)||0),0),0);
+          const curMonthSubCount=subsData.filter(s=>s.month===curMo&&s.year===curYr).length;
           return(
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14}}>
               <div style={{background:"#0b2018",borderRadius:14,padding:"12px 14px",border:`1px solid ${G}44`}}>
-                <div style={{fontSize:9,color:G+"99",fontWeight:700,letterSpacing:0.5,marginBottom:6}}>{(lang==="ar"?"اشتراكات هذا الشهر":lang==="fr"?"Abonnements Ce Mois":"Subs This Month").toUpperCase()}</div>
-                <div style={{fontSize:22,fontWeight:900,color:G}}>{curMonthSubEarnings}</div>
+                <div style={{fontSize:9,color:G+"99",fontWeight:700,letterSpacing:0.5,marginBottom:6}}>{(lang==="ar"?"اشتراكات اليوم":lang==="fr"?"Abonnements Aujourd'hui":"Subs Today").toUpperCase()}</div>
+                <div style={{fontSize:22,fontWeight:900,color:G}}>{todaySubEarnings}</div>
                 <div style={{fontSize:10,color:G+"77",marginTop:2}}>{t.currency}</div>
               </div>
               <div style={{background:CARD,borderRadius:14,padding:"12px 14px",border:`1px solid ${BORDER}`}}>
-                <div style={{fontSize:9,color:"#444",fontWeight:700,letterSpacing:0.5,marginBottom:6}}>{(lang==="ar"?"إجمالي الاشتراكات":lang==="fr"?"Total Abonnements":"Total Subs").toUpperCase()}</div>
-                <div style={{fontSize:22,fontWeight:900,color:"#fff"}}>{totalSubEarnings}</div>
-                <div style={{fontSize:10,color:"#444",marginTop:2}}>{t.currency}</div>
+                <div style={{fontSize:9,color:"#444",fontWeight:700,letterSpacing:0.5,marginBottom:6}}>{(lang==="ar"?"اشتراكات الشهر":lang==="fr"?"Abonnements Ce Mois":"Subs This Month").toUpperCase()}</div>
+                <div style={{fontSize:22,fontWeight:900,color:"#fff"}}>{curMonthSubCount}</div>
+                <div style={{fontSize:10,color:"#444",marginTop:2}}>{lang==="ar"?"اشتراك":lang==="fr"?"abonnements":"subs"}</div>
               </div>
             </div>
           );
