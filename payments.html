@@ -1,14 +1,13 @@
 <!DOCTYPE html>
-
 <html lang="fr">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
 <meta name="theme-color" content="#0D0F18"/>
-<link rel="apple-touch-icon" href="apple-touch-icon.png"/>
+<link rel="apple-touch-icon" href="apple-touch-icon.png"/> 
 <link rel="icon" type="image/svg+xml" href="icon.svg"/>
 <link rel="shortcut icon" href="apple-touch-icon.png"/>
-<!-- v3 --><title>StadBook -- Paiements</title>
+<title>StadBook — Paiements</title>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
@@ -23,8 +22,6 @@ input,button{font-family:inherit;outline:none;}
 button{cursor:pointer;}
 ::-webkit-scrollbar{width:0;}
 @keyframes spin{to{transform:rotate(360deg);}}
-@keyframes popIn{0%{opacity:0;transform:scale(0.88);}100%{opacity:1;transform:scale(1);}}
-@keyframes slideUp{0%{opacity:0;transform:translateY(50px);}100%{opacity:1;transform:translateY(0);}}
 </style>
 </head>
 <body>
@@ -46,799 +43,297 @@ const {useState,useEffect}=React;
 const G="#00D48A",BG="#0D0F18",CARD="#111420",BORDER="#1c2030";
 const ADMIN_EMAIL="fatimetousidiboba@gmail.com";
 
-// SVG ICONS
-const IconEdit=({size=13,color=G})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>;
-const IconTrash=({size=13,color=”#ff5555”})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>;
-const IconPlus=({size=13,color=G})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>;
-const IconCheck=({size=13,color=G})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="4 13 9 18 20 6"/></svg>;
-const IconChevron=({size=13,color=”#555”,up=false})=><svg width={size} height={size} viewBox=“0 0 24 24” fill=“none” stroke={color} strokeWidth=“2.5” strokeLinecap=“round” strokeLinejoin=“round” style={{transform:up?“rotate(180deg)”:“rotate(0deg)”,transition:“transform 0.2s”,display:“block”}}><polyline points="6 9 12 15 18 9"/></svg>;
-const IconUsers=({size=13,color=G})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>;
-const IconUser=({size=13,color=G})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>;
-const IconSearch=({size=13,color=”#555”})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>;
-const IconPhone=({size=12,color=”#444”})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.08 1.18 2 2 0 012.06.08h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>;
-const IconMoney=({size=15,color=G})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>;
-const IconWarn=({size=36,color=”#ff5555”})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>;
-const IconUndo=({size=36,color=”#ff9944”})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>;
-const IconHandshake=({size=36,color=G})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>;
-const IconSquare=({size=15,color=”#555”})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/></svg>;
-const IconCheckSq=({size=15,color=G})=><svg width={size} height={size} viewBox=“0 0 24 24” fill={color+“22”} stroke={color} strokeWidth=“2” strokeLinecap=“round” strokeLinejoin=“round”><rect x="3" y="3" width="18" height="18" rx="3"/><polyline points="9 12 11 14 15 10" stroke={color} strokeWidth="2.5"/></svg>;
-
-// APP LOGO (same as index.html login)
-const AppLogo=()=>(
-<svg width="64" height="64" viewBox="0 0 200 200" style={{marginBottom:8}}>
-<rect width="200" height="200" rx="44" fill="#060810"/>
-<ellipse cx="100" cy="88" rx="78" ry="55" fill="none" stroke={G} strokeWidth="3"/>
-<ellipse cx="100" cy="88" rx="62" ry="41" fill="#0a2010" stroke={G} strokeWidth="1.5" opacity="0.8"/>
-<circle cx="100" cy="88" r="16" fill="none" stroke={G} strokeWidth="1.5" opacity="0.7"/>
-<circle cx="100" cy="88" r="3" fill={G}/>
-<line x1="38" y1="88" x2="162" y2="88" stroke={G} strokeWidth="1.5" opacity="0.6"/>
-<rect x="38" y="77" width="20" height="22" fill="none" stroke={G} strokeWidth="1.2" opacity="0.6"/>
-<rect x="142" y="77" width="20" height="22" fill="none" stroke={G} strokeWidth="1.2" opacity="0.6"/>
-<circle cx="100" cy="158" r="20" fill="white"/>
-<polygon points="100,139 108,145 106,154 94,154 92,145" fill="#111"/>
-<polygon points="117,151 119,160 112,166 105,162 107,154" fill="#111"/>
-<polygon points="83,151 81,160 88,166 95,162 93,154" fill="#111"/>
-<circle cx="100" cy="158" r="20" fill="none" stroke={G} strokeWidth="2.5"/>
-</svg>
-);
-
-// TRANSLATIONS
 const T={
-fr:{
-title:“Paiements”,payments:“Paiements”,partners:“Partenaires”,
-price:“Prix mensuel par terrain”,partnerPrice:“Prime / terrain actif”,
-edit:“Modifier”,month:“MOIS”,received:“REÇU”,missing:“MANQUANT”,expected:“ATTENDU”,
-currency:“MRU”,paid:“Payé”,unpaid:“Non payé”,markPaid:“Reçu ✓”,
-collected:“collecté ce mois”,terrains:“TERRAINS”,login:“Connexion”,
-email:“Email”,password:“Mot de passe”,loginBtn:“Se connecter”,
-errorAccess:“Accès admin uniquement.”,loading:“Chargement…”,
-perMonth:“MRU/mois”,signOut:“Déconnexion”,noUsers:“Aucun utilisateur actif”,due:“dû”,
-search:“Rechercher…”,selectAll:“Tout sélectionner”,cancel:“Annuler”,confirm:“Confirmer”,
-markSelectedPaid:“Marquer payés”,newPartner:“Nouveau partenaire”,
-partnerName:“Nom du partenaire”,phone:“Téléphone”,addPartner:“Ajouter”,
-clients:“Clients”,noPartners:“Aucun partenaire”,assignClient:“Assigner un client”,
-active:“Actif”,inactive:“Inactif”,markPartnerPaid:“Reçu ✓”,
-noClientsYet:“Aucun client assigné”,activeStadiums:“terrains actifs”,
-confirmMarkPaid:“Marquer ce terrain comme payé ?”,
-confirmMarkUnpaid:“Annuler le paiement de ce terrain ?”,
-confirmBulk:“Marquer les terrains sélectionnés comme payés ?”,
-confirmPartnerPaid:“Marquer ce partenaire comme payé ce mois ?”,
-confirmPartnerUnpaid:“Annuler le paiement de ce partenaire ?”,
-confirmDeletePartner:“Supprimer ce partenaire définitivement ?”,
-perMonthPartner:“MRU/mois”,noAvailableClients:“Aucun client disponible”,
-appDesc:“Gestion de terrain de foot”,
-},
-en:{
-title:“Payments”,payments:“Payments”,partners:“Partners”,
-price:“Monthly price per stadium”,partnerPrice:“Bonus / active stadium”,
-edit:“Edit”,month:“MONTH”,received:“RECEIVED”,missing:“MISSING”,expected:“EXPECTED”,
-currency:“MRU”,paid:“Paid”,unpaid:“Unpaid”,markPaid:“Received ✓”,
-collected:“collected this month”,terrains:“STADIUMS”,login:“Sign In”,
-email:“Email”,password:“Password”,loginBtn:“Sign In”,
-errorAccess:“Admin access only.”,loading:“Loading…”,
-perMonth:“MRU/month”,signOut:“Sign Out”,noUsers:“No active users”,due:“due”,
-search:“Search…”,selectAll:“Select all”,cancel:“Cancel”,confirm:“Confirm”,
-markSelectedPaid:“Mark paid”,newPartner:“New partner”,
-partnerName:“Partner name”,phone:“Phone”,addPartner:“Add”,
-clients:“Clients”,noPartners:“No partners”,assignClient:“Assign client”,
-active:“Active”,inactive:“Inactive”,markPartnerPaid:“Received ✓”,
-noClientsYet:“No clients assigned”,activeStadiums:“active stadiums”,
-confirmMarkPaid:“Mark this stadium as paid?”,
-confirmMarkUnpaid:“Cancel payment for this stadium?”,
-confirmBulk:“Mark all selected stadiums as paid?”,
-confirmPartnerPaid:“Mark this partner as paid this month?”,
-confirmPartnerUnpaid:“Cancel payment for this partner?”,
-confirmDeletePartner:“Delete this partner permanently?”,
-perMonthPartner:“MRU/month”,noAvailableClients:“No clients available”,
-appDesc:“Football pitch management”,
-},
-ar:{
-title:“المدفوعات”,payments:“المدفوعات”,partners:“الشركاء”,
-price:“السعر الشهري لكل ملعب”,partnerPrice:“العمولة / ملعب نشط”,
-edit:“تعديل”,month:“الشهر”,received:“المستلم”,missing:“المتبقي”,expected:“المتوقع”,
-currency:“أوقية”,paid:“مدفوع”,unpaid:“غير مدفوع”,markPaid:“تم الاستلام ✓”,
-collected:“تم تحصيله هذا الشهر”,terrains:“الملاعب”,login:“تسجيل الدخول”,
-email:“البريد الإلكتروني”,password:“كلمة المرور”,loginBtn:“تسجيل الدخول”,
-errorAccess:“للمشرف فقط.”,loading:“جارٍ التحميل…”,
-perMonth:“أوقية/شهر”,signOut:“تسجيل الخروج”,noUsers:“لا يوجد مستخدمون نشطون”,due:“مستحق”,
-search:“بحث…”,selectAll:“تحديد الكل”,cancel:“إلغاء”,confirm:“تأكيد”,
-markSelectedPaid:“تحديد كمدفوعين”,newPartner:“شريك جديد”,
-partnerName:“اسم الشريك”,phone:“الهاتف”,addPartner:“إضافة”,
-clients:“العملاء”,noPartners:“لا يوجد شركاء”,assignClient:“إضافة عميل”,
-active:“نشط”,inactive:“غير نشط”,markPartnerPaid:“تم الاستلام ✓”,
-noClientsYet:“لا يوجد عملاء بعد”,activeStadiums:“ملاعب نشطة”,
-confirmMarkPaid:“تحديد هذا الملعب كمدفوع؟”,
-confirmMarkUnpaid:“إلغاء دفع هذا الملعب؟”,
-confirmBulk:“تحديد جميع المختارين كمدفوعين؟”,
-confirmPartnerPaid:“تحديد هذا الشريك كمدفوع هذا الشهر؟”,
-confirmPartnerUnpaid:“إلغاء دفع هذا الشريك؟”,
-confirmDeletePartner:“حذف هذا الشريك نهائياً؟”,
-perMonthPartner:“أوقية/شهر”,noAvailableClients:“لا يوجد عملاء متاحون”,
-appDesc:“إدارة ملاعب كرة القدم”,
-},
+  fr:{
+    title:"Paiements",price:"Prix mensuel par terrain",edit:"Modifier",month:"MOIS",
+    received:"REÇU",missing:"MANQUANT",expected:"ATTENDU",currency:"MRU",
+    paid:"Payé",unpaid:"Non payé",markPaid:"Reçu ✓",pending:"En attente",
+    collected:"collecté ce mois",terrains:"TERRAINS",login:"Connexion",
+    email:"Email",password:"Mot de passe",loginBtn:"Se connecter",
+    errorAccess:"Accès admin uniquement.",loading:"Chargement...",
+    perMonth:"MRU/mois",signOut:"Déconnexion",language:"Langue",
+    noUsers:"Aucun utilisateur actif",due:"dû",
+  },
+  en:{
+    title:"Payments",price:"Monthly price per stadium",edit:"Edit",month:"MONTH",
+    received:"RECEIVED",missing:"MISSING",expected:"EXPECTED",currency:"MRU",
+    paid:"Paid",unpaid:"Unpaid",markPaid:"Received ✓",pending:"Pending",
+    collected:"collected this month",terrains:"STADIUMS",login:"Sign In",
+    email:"Email",password:"Password",loginBtn:"Sign In",
+    errorAccess:"Admin access only.",loading:"Loading...",
+    perMonth:"MRU/month",signOut:"Sign Out",language:"Language",
+    noUsers:"No active users",due:"due",
+  },
+  ar:{
+    title:"المدفوعات",price:"السعر الشهري لكل ملعب",edit:"تعديل",month:"الشهر",
+    received:"المستلم",missing:"المتبقي",expected:"المتوقع",currency:"أوقية",
+    paid:"تم الدفع",unpaid:"لم يدفع",markPaid:"تم الاستلام ✓",pending:"في الانتظار",
+    collected:"تم تحصيله هذا الشهر",terrains:"الملاعب",login:"تسجيل الدخول",
+    email:"البريد الإلكتروني",password:"كلمة المرور",loginBtn:"تسجيل الدخول",
+    errorAccess:"للمشرف فقط.",loading:"جارٍ التحميل...",
+    perMonth:"أوقية/شهر",signOut:"تسجيل الخروج",language:"اللغة",
+    noUsers:"لا يوجد مستخدمون نشطون",due:"مستحق",
+  },
 };
 
-const FLAGS={fr:“🇫🇷”,en:“🇬🇧”,ar:“🇲🇷”};
-const LANG_LABELS={fr:“FR”,en:“EN”,ar:“AR”};
+const FLAGS={fr:"🇫🇷",en:"🇬🇧",ar:"🇲🇷"};
+const LANG_LABELS={fr:"FR",en:"EN",ar:"AR"};
+
 const MONTHS={
-fr:[“Janvier”,“Février”,“Mars”,“Avril”,“Mai”,“Juin”,“Juillet”,“Août”,“Septembre”,“Octobre”,“Novembre”,“Décembre”],
-en:[“January”,“February”,“March”,“April”,“May”,“June”,“July”,“August”,“September”,“October”,“November”,“December”],
-ar:[“يناير”,“فبراير”,“مارس”,“أبريل”,“مايو”,“يونيو”,“يوليو”,“أغسطس”,“سبتمبر”,“أكتوبر”,“نوفمبر”,“ديسمبر”],
+  fr:["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"],
+  en:["January","February","March","April","May","June","July","August","September","October","November","December"],
+  ar:["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"],
 };
 
-// CONFIRM MODAL
-function ConfirmModal({icon,title,subtitle,confirmLabel,confirmStyle,onConfirm,onCancel,cancelLabel}){
-return(
-<div style={{position:“fixed”,inset:0,background:“rgba(0,0,0,0.88)”,display:“flex”,alignItems:“center”,justifyContent:“center”,zIndex:200,padding:20}} onClick={onCancel}>
-<div onClick={e=>e.stopPropagation()} style={{background:CARD,borderRadius:22,padding:“28px 22px”,width:“100%”,maxWidth:360,border:`1px solid ${BORDER}`,animation:“popIn 0.2s ease”}}>
-<div style={{display:“flex”,justifyContent:“center”,marginBottom:14}}>{icon}</div>
-<div style={{fontWeight:900,fontSize:17,color:”#fff”,textAlign:“center”,marginBottom:subtitle?8:22}}>{title}</div>
-{subtitle&&<div style={{fontSize:13,color:”#888”,textAlign:“center”,marginBottom:22,fontWeight:700}}>{subtitle}</div>}
-<div style={{display:“flex”,gap:10}}>
-<button onClick={onCancel} style={{flex:1,background:”#1c2030”,color:”#888”,border:“none”,borderRadius:12,padding:“14px”,fontWeight:700,fontSize:14}}>{cancelLabel}</button>
-<button onClick={onConfirm} style={{flex:2,borderRadius:12,padding:“14px”,fontWeight:900,fontSize:15,border:“none”,…confirmStyle}}>{confirmLabel}</button>
-</div>
-</div>
-</div>
-);
-}
-
-// APP ROOT
 function App(){
-const [lang,setLang]=useState(“fr”);
-const [authUser,setAuthUser]=useState(undefined);
-const [error,setError]=useState(””);
+  const [lang,setLang]=useState("fr");
+  const [authUser,setAuthUser]=useState(undefined);
+  const [error,setError]=useState("");
 
-useEffect(()=>{
-const unsub=auth.onAuthStateChanged(u=>setAuthUser(u));
-return unsub;
-},[]);
+  useEffect(()=>{
+    const unsub=auth.onAuthStateChanged(u=>setAuthUser(u));
+    return unsub;
+  },[]);
 
-if(authUser===undefined) return(
-<div style={{background:BG,minHeight:“100vh”,display:“flex”,alignItems:“center”,justifyContent:“center”}}>
-<div style={{width:36,height:36,border:`3px solid ${G}`,borderTopColor:“transparent”,borderRadius:“50%”,animation:“spin 0.8s linear infinite”}}/>
-</div>
-);
+  if(authUser===undefined) return(
+    <div style={{background:BG,minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}}>
+      <div style={{width:36,height:36,border:`3px solid ${G}`,borderTopColor:"transparent",borderRadius:"50%",animation:"spin 0.8s linear infinite"}}/>
+    </div>
+  );
 
-if(!authUser) return <LoginScreen lang={lang} setLang={setLang} onError={setError} error={error}/>;
-if(authUser.email!==ADMIN_EMAIL){
-auth.signOut();
-return <div style={{background:BG,minHeight:“100vh”,display:“flex”,alignItems:“center”,justifyContent:“center”,color:”#ff5555”,fontSize:16,fontWeight:800}}>{T[lang].errorAccess}</div>;
+  if(!authUser) return <LoginScreen lang={lang} setLang={setLang} onError={setError} error={error}/>;
+  if(authUser.email!==ADMIN_EMAIL){
+    auth.signOut();
+    return <div style={{background:BG,minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",color:"#ff5555",fontSize:16,fontWeight:800}}>{T[lang].errorAccess}</div>;
+  }
+
+  return <PaymentsScreen lang={lang} setLang={setLang}/>;
 }
-return <MainScreen lang={lang} setLang={setLang}/>;
-}
 
-// LOGIN
 function LoginScreen({lang,setLang,onError,error}){
-const t=T[lang],isRTL=lang===“ar”;
-const [email,setEmail]=useState(””);
-const [password,setPassword]=useState(””);
-const [loading,setLoading]=useState(false);
+  const t=T[lang],isRTL=lang==="ar";
+  const [email,setEmail]=useState("");
+  const [password,setPassword]=useState("");
+  const [loading,setLoading]=useState(false);
 
-const handleLogin=async()=>{
-setLoading(true);
-try{ await auth.signInWithEmailAndPassword(email,password); }
-catch(e){ onError(t.errorAccess); }
-setLoading(false);
-};
+  const handleLogin=async()=>{
+    setLoading(true);
+    try{
+      await auth.signInWithEmailAndPassword(email,password);
+    } catch(e){ onError(t.errorAccess); }
+    setLoading(false);
+  };
 
-return(
-<div style={{fontFamily:isRTL?”‘Cairo’,sans-serif”:”‘Nunito’,sans-serif”,direction:isRTL?“rtl”:“ltr”,background:BG,minHeight:“100vh”,display:“flex”,flexDirection:“column”,alignItems:“center”,justifyContent:“center”,padding:24}}>
-<AppLogo/>
-<div style={{fontSize:28,fontWeight:900,color:G,letterSpacing:-0.5,marginBottom:4}}>StadBook</div>
-<div style={{fontSize:13,color:”#444”,marginBottom:32}}>{t.appDesc}</div>
-<div style={{display:“flex”,gap:8,marginBottom:24}}>
-{[“fr”,“en”,“ar”].map(l=>(
-<button key={l} onClick={()=>setLang(l)} style={{background:lang===l?G:CARD,border:`1.5px solid ${lang===l?G:BORDER}`,borderRadius:10,padding:“6px 12px”,fontWeight:800,fontSize:12,color:lang===l?”#001a0e”:”#555”}}>
-{FLAGS[l]} {LANG_LABELS[l]}
-</button>
-))}
-</div>
-<div style={{background:CARD,borderRadius:20,padding:“24px 20px”,width:“100%”,maxWidth:360,border:`1px solid ${BORDER}`}}>
-<div style={{marginBottom:14}}>
-<div style={{fontSize:10,color:”#555”,fontWeight:700,marginBottom:6}}>{t.email.toUpperCase()}</div>
-<input value={email} onChange={e=>setEmail(e.target.value)} type=“email”
-style={{width:“100%”,background:BG,border:`2px solid ${BORDER}`,borderRadius:12,padding:“12px 14px”,color:”#fff”,fontSize:15}}
-onFocus={e=>e.target.style.borderColor=G} onBlur={e=>e.target.style.borderColor=BORDER}/>
-</div>
-<div style={{marginBottom:20}}>
-<div style={{fontSize:10,color:”#555”,fontWeight:700,marginBottom:6}}>{t.password.toUpperCase()}</div>
-<input value={password} onChange={e=>setPassword(e.target.value)} type=“password”
-onKeyDown={e=>e.key===“Enter”&&handleLogin()}
-style={{width:“100%”,background:BG,border:`2px solid ${BORDER}`,borderRadius:12,padding:“12px 14px”,color:”#fff”,fontSize:15}}
-onFocus={e=>e.target.style.borderColor=G} onBlur={e=>e.target.style.borderColor=BORDER}/>
-</div>
-{error&&<div style={{background:”#1f0e0e”,border:“1px solid #2e1414”,borderRadius:10,padding:“10px 14px”,color:”#ff5555”,fontSize:13,marginBottom:14,fontWeight:700}}>{error}</div>}
-<button onClick={handleLogin} disabled={loading} style={{width:“100%”,background:G,color:”#001a0e”,border:“none”,borderRadius:12,padding:“14px”,fontWeight:900,fontSize:15,opacity:loading?0.7:1}}>
-{loading?t.loading:t.loginBtn}
-</button>
-</div>
-</div>
-);
-}
-
-// MAIN SCREEN
-function MainScreen({lang,setLang}){
-const t=T[lang],isRTL=lang===“ar”;
-const [activeTab,setActiveTab]=useState(“payments”);
-
-return(
-<div style={{fontFamily:isRTL?”‘Cairo’,sans-serif”:”‘Nunito’,sans-serif”,direction:isRTL?“rtl”:“ltr”,maxWidth:430,margin:“0 auto”,minHeight:“100vh”,background:BG,color:”#f0f0f0”,paddingBottom:40}}>
-
-```
-  {/* Header */}
-  <div style={{background:CARD,padding:"14px 16px",borderBottom:`1px solid ${BORDER}`,position:"sticky",top:0,zIndex:50,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-    <div>
-      <div style={{fontSize:18,fontWeight:900,color:G}}>⚽ StadBook</div>
-      <div style={{fontSize:10,color:"#444",fontWeight:700,letterSpacing:1}}>{t.title.toUpperCase()}</div>
-    </div>
-    <div style={{display:"flex",gap:6,alignItems:"center"}}>
-      {["fr","en","ar"].map(l=>(
-        <button key={l} onClick={()=>setLang(l)} style={{background:lang===l?G:"#1c2030",border:"none",borderRadius:8,padding:"5px 8px",fontWeight:800,fontSize:10,color:lang===l?"#001a0e":"#555"}}>
-          {FLAGS[l]} {LANG_LABELS[l]}
-        </button>
-      ))}
-      <button onClick={()=>auth.signOut()} style={{background:"#1f0e0e",color:"#ff5555",border:"1px solid #2e1414",borderRadius:8,padding:"6px 10px",fontWeight:700,fontSize:11,marginLeft:4}}>{t.signOut}</button>
-    </div>
-  </div>
-
-  {/* Tabs */}
-  <div style={{display:"flex",borderBottom:`1px solid ${BORDER}`}}>
-    {[["payments",t.payments],["partners",t.partners]].map(([id,label])=>(
-      <button key={id} onClick={()=>setActiveTab(id)}
-        style={{flex:1,padding:"13px 0",background:"none",border:"none",fontWeight:800,fontSize:13,color:activeTab===id?G:"#444",borderBottom:activeTab===id?`2px solid ${G}`:"2px solid transparent",display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
-        {id==="payments"?<IconMoney size={15} color={activeTab===id?G:"#444"}/>:<IconUsers size={15} color={activeTab===id?G:"#444"}/>}
-        {label}
-      </button>
-    ))}
-  </div>
-
-  {activeTab==="payments"&&<PaymentsTab lang={lang} t={t}/>}
-  {activeTab==="partners"&&<PartnersTab lang={lang} t={t}/>}
-</div>
-```
-
-);
-}
-
-// PAYMENTS TAB
-function PaymentsTab({lang,t}){
-const now=new Date();
-const [users,setUsers]=useState([]);
-const [price,setPrice]=useState(500);
-const [editingPrice,setEditingPrice]=useState(false);
-const [tempPrice,setTempPrice]=useState(500);
-const [selectedMonth,setSelectedMonth]=useState(now.getMonth());
-const [selectedYear,setSelectedYear]=useState(now.getFullYear());
-const [payments,setPayments]=useState({});
-const [loading,setLoading]=useState(true);
-const [search,setSearch]=useState(””);
-const [selecting,setSelecting]=useState(false);
-const [selected,setSelected]=useState(new Set());
-const [confirm,setConfirm]=useState(null);
-
-useEffect(()=>{
-const unsub=db.collection(“users”).onSnapshot(snap=>{
-setUsers(snap.docs.map(d=>({id:d.id,…d.data()})).filter(u=>u.active));
-setLoading(false);
-});
-return unsub;
-},[]);
-
-useEffect(()=>{
-const unsub=db.collection(“payments”).doc(“data”).onSnapshot(snap=>{
-if(snap.exists){
-const data=snap.data();
-if(data.payments) setPayments(data.payments);
-if(data.price) setPrice(data.price);
-}
-});
-return unsub;
-},[]);
-
-const saveToFirebase=async(newPayments,newPrice)=>{
-await db.collection(“payments”).doc(“data”).set({payments:newPayments,price:newPrice},{merge:true});
-};
-
-const monthKey=`${selectedYear}-${selectedMonth}`;
-const isPaid=uid=>payments[monthKey]?.[uid]||false;
-
-const doTogglePaid=async uid=>{
-const np={…payments,[monthKey]:{…(payments[monthKey]||{}),[uid]:!isPaid(uid)}};
-setPayments(np);
-await saveToFirebase(np,price);
-};
-
-const savePrice=async np=>{
-setPrice(np);setEditingPrice(false);
-await saveToFirebase(payments,np);
-};
-
-const doMarkBulk=async()=>{
-const np={…payments,[monthKey]:{…(payments[monthKey]||{})}};
-selected.forEach(uid=>{if(!isPaid(uid)) np[monthKey][uid]=true;});
-setPayments(np);setSelected(new Set());setSelecting(false);
-await saveToFirebase(np,price);
-};
-
-const filtered=users.filter(u=>
-u.stadiumName?.toLowerCase().includes(search.toLowerCase())||
-u.email?.toLowerCase().includes(search.toLowerCase())
-);
-
-const paidCount=users.filter(u=>isPaid(u.id)).length;
-const unpaidCount=users.length-paidCount;
-const pct=users.length>0?Math.round(paidCount/users.length*100):0;
-const selCount=[…selected].length;
-
-return(
-<div style={{padding:“16px”}}>
-
-```
-  {/* Confirm modals */}
-  {confirm?.type==="markPaid"&&<ConfirmModal
-    icon={<IconMoney size={36}/>} title={t.confirmMarkPaid} subtitle={confirm.name}
-    confirmLabel={t.markPaid} confirmStyle={{background:G,color:"#001a0e"}} cancelLabel={t.cancel}
-    onConfirm={async()=>{await doTogglePaid(confirm.uid);setConfirm(null);}}
-    onCancel={()=>setConfirm(null)}/>}
-  {confirm?.type==="markUnpaid"&&<ConfirmModal
-    icon={<IconUndo/>} title={t.confirmMarkUnpaid} subtitle={confirm.name}
-    confirmLabel={t.confirm} confirmStyle={{background:"#ff9944",color:"#fff"}} cancelLabel={t.cancel}
-    onConfirm={async()=>{await doTogglePaid(confirm.uid);setConfirm(null);}}
-    onCancel={()=>setConfirm(null)}/>}
-  {confirm?.type==="bulk"&&<ConfirmModal
-    icon={<IconCheckSq size={36}/>} title={t.confirmBulk} subtitle={`${confirm.count} terrains`}
-    confirmLabel={t.markSelectedPaid} confirmStyle={{background:G,color:"#001a0e"}} cancelLabel={t.cancel}
-    onConfirm={async()=>{await doMarkBulk();setConfirm(null);}}
-    onCancel={()=>setConfirm(null)}/>}
-
-  {/* Price */}
-  <div style={{background:CARD,borderRadius:16,padding:"16px",border:`1px solid ${BORDER}`,marginBottom:14}}>
-    <div style={{fontSize:10,color:"#444",fontWeight:700,letterSpacing:0.5,marginBottom:10}}>{t.price.toUpperCase()}</div>
-    {editingPrice?(
-      <div style={{display:"flex",gap:8}}>
-        <input type="number" value={tempPrice} onChange={e=>setTempPrice(Number(e.target.value))} autoFocus
-          style={{flex:1,background:BG,border:`2px solid ${G}`,borderRadius:10,padding:"10px 12px",color:"#fff",fontSize:15}}/>
-        <button onClick={()=>savePrice(tempPrice)} style={{background:G,color:"#001a0e",border:"none",borderRadius:10,padding:"10px 16px",fontWeight:900,fontSize:13}}>✓</button>
-        <button onClick={()=>setEditingPrice(false)} style={{background:"#1c2030",color:"#888",border:"none",borderRadius:10,padding:"10px 14px",fontWeight:700,fontSize:13}}>✕</button>
+  return(
+    <div style={{fontFamily:isRTL?"'Cairo',sans-serif":"'Nunito',sans-serif",direction:isRTL?"rtl":"ltr",background:BG,minHeight:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:24}}>
+      <div style={{fontSize:48,marginBottom:8}}>⚽</div>
+      <div style={{fontSize:26,fontWeight:900,color:G,marginBottom:4}}>StadBook</div>
+      <div style={{fontSize:12,color:"#444",marginBottom:32}}>{t.title}</div>
+      <div style={{display:"flex",gap:8,marginBottom:24}}>
+        {["fr","en","ar"].map(l=>(
+          <button key={l} onClick={()=>setLang(l)} style={{background:lang===l?G:CARD,border:`1.5px solid ${lang===l?G:BORDER}`,borderRadius:10,padding:"6px 12px",fontWeight:800,fontSize:12,color:lang===l?"#001a0e":"#555"}}>
+            {FLAGS[l]} {LANG_LABELS[l]}
+          </button>
+        ))}
       </div>
-    ):(
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-        <span style={{fontSize:22,fontWeight:900,color:G}}>{price} <span style={{fontSize:13,color:"#444"}}>{t.perMonth}</span></span>
-        <button onClick={()=>{setTempPrice(price);setEditingPrice(true);}} style={{background:`${G}18`,color:G,border:`1px solid ${G}44`,borderRadius:10,padding:"7px 14px",fontSize:12,fontWeight:800,display:"flex",alignItems:"center",gap:5}}>
-          <IconEdit/> {t.edit}
-        </button>
-      </div>
-    )}
-  </div>
-
-  {/* Month selector */}
-  <div style={{background:CARD,borderRadius:16,padding:"14px 16px",border:`1px solid ${BORDER}`,marginBottom:14}}>
-    <div style={{fontSize:10,color:"#444",fontWeight:700,letterSpacing:0.5,marginBottom:10}}>{t.month}</div>
-    <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-      <button onClick={()=>{if(selectedMonth===0){setSelectedMonth(11);setSelectedYear(y=>y-1);}else setSelectedMonth(m=>m-1);}}
-        style={{background:"#1c2030",border:"none",borderRadius:8,padding:"8px 16px",color:"#888",fontWeight:900,fontSize:18}}>‹</button>
-      <div style={{fontWeight:900,fontSize:16,color:"#fff"}}>{MONTHS[lang][selectedMonth]} {selectedYear}</div>
-      <button onClick={()=>{if(selectedMonth===11){setSelectedMonth(0);setSelectedYear(y=>y+1);}else setSelectedMonth(m=>m+1);}}
-        style={{background:"#1c2030",border:"none",borderRadius:8,padding:"8px 16px",color:"#888",fontWeight:900,fontSize:18}}>›</button>
-    </div>
-  </div>
-
-  {/* Summary */}
-  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:16}}>
-    {[
-      {label:t.received,value:paidCount*price,color:G,bg:"#0b2018"},
-      {label:t.missing,value:unpaidCount*price,color:"#ff5555",bg:"#1f0e0e"},
-      {label:t.expected,value:users.length*price,color:"#aaa",bg:CARD},
-    ].map((s,i)=>(
-      <div key={i} style={{background:s.bg,borderRadius:14,padding:"12px 10px",border:`1px solid ${BORDER}`,textAlign:"center"}}>
-        <div style={{fontSize:8,color:"#555",fontWeight:700,marginBottom:6}}>{s.label}</div>
-        <div style={{fontSize:16,fontWeight:900,color:s.color}}>{s.value}</div>
-        <div style={{fontSize:9,color:"#444",marginTop:2}}>{t.currency}</div>
-      </div>
-    ))}
-  </div>
-
-  {/* Progress */}
-  <div style={{background:CARD,borderRadius:16,padding:"14px 16px",border:`1px solid ${BORDER}`,marginBottom:16}}>
-    <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}>
-      <div style={{fontSize:12,fontWeight:700,color:G}}>{paidCount} {t.paid}</div>
-      <div style={{fontSize:12,fontWeight:700,color:"#ff5555"}}>{unpaidCount} {t.unpaid}</div>
-    </div>
-    <div style={{background:"#1c2030",borderRadius:10,height:12,overflow:"hidden"}}>
-      <div style={{background:`linear-gradient(90deg,${G},#00a86b)`,height:"100%",width:`${pct}%`,borderRadius:10,transition:"width 0.4s"}}/>
-    </div>
-    <div style={{textAlign:"center",marginTop:8,fontSize:11,color:"#555"}}>{pct}% {t.collected}</div>
-  </div>
-
-  {/* Search + select toolbar */}
-  <div style={{display:"flex",gap:8,marginBottom:10,alignItems:"center"}}>
-    <div style={{flex:1,display:"flex",alignItems:"center",background:CARD,border:`1.5px solid ${BORDER}`,borderRadius:12,padding:"0 12px",gap:8}}>
-      <IconSearch/>
-      <input value={search} onChange={e=>setSearch(e.target.value)} placeholder={t.search}
-        style={{flex:1,background:"transparent",border:"none",padding:"10px 0",color:"#fff",fontSize:13}}/>
-    </div>
-    {!selecting
-      ?<button onClick={()=>{setSelecting(true);setSelected(new Set());}} style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:12,padding:"10px 13px",display:"flex",alignItems:"center"}}>
-        <IconSquare/>
-      </button>
-      :<button onClick={()=>{setSelecting(false);setSelected(new Set());}} style={{background:"#1f0e0e",color:"#ff5555",border:"1px solid #2e1414",borderRadius:12,padding:"10px 13px",fontWeight:700,fontSize:12}}>
-        {t.cancel}
-      </button>
-    }
-  </div>
-
-  {/* Bulk bar */}
-  {selecting&&(
-    <div style={{display:"flex",gap:8,marginBottom:12}}>
-      <button onClick={()=>setSelected(new Set(filtered.filter(u=>!isPaid(u.id)).map(u=>u.id)))}
-        style={{flex:1,background:"#1c2030",color:"#aaa",border:`1px solid ${BORDER}`,borderRadius:10,padding:"10px 0",fontWeight:800,fontSize:12,display:"flex",alignItems:"center",justifyContent:"center",gap:5}}>
-        <IconCheckSq size={14} color="#aaa"/> {t.selectAll}
-      </button>
-      <button onClick={selCount>0?()=>setConfirm({type:"bulk",count:selCount}):undefined}
-        style={{flex:2,background:selCount>0?G:"#0e2018",color:selCount>0?"#001a0e":"#1a3a28",border:"none",borderRadius:10,padding:"10px 0",fontWeight:900,fontSize:12,display:"flex",alignItems:"center",justifyContent:"center",gap:5}}>
-        <IconCheck size={13} color={selCount>0?"#001a0e":"#1a3a28"}/> {t.markSelectedPaid}{selCount>0?` (${selCount})`:""}
-      </button>
-    </div>
-  )}
-
-  {/* List */}
-  <div style={{fontSize:11,color:"#555",fontWeight:700,letterSpacing:0.5,marginBottom:10}}>{t.terrains}</div>
-  {loading&&<div style={{textAlign:"center",color:"#444",padding:"30px 0"}}>{t.loading}</div>}
-  {!loading&&users.length===0&&<div style={{textAlign:"center",color:"#333",padding:"30px 0"}}>{t.noUsers}</div>}
-
-  <div style={{display:"flex",flexDirection:"column",gap:8}}>
-    {filtered.map(u=>{
-      const paid=isPaid(u.id);
-      const isSel=selected.has(u.id);
-      return(
-        <div key={u.id}
-          onClick={selecting&&!paid?()=>{const s=new Set(selected);s.has(u.id)?s.delete(u.id):s.add(u.id);setSelected(s);}:undefined}
-          style={{background:paid?"#071510":isSel?`${G}10`:CARD,borderRadius:14,padding:"13px 15px",border:`1.5px solid ${paid?G+"44":isSel?G+"77":BORDER}`,display:"flex",alignItems:"center",justifyContent:"space-between",gap:10,cursor:selecting&&!paid?"pointer":"default"}}>
-          {selecting&&(
-            <div style={{width:20,height:20,borderRadius:6,border:`2px solid ${isSel?G:BORDER}`,background:isSel?G:"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-              {isSel&&<IconCheck size={11} color="#001a0e"/>}
-            </div>
-          )}
-          <div style={{flex:1,minWidth:0}}>
-            <div style={{fontWeight:800,fontSize:14,color:paid?"#555":"#fff"}}>{u.stadiumName}</div>
-            <div style={{fontSize:11,color:"#444",marginTop:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{u.email}</div>
-            <div style={{fontSize:11,marginTop:3,color:paid?G:"#ff5555",fontWeight:700}}>
-              {paid?`✓ ${t.paid} -- ${price} ${t.currency}`:`● ${price} ${t.currency} ${t.due}`}
-            </div>
-          </div>
-          {!selecting&&(
-            <button onClick={()=>setConfirm({type:paid?"markUnpaid":"markPaid",uid:u.id,name:u.stadiumName})}
-              style={{background:paid?"#0b2018":"#ff555518",color:paid?G:"#ff5555",border:`1.5px solid ${paid?G+"55":"#ff555533"}`,borderRadius:10,padding:"8px 12px",fontWeight:900,fontSize:11,flexShrink:0,whiteSpace:"nowrap"}}>
-              {paid?`✓ ${t.paid}`:t.markPaid}
-            </button>
-          )}
+      <div style={{background:CARD,borderRadius:20,padding:"24px 20px",width:"100%",maxWidth:360,border:`1px solid ${BORDER}`}}>
+        <div style={{marginBottom:14}}>
+          <div style={{fontSize:10,color:"#555",fontWeight:700,marginBottom:6}}>{t.email.toUpperCase()}</div>
+          <input value={email} onChange={e=>setEmail(e.target.value)} type="email"
+            style={{width:"100%",background:BG,border:`2px solid ${BORDER}`,borderRadius:12,padding:"12px 14px",color:"#fff",fontSize:15}}
+            onFocus={e=>e.target.style.borderColor=G} onBlur={e=>e.target.style.borderColor=BORDER}/>
         </div>
-      );
-    })}
-  </div>
-</div>
-```
-
-);
-}
-
-// PARTNERS TAB
-function PartnersTab({lang,t}){
-const now=new Date();
-const [allUsers,setAllUsers]=useState([]);
-const [partnerPrice,setPartnerPrice]=useState(100);
-const [editingPP,setEditingPP]=useState(false);
-const [tempPP,setTempPP]=useState(100);
-const [partners,setPartners]=useState([]);
-const [partnerPayments,setPartnerPayments]=useState({});
-const [loading,setLoading]=useState(true);
-const [search,setSearch]=useState(””);
-const [expanded,setExpanded]=useState(null);
-const [modal,setModal]=useState(null);
-const [confirm,setConfirm]=useState(null);
-const [selectedMonth,setSelectedMonth]=useState(now.getMonth());
-const [selectedYear,setSelectedYear]=useState(now.getFullYear());
-
-useEffect(()=>{
-const unsub=db.collection(“users”).onSnapshot(snap=>{
-setAllUsers(snap.docs.map(d=>({id:d.id,…d.data()})));
-});
-return unsub;
-},[]);
-
-useEffect(()=>{
-const unsub=db.collection(“payments”).doc(“partners”).onSnapshot(snap=>{
-if(snap.exists){
-const d=snap.data();
-if(d.partners) setPartners(d.partners);
-if(d.price) setPartnerPrice(d.price);
-if(d.paid) setPartnerPayments(d.paid);
-}
-setLoading(false);
-});
-return unsub;
-},[]);
-
-const saveAll=async(newPartners,newPrice,newPaid)=>{
-await db.collection(“payments”).doc(“partners”).set({
-partners:newPartners!==undefined?newPartners:partners,
-price:newPrice!==undefined?newPrice:partnerPrice,
-paid:newPaid!==undefined?newPaid:partnerPayments,
-},{merge:false});
-};
-
-const monthKey=`${selectedYear}-${selectedMonth}`;
-const isPartnerPaid=pid=>partnerPayments[monthKey]?.[pid]||false;
-const getUser=uid=>allUsers.find(u=>u.id===uid);
-const getActiveClients=p=>p.clients.filter(uid=>{const u=getUser(uid);return u&&u.active;});
-const getTotalDue=p=>getActiveClients(p).length*partnerPrice;
-
-const doTogglePartnerPaid=async pid=>{
-const np={…partnerPayments,[monthKey]:{…(partnerPayments[monthKey]||{}),[pid]:!isPartnerPaid(pid)}};
-setPartnerPayments(np);
-await saveAll(undefined,undefined,np);
-};
-
-const doDeletePartner=async pid=>{
-const np=partners.filter(p=>p.id!==pid);
-setPartners(np);
-if(expanded===pid) setExpanded(null);
-await saveAll(np);
-};
-
-const doAssignClient=async(pid,uid)=>{
-const np=partners.map(p=>p.id===pid?{…p,clients:[…p.clients,uid]}:p);
-setPartners(np);
-await saveAll(np);
-};
-
-const savePP=async np=>{
-setPartnerPrice(np);setEditingPP(false);
-await saveAll(undefined,np);
-};
-
-const filtered=partners.filter(p=>
-p.name.toLowerCase().includes(search.toLowerCase())||
-p.phone.includes(search)
-);
-
-const paidTotal=partners.reduce((a,p)=>isPartnerPaid(p.id)?a+getTotalDue(p):a,0);
-const unpaidTotal=partners.reduce((a,p)=>!isPartnerPaid(p.id)?a+getTotalDue(p):a,0);
-
-return(
-<div style={{padding:“16px”}}>
-
-```
-  {/* Confirm modals */}
-  {confirm?.type==="partnerPaid"&&<ConfirmModal
-    icon={<IconHandshake/>} title={t.confirmPartnerPaid} subtitle={confirm.name}
-    confirmLabel={t.confirm} confirmStyle={{background:G,color:"#001a0e"}} cancelLabel={t.cancel}
-    onConfirm={async()=>{await doTogglePartnerPaid(confirm.pid);setConfirm(null);}}
-    onCancel={()=>setConfirm(null)}/>}
-  {confirm?.type==="partnerUnpaid"&&<ConfirmModal
-    icon={<IconUndo/>} title={t.confirmPartnerUnpaid} subtitle={confirm.name}
-    confirmLabel={t.confirm} confirmStyle={{background:"#ff9944",color:"#fff"}} cancelLabel={t.cancel}
-    onConfirm={async()=>{await doTogglePartnerPaid(confirm.pid);setConfirm(null);}}
-    onCancel={()=>setConfirm(null)}/>}
-  {confirm?.type==="deletePartner"&&<ConfirmModal
-    icon={<IconWarn/>} title={t.confirmDeletePartner} subtitle={confirm.name}
-    confirmLabel={<span style={{display:"flex",alignItems:"center",justifyContent:"center",gap:6}}><IconTrash size={14} color="#fff"/> {t.confirm}</span>}
-    confirmStyle={{background:"#1f0e0e",color:"#ff5555",border:"1px solid #2e1414"}} cancelLabel={t.cancel}
-    onConfirm={async()=>{await doDeletePartner(confirm.pid);setConfirm(null);}}
-    onCancel={()=>setConfirm(null)}/>}
-
-  {/* Add partner modal */}
-  {modal==="addPartner"&&<AddPartnerModal t={t} onAdd={async(name,phone)=>{
-    const np=[...partners,{id:"p"+Date.now(),name:name.trim(),phone:phone.trim(),clients:[]}];
-    setPartners(np);await saveAll(np);
-  }} onClose={()=>setModal(null)}/>}
-
-  {/* Assign client sheet */}
-  {modal?.type==="assignClient"&&(
-    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.88)",display:"flex",alignItems:"flex-end",justifyContent:"center",zIndex:200}} onClick={()=>setModal(null)}>
-      <div onClick={e=>e.stopPropagation()} style={{background:CARD,borderRadius:"22px 22px 0 0",padding:"24px 20px 44px",width:"100%",maxWidth:430,maxHeight:"72vh",overflowY:"auto",border:`1px solid ${BORDER}`,animation:"slideUp 0.25s ease"}}>
-        <div style={{fontSize:11,color:"#555",fontWeight:700,marginBottom:16,display:"flex",alignItems:"center",gap:6,letterSpacing:0.5}}><IconUsers color="#555"/> {t.assignClient.toUpperCase()}</div>
-        {allUsers.filter(u=>!partners.find(p=>p.id===modal.pid)?.clients.includes(u.id)).length===0
-          ?<div style={{textAlign:"center",color:"#333",padding:"20px 0",fontSize:13}}>{t.noAvailableClients}</div>
-          :<div style={{display:"flex",flexDirection:"column",gap:8}}>
-            {allUsers.filter(u=>!partners.find(p=>p.id===modal.pid)?.clients.includes(u.id)).map(u=>(
-              <button key={u.id} onClick={async()=>{await doAssignClient(modal.pid,u.id);setModal(null);}}
-                style={{background:u.active?"#0b1a0e":"#1a0e0e",borderRadius:12,padding:"12px 14px",border:`1px solid ${u.active?G+"33":"#ff555533"}`,display:"flex",alignItems:"center",justifyContent:"space-between",textAlign:"left"}}>
-                <div>
-                  <div style={{fontWeight:800,fontSize:14,color:u.active?"#ddd":"#ff5555"}}>{u.stadiumName}</div>
-                  <div style={{fontSize:11,color:"#444",marginTop:1}}>{u.email}</div>
-                </div>
-                <div style={{fontSize:10,fontWeight:800,padding:"3px 8px",borderRadius:20,background:u.active?G+"22":"#ff555522",color:u.active?G:"#ff5555"}}>
-                  {u.active?t.active:t.inactive}
-                </div>
-              </button>
-            ))}
-          </div>
-        }
-      </div>
-    </div>
-  )}
-
-  {/* Partner price */}
-  <div style={{background:CARD,borderRadius:16,padding:"16px",border:`1px solid ${BORDER}`,marginBottom:14}}>
-    <div style={{fontSize:10,color:"#444",fontWeight:700,letterSpacing:0.5,marginBottom:10}}>{t.partnerPrice.toUpperCase()}</div>
-    {editingPP?(
-      <div style={{display:"flex",gap:8}}>
-        <input type="number" value={tempPP} onChange={e=>setTempPP(Number(e.target.value))} autoFocus
-          style={{flex:1,background:BG,border:`2px solid ${G}`,borderRadius:10,padding:"10px 12px",color:"#fff",fontSize:15}}/>
-        <button onClick={()=>savePP(tempPP)} style={{background:G,color:"#001a0e",border:"none",borderRadius:10,padding:"10px 16px",fontWeight:900,fontSize:13}}>✓</button>
-        <button onClick={()=>setEditingPP(false)} style={{background:"#1c2030",color:"#888",border:"none",borderRadius:10,padding:"10px 14px",fontWeight:700,fontSize:13}}>✕</button>
-      </div>
-    ):(
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-        <span style={{fontSize:22,fontWeight:900,color:G}}>{partnerPrice} <span style={{fontSize:13,color:"#444"}}>{t.perMonthPartner}</span></span>
-        <button onClick={()=>{setTempPP(partnerPrice);setEditingPP(true);}} style={{background:`${G}18`,color:G,border:`1px solid ${G}44`,borderRadius:10,padding:"7px 14px",fontSize:12,fontWeight:800,display:"flex",alignItems:"center",gap:5}}>
-          <IconEdit/> {t.edit}
+        <div style={{marginBottom:20}}>
+          <div style={{fontSize:10,color:"#555",fontWeight:700,marginBottom:6}}>{t.password.toUpperCase()}</div>
+          <input value={password} onChange={e=>setPassword(e.target.value)} type="password"
+            onKeyDown={e=>e.key==="Enter"&&handleLogin()}
+            style={{width:"100%",background:BG,border:`2px solid ${BORDER}`,borderRadius:12,padding:"12px 14px",color:"#fff",fontSize:15}}
+            onFocus={e=>e.target.style.borderColor=G} onBlur={e=>e.target.style.borderColor=BORDER}/>
+        </div>
+        {error&&<div style={{background:"#1f0e0e",border:"1px solid #2e1414",borderRadius:10,padding:"10px 14px",color:"#ff5555",fontSize:13,marginBottom:14,fontWeight:700}}>{error}</div>}
+        <button onClick={handleLogin} disabled={loading} style={{width:"100%",background:G,color:"#001a0e",border:"none",borderRadius:12,padding:"14px",fontWeight:900,fontSize:15,opacity:loading?0.7:1}}>
+          {loading?t.loading:t.loginBtn}
         </button>
       </div>
-    )}
-  </div>
-
-  {/* Month selector */}
-  <div style={{background:CARD,borderRadius:16,padding:"14px 16px",border:`1px solid ${BORDER}`,marginBottom:14}}>
-    <div style={{fontSize:10,color:"#444",fontWeight:700,letterSpacing:0.5,marginBottom:10}}>{t.month}</div>
-    <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-      <button onClick={()=>{if(selectedMonth===0){setSelectedMonth(11);setSelectedYear(y=>y-1);}else setSelectedMonth(m=>m-1);}}
-        style={{background:"#1c2030",border:"none",borderRadius:8,padding:"8px 16px",color:"#888",fontWeight:900,fontSize:18}}>‹</button>
-      <div style={{fontWeight:900,fontSize:16,color:"#fff"}}>{MONTHS[lang][selectedMonth]} {selectedYear}</div>
-      <button onClick={()=>{if(selectedMonth===11){setSelectedMonth(0);setSelectedYear(y=>y+1);}else setSelectedMonth(m=>m+1);}}
-        style={{background:"#1c2030",border:"none",borderRadius:8,padding:"8px 16px",color:"#888",fontWeight:900,fontSize:18}}>›</button>
     </div>
-  </div>
+  );
+}
 
-  {/* Summary */}
-  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:16}}>
-    <div style={{background:"#0b2018",borderRadius:14,padding:"12px 10px",border:`1px solid ${BORDER}`,textAlign:"center"}}>
-      <div style={{fontSize:8,color:"#555",fontWeight:700,marginBottom:6}}>{t.paid.toUpperCase()}</div>
-      <div style={{fontSize:20,fontWeight:900,color:G}}>{paidTotal}</div>
-      <div style={{fontSize:9,color:"#444",marginTop:2}}>{t.currency}</div>
-    </div>
-    <div style={{background:"#1f0e0e",borderRadius:14,padding:"12px 10px",border:`1px solid ${BORDER}`,textAlign:"center"}}>
-      <div style={{fontSize:8,color:"#555",fontWeight:700,marginBottom:6}}>{t.unpaid.toUpperCase()}</div>
-      <div style={{fontSize:20,fontWeight:900,color:"#ff5555"}}>{unpaidTotal}</div>
-      <div style={{fontSize:9,color:"#444",marginTop:2}}>{t.currency}</div>
-    </div>
-  </div>
+function PaymentsScreen({lang,setLang}){
+  const t=T[lang],isRTL=lang==="ar";
+  const now=new Date();
+  const [users,setUsers]=useState([]);
+  const [price,setPrice]=useState(500);
+  const [editingPrice,setEditingPrice]=useState(false);
+  const [tempPrice,setTempPrice]=useState(500);
+  const [selectedMonth,setSelectedMonth]=useState(now.getMonth());
+  const [selectedYear,setSelectedYear]=useState(now.getFullYear());
+  const [payments,setPayments]=useState({});
+  const [loading,setLoading]=useState(true);
 
-  {/* Search + add */}
-  <div style={{display:"flex",gap:8,marginBottom:14,alignItems:"center"}}>
-    <div style={{flex:1,display:"flex",alignItems:"center",background:CARD,border:`1.5px solid ${BORDER}`,borderRadius:12,padding:"0 12px",gap:8}}>
-      <IconSearch/>
-      <input value={search} onChange={e=>setSearch(e.target.value)} placeholder={t.search}
-        style={{flex:1,background:"transparent",border:"none",padding:"10px 0",color:"#fff",fontSize:13}}/>
-    </div>
-    <button onClick={()=>setModal("addPartner")}
-      style={{background:G,color:"#001a0e",border:"none",borderRadius:12,padding:"10px 14px",fontWeight:900,fontSize:13,display:"flex",alignItems:"center",gap:5,whiteSpace:"nowrap"}}>
-      <IconPlus size={13} color="#001a0e"/> {t.newPartner}
-    </button>
-  </div>
+  // Load users from Firebase
+  useEffect(()=>{
+    const unsub=db.collection("users").onSnapshot(snap=>{
+      setUsers(snap.docs.map(d=>({id:d.id,...d.data()})).filter(u=>u.active));
+      setLoading(false);
+    });
+    return unsub;
+  },[]);
 
-  <div style={{fontSize:11,color:"#555",fontWeight:700,letterSpacing:0.5,marginBottom:10}}>{t.partners.toUpperCase()}</div>
-  {loading&&<div style={{textAlign:"center",color:"#444",padding:"30px 0"}}>{t.loading}</div>}
-  {!loading&&partners.length===0&&<div style={{textAlign:"center",color:"#333",padding:"30px 0"}}>{t.noPartners}</div>}
+  // Load payments and price from Firebase
+  useEffect(()=>{
+    const unsub=db.collection("payments").doc("data").onSnapshot(snap=>{
+      if(snap.exists){
+        const data=snap.data();
+        if(data.payments) setPayments(data.payments);
+        if(data.price) setPrice(data.price);
+      }
+    });
+    return unsub;
+  },[]);
 
-  {/* Partner cards */}
-  <div style={{display:"flex",flexDirection:"column",gap:10}}>
-    {filtered.map(p=>{
-      const activeCount=getActiveClients(p).length;
-      const totalDue=getTotalDue(p);
-      const paid=isPartnerPaid(p.id);
-      const isExp=expanded===p.id;
-      return(
-        <div key={p.id} style={{background:paid?"#071510":CARD,borderRadius:14,border:`1.5px solid ${paid?G+"44":BORDER}`,overflow:"hidden"}}>
-          <div style={{padding:"13px 15px"}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:8,marginBottom:10}}>
-              <div style={{flex:1,minWidth:0}}>
-                <div style={{fontWeight:800,fontSize:14,color:paid?"#555":"#fff",marginBottom:2}}>{p.name}</div>
-                <div style={{fontSize:11,color:"#444",marginTop:1,display:"flex",alignItems:"center",gap:4}}><IconPhone/> {p.phone}</div>
-                <div style={{fontSize:11,color:"#555",marginTop:4,display:"flex",alignItems:"center",gap:4}}>
-                  <IconUsers size={11} color={activeCount>0?G:"#444"}/>
-                  <span style={{color:activeCount>0?G:"#444",fontWeight:700}}>{activeCount}</span> {t.activeStadiums}
-                </div>
-              </div>
-              <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:6,flexShrink:0}}>
-                <div style={{fontSize:17,fontWeight:900,color:paid?G:"#fff"}}>{totalDue} <span style={{fontSize:10,color:"#444"}}>{t.currency}</span></div>
-                <div style={{display:"flex",gap:5}}>
-                  <button onClick={()=>setConfirm({type:paid?"partnerUnpaid":"partnerPaid",pid:p.id,name:p.name})}
-                    style={{background:paid?"#0b2018":"#ff555518",color:paid?G:"#ff5555",border:`1.5px solid ${paid?G+"55":"#ff555533"}`,borderRadius:8,padding:"6px 10px",fontWeight:900,fontSize:10,whiteSpace:"nowrap",display:"flex",alignItems:"center",gap:4}}>
-                    {paid?<><IconCheck size={10}/> {t.paid}</>:t.markPartnerPaid}
-                  </button>
-                  <button onClick={()=>setConfirm({type:"deletePartner",pid:p.id,name:p.name})}
-                    style={{background:"#1f0e0e",border:"1px solid #2e1414",borderRadius:8,padding:"6px 9px",display:"flex",alignItems:"center"}}>
-                    <IconTrash/>
-                  </button>
-                </div>
-              </div>
-            </div>
+  const saveToFirebase=async(newPayments,newPrice)=>{
+    await db.collection("payments").doc("data").set({payments:newPayments,price:newPrice},{merge:true});
+  };
 
-            {/* Clients accordion toggle */}
-            <button onClick={()=>setExpanded(isExp?null:p.id)}
-              style={{width:"100%",background:"#1c2030",border:`1px solid ${BORDER}`,borderRadius:10,padding:"8px 14px",display:"flex",alignItems:"center",justifyContent:"space-between",color:"#666",fontWeight:700,fontSize:12}}>
-              <span style={{display:"flex",alignItems:"center",gap:6}}><IconUsers size={13} color="#555"/> {t.clients} ({p.clients.length})</span>
-              <IconChevron up={isExp}/>
+  const monthKey=`${selectedYear}-${selectedMonth}`;
+
+  const togglePaid=async(userId)=>{
+    const newPayments={...payments,[monthKey]:{...(payments[monthKey]||{}),[userId]:!payments[monthKey]?.[userId]}};
+    setPayments(newPayments);
+    await saveToFirebase(newPayments,price);
+  };
+
+  const savePrice=async(newPrice)=>{
+    setPrice(newPrice);
+    setEditingPrice(false);
+    await saveToFirebase(payments,newPrice);
+  };
+
+  const isPaid=(userId)=>payments[monthKey]?.[userId]||false;
+  const paidCount=users.filter(u=>isPaid(u.id)).length;
+  const unpaidCount=users.length-paidCount;
+  const totalReceived=paidCount*price;
+  const totalMissing=unpaidCount*price;
+  const totalExpected=users.length*price;
+  const pct=users.length>0?Math.round((paidCount/users.length)*100):0;
+
+  return(
+    <div style={{fontFamily:isRTL?"'Cairo',sans-serif":"'Nunito',sans-serif",direction:isRTL?"rtl":"ltr",maxWidth:430,margin:"0 auto",minHeight:"100vh",background:BG,color:"#f0f0f0",paddingBottom:40}}>
+
+      {/* Header */}
+      <div style={{background:CARD,padding:"14px 16px",borderBottom:`1px solid ${BORDER}`,position:"sticky",top:0,zIndex:10,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <div>
+          <div style={{fontSize:18,fontWeight:900,color:G}}>⚽ StadBook</div>
+          <div style={{fontSize:10,color:"#444",fontWeight:700,letterSpacing:1}}>{t.title.toUpperCase()}</div>
+        </div>
+        <div style={{display:"flex",gap:6,alignItems:"center"}}>
+          {["fr","en","ar"].map(l=>(
+            <button key={l} onClick={()=>setLang(l)} style={{background:lang===l?G:"#1c2030",border:"none",borderRadius:8,padding:"5px 8px",fontWeight:800,fontSize:10,color:lang===l?"#001a0e":"#555"}}>
+              {FLAGS[l]} {LANG_LABELS[l]}
             </button>
-          </div>
+          ))}
+          <button onClick={()=>auth.signOut()} style={{background:"#1f0e0e",color:"#ff5555",border:"1px solid #2e1414",borderRadius:8,padding:"6px 10px",fontWeight:700,fontSize:11,marginLeft:4}}>{t.signOut}</button>
+        </div>
+      </div>
 
-          {/* Expandable clients */}
-          {isExp&&(
-            <div style={{borderTop:`1px solid ${BORDER}`,padding:"12px 15px 14px"}}>
-              {p.clients.length===0
-                ?<div style={{textAlign:"center",color:"#333",padding:"12px 0",fontSize:13}}>{t.noClientsYet}</div>
-                :<div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:10}}>
-                  {p.clients.map(uid=>{
-                    const u=getUser(uid);
-                    if(!u) return null;
-                    return(
-                      <div key={uid} style={{background:u.active?"#0b1a0e":"#1a0e0e",borderRadius:10,padding:"10px 12px",border:`1px solid ${u.active?G+"33":"#ff555533"}`,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                        <div>
-                          <div style={{fontWeight:800,fontSize:13,color:u.active?"#ddd":"#ff5555"}}>{u.stadiumName}</div>
-                          <div style={{fontSize:10,color:u.active?"#444":"#6a2a2a",marginTop:1}}>{u.email}</div>
-                        </div>
-                        <div style={{fontSize:10,fontWeight:800,padding:"3px 8px",borderRadius:20,background:u.active?G+"22":"#ff555522",color:u.active?G:"#ff5555"}}>
-                          {u.active?t.active:t.inactive}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              }
-              <button onClick={()=>setModal({type:"assignClient",pid:p.id})}
-                style={{width:"100%",background:`${G}18`,color:G,border:`1px solid ${G}44`,borderRadius:10,padding:"9px",fontWeight:900,fontSize:13,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
-                <IconPlus/> {t.assignClient}
-              </button>
+      <div style={{padding:"16px"}}>
+
+        {/* Price */}
+        <div style={{background:CARD,borderRadius:16,padding:"16px",border:`1px solid ${BORDER}`,marginBottom:14}}>
+          <div style={{fontSize:10,color:"#444",fontWeight:700,letterSpacing:0.5,marginBottom:10}}>{t.price.toUpperCase()}</div>
+          {editingPrice?(
+            <div style={{display:"flex",gap:8}}>
+              <input type="number" value={tempPrice} onChange={e=>setTempPrice(Number(e.target.value))} autoFocus
+                style={{flex:1,background:BG,border:`2px solid ${G}`,borderRadius:10,padding:"10px 12px",color:"#fff",fontSize:15}}/>
+              <button onClick={()=>savePrice(tempPrice)} style={{background:G,color:"#001a0e",border:"none",borderRadius:10,padding:"10px 16px",fontWeight:900,fontSize:13}}>✓</button>
+              <button onClick={()=>setEditingPrice(false)} style={{background:"#1c2030",color:"#888",border:"none",borderRadius:10,padding:"10px 14px",fontWeight:700,fontSize:13}}>✕</button>
+            </div>
+          ):(
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <span style={{fontSize:22,fontWeight:900,color:G}}>{price} <span style={{fontSize:13,color:"#444"}}>{t.perMonth}</span></span>
+              <button onClick={()=>{setTempPrice(price);setEditingPrice(true);}} style={{background:`${G}18`,color:G,border:`1px solid ${G}44`,borderRadius:10,padding:"7px 14px",fontSize:12,fontWeight:800}}>✏️ {t.edit}</button>
             </div>
           )}
         </div>
-      );
-    })}
-  </div>
-</div>
-```
 
-);
+        {/* Month selector */}
+        <div style={{background:CARD,borderRadius:16,padding:"14px 16px",border:`1px solid ${BORDER}`,marginBottom:14}}>
+          <div style={{fontSize:10,color:"#444",fontWeight:700,letterSpacing:0.5,marginBottom:10}}>{t.month}</div>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+            <button onClick={()=>{if(selectedMonth===0){setSelectedMonth(11);setSelectedYear(y=>y-1);}else setSelectedMonth(m=>m-1);}}
+              style={{background:"#1c2030",border:"none",borderRadius:8,padding:"8px 16px",color:"#888",fontWeight:900,fontSize:18}}>‹</button>
+            <div style={{fontWeight:900,fontSize:16,color:"#fff"}}>{MONTHS[lang][selectedMonth]} {selectedYear}</div>
+            <button onClick={()=>{if(selectedMonth===11){setSelectedMonth(0);setSelectedYear(y=>y+1);}else setSelectedMonth(m=>m+1);}}
+              style={{background:"#1c2030",border:"none",borderRadius:8,padding:"8px 16px",color:"#888",fontWeight:900,fontSize:18}}>›</button>
+          </div>
+        </div>
+
+        {/* Summary cards */}
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:16}}>
+          {[
+            {label:t.received,value:totalReceived,color:G,bg:"#0b2018"},
+            {label:t.missing,value:totalMissing,color:"#ff5555",bg:"#1f0e0e"},
+            {label:t.expected,value:totalExpected,color:"#aaa",bg:CARD},
+          ].map((s,i)=>(
+            <div key={i} style={{background:s.bg,borderRadius:14,padding:"12px 10px",border:`1px solid ${BORDER}`,textAlign:"center"}}>
+              <div style={{fontSize:8,color:"#555",fontWeight:700,marginBottom:6}}>{s.label}</div>
+              <div style={{fontSize:16,fontWeight:900,color:s.color}}>{s.value}</div>
+              <div style={{fontSize:9,color:"#444",marginTop:2}}>{t.currency}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Progress bar */}
+        <div style={{background:CARD,borderRadius:16,padding:"14px 16px",border:`1px solid ${BORDER}`,marginBottom:16}}>
+          <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}>
+            <div style={{fontSize:12,fontWeight:700,color:G}}>{paidCount} {t.paid}</div>
+            <div style={{fontSize:12,fontWeight:700,color:"#ff5555"}}>{unpaidCount} {t.unpaid}</div>
+          </div>
+          <div style={{background:"#1c2030",borderRadius:10,height:12,overflow:"hidden"}}>
+            <div style={{background:`linear-gradient(90deg,${G},#00a86b)`,height:"100%",width:`${pct}%`,borderRadius:10,transition:"width 0.4s"}}/>
+          </div>
+          <div style={{textAlign:"center",marginTop:8,fontSize:11,color:"#555"}}>{pct}% {t.collected}</div>
+        </div>
+
+        {/* Users list */}
+        <div style={{fontSize:11,color:"#555",fontWeight:700,letterSpacing:0.5,marginBottom:10}}>{t.terrains}</div>
+
+        {loading&&<div style={{textAlign:"center",color:"#444",padding:"30px 0"}}>{t.loading}</div>}
+        {!loading&&users.length===0&&<div style={{textAlign:"center",color:"#333",padding:"30px 0"}}>{t.noUsers}</div>}
+
+        <div style={{display:"flex",flexDirection:"column",gap:8}}>
+          {users.map(u=>{
+            const paid=isPaid(u.id);
+            return(
+              <div key={u.id} style={{background:paid?"#071510":CARD,borderRadius:14,padding:"13px 15px",border:`1.5px solid ${paid?G+"44":BORDER}`,display:"flex",alignItems:"center",justifyContent:"space-between",gap:10}}>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontWeight:800,fontSize:14,color:paid?"#555":"#fff"}}>{u.stadiumName}</div>
+                  <div style={{fontSize:11,color:"#444",marginTop:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{u.email}</div>
+                  <div style={{fontSize:11,marginTop:3,color:paid?G:"#ff5555",fontWeight:700}}>
+                    {paid?`✓ ${t.paid} — ${price} ${t.currency}`:`● ${price} ${t.currency} ${t.due}`}
+                  </div>
+                </div>
+                <button onClick={()=>togglePaid(u.id)} style={{
+                  background:paid?"#0b2018":"#ff555518",
+                  color:paid?G:"#ff5555",
+                  border:`1.5px solid ${paid?G+"55":"#ff555533"}`,
+                  borderRadius:10,padding:"8px 12px",fontWeight:900,fontSize:11,
+                  flexShrink:0,whiteSpace:"nowrap"
+                }}>
+                  {paid?`✓ ${t.paid}`:t.markPaid}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+
+      </div>
+    </div>
+  );
 }
 
-// ADD PARTNER MODAL
-function AddPartnerModal({t,onAdd,onClose}){
-const [name,setName]=useState(””);
-const [phone,setPhone]=useState(””);
-return(
-<div style={{position:“fixed”,inset:0,background:“rgba(0,0,0,0.88)”,display:“flex”,alignItems:“center”,justifyContent:“center”,zIndex:200,padding:20}} onClick={onClose}>
-<div onClick={e=>e.stopPropagation()} style={{background:CARD,borderRadius:22,padding:“28px 22px”,width:“100%”,maxWidth:380,border:`1px solid ${BORDER}`,animation:“popIn 0.2s ease”}}>
-<div style={{fontSize:11,color:”#555”,fontWeight:700,marginBottom:20,display:“flex”,alignItems:“center”,gap:6,letterSpacing:0.5}}><IconUser/> {t.newPartner.toUpperCase()}</div>
-<div style={{marginBottom:12}}>
-<div style={{fontSize:10,color:”#555”,fontWeight:700,marginBottom:6}}>{t.partnerName.toUpperCase()}</div>
-<input value={name} onChange={e=>setName(e.target.value)} autoFocus
-style={{width:“100%”,background:BG,border:`2px solid ${BORDER}`,borderRadius:12,padding:“13px 15px”,color:”#fff”,fontSize:15}}
-onFocus={e=>e.target.style.borderColor=G} onBlur={e=>e.target.style.borderColor=BORDER}/>
-</div>
-<div style={{marginBottom:22}}>
-<div style={{fontSize:10,color:”#555”,fontWeight:700,marginBottom:6}}>{t.phone.toUpperCase()}</div>
-<input value={phone} onChange={e=>setPhone(e.target.value.replace(/\D/g,””))} type=“tel” inputMode=“numeric”
-style={{width:“100%”,background:BG,border:`2px solid ${BORDER}`,borderRadius:12,padding:“13px 15px”,color:”#fff”,fontSize:15}}
-onFocus={e=>e.target.style.borderColor=G} onBlur={e=>e.target.style.borderColor=BORDER}/>
-</div>
-<div style={{display:“flex”,gap:10}}>
-<button onClick={onClose} style={{flex:1,background:”#1c2030”,color:”#666”,border:“none”,borderRadius:12,padding:“14px”,fontWeight:700,fontSize:14}}>{t.cancel}</button>
-<button onClick={()=>{if(!name.trim()) return;onAdd(name,phone);onClose();}}
-disabled={!name.trim()}
-style={{flex:2,background:name.trim()?G:”#0e2018”,color:name.trim()?”#001a0e”:”#1a3a28”,border:“none”,borderRadius:12,padding:“14px”,fontWeight:900,fontSize:15,display:“flex”,alignItems:“center”,justifyContent:“center”,gap:6}}>
-<IconPlus size={14} color={name.trim()?”#001a0e”:”#1a3a28”}/> {t.addPartner}
-</button>
-</div>
-</div>
-</div>
-);
-}
-
-ReactDOM.createRoot(document.getElementById(“root”)).render(<App/>);
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
 </script>
-
 </body>
 </html>
