@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png"/>
 <link rel="icon" type="image/svg+xml" href="icon.svg"/>
 <link rel="shortcut icon" href="apple-touch-icon.png"/>
-<title>StadBook — Paiements</title>
+<title>StadBook -- Paiements</title>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
@@ -46,7 +46,7 @@ const {useState,useEffect}=React;
 const G="#00D48A",BG="#0D0F18",CARD="#111420",BORDER="#1c2030";
 const ADMIN_EMAIL="fatimetousidiboba@gmail.com";
 
-// ── SVG ICONS ─────────────────────────────────────────────────────────────────
+// SVG ICONS
 const IconEdit=({size=13,color=G})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>;
 const IconTrash=({size=13,color=”#ff5555”})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>;
 const IconPlus=({size=13,color=G})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>;
@@ -63,7 +63,7 @@ const IconHandshake=({size=36,color=G})=><svg width={size} height={size} viewBox
 const IconSquare=({size=15,color=”#555”})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/></svg>;
 const IconCheckSq=({size=15,color=G})=><svg width={size} height={size} viewBox=“0 0 24 24” fill={color+“22”} stroke={color} strokeWidth=“2” strokeLinecap=“round” strokeLinejoin=“round”><rect x="3" y="3" width="18" height="18" rx="3"/><polyline points="9 12 11 14 15 10" stroke={color} strokeWidth="2.5"/></svg>;
 
-// ── APP LOGO (same as index.html login) ───────────────────────────────────────
+// APP LOGO (same as index.html login)
 const AppLogo=()=>(
 <svg width="64" height="64" viewBox="0 0 200 200" style={{marginBottom:8}}>
 <rect width="200" height="200" rx="44" fill="#060810"/>
@@ -82,7 +82,7 @@ const AppLogo=()=>(
 </svg>
 );
 
-// ── TRANSLATIONS ──────────────────────────────────────────────────────────────
+// TRANSLATIONS
 const T={
 fr:{
 title:“Paiements”,payments:“Paiements”,partners:“Partenaires”,
@@ -166,7 +166,7 @@ en:[“January”,“February”,“March”,“April”,“May”,“June”,�
 ar:[“يناير”,“فبراير”,“مارس”,“أبريل”,“مايو”,“يونيو”,“يوليو”,“أغسطس”,“سبتمبر”,“أكتوبر”,“نوفمبر”,“ديسمبر”],
 };
 
-// ── CONFIRM MODAL ─────────────────────────────────────────────────────────────
+// CONFIRM MODAL
 function ConfirmModal({icon,title,subtitle,confirmLabel,confirmStyle,onConfirm,onCancel,cancelLabel}){
 return(
 <div style={{position:“fixed”,inset:0,background:“rgba(0,0,0,0.88)”,display:“flex”,alignItems:“center”,justifyContent:“center”,zIndex:200,padding:20}} onClick={onCancel}>
@@ -183,7 +183,7 @@ return(
 );
 }
 
-// ── APP ROOT ──────────────────────────────────────────────────────────────────
+// APP ROOT
 function App(){
 const [lang,setLang]=useState(“fr”);
 const [authUser,setAuthUser]=useState(undefined);
@@ -208,7 +208,7 @@ return <div style={{background:BG,minHeight:“100vh”,display:“flex”,align
 return <MainScreen lang={lang} setLang={setLang}/>;
 }
 
-// ── LOGIN ─────────────────────────────────────────────────────────────────────
+// LOGIN
 function LoginScreen({lang,setLang,onError,error}){
 const t=T[lang],isRTL=lang===“ar”;
 const [email,setEmail]=useState(””);
@@ -257,7 +257,7 @@ onFocus={e=>e.target.style.borderColor=G} onBlur={e=>e.target.style.borderColor=
 );
 }
 
-// ── MAIN SCREEN ───────────────────────────────────────────────────────────────
+// MAIN SCREEN
 function MainScreen({lang,setLang}){
 const t=T[lang],isRTL=lang===“ar”;
 const [activeTab,setActiveTab]=useState(“payments”);
@@ -301,7 +301,7 @@ return(
 );
 }
 
-// ── PAYMENTS TAB ──────────────────────────────────────────────────────────────
+// PAYMENTS TAB
 function PaymentsTab({lang,t}){
 const now=new Date();
 const [users,setUsers]=useState([]);
@@ -504,7 +504,7 @@ return(
             <div style={{fontWeight:800,fontSize:14,color:paid?"#555":"#fff"}}>{u.stadiumName}</div>
             <div style={{fontSize:11,color:"#444",marginTop:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{u.email}</div>
             <div style={{fontSize:11,marginTop:3,color:paid?G:"#ff5555",fontWeight:700}}>
-              {paid?`✓ ${t.paid} — ${price} ${t.currency}`:`● ${price} ${t.currency} ${t.due}`}
+              {paid?`✓ ${t.paid} -- ${price} ${t.currency}`:`● ${price} ${t.currency} ${t.due}`}
             </div>
           </div>
           {!selecting&&(
@@ -523,7 +523,7 @@ return(
 );
 }
 
-// ── PARTNERS TAB ──────────────────────────────────────────────────────────────
+// PARTNERS TAB
 function PartnersTab({lang,t}){
 const now=new Date();
 const [allUsers,setAllUsers]=useState([]);
@@ -804,7 +804,7 @@ return(
 );
 }
 
-// ── ADD PARTNER MODAL ─────────────────────────────────────────────────────────
+// ADD PARTNER MODAL
 function AddPartnerModal({t,onAdd,onClose}){
 const [name,setName]=useState(””);
 const [phone,setPhone]=useState(””);
