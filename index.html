@@ -71,6 +71,7 @@ STADBOOK FINAL STABILIZATION PATCH
   });
   const auth = firebase.auth();
   const db = firebase.firestore();
+  db.enablePersistence({synchronizeTabs:true}).catch(function(){});
 </script>
 <script type="text/babel">
 const { useState, useMemo, useEffect, useCallback } = React;
@@ -2014,7 +2015,11 @@ function cleanupEmptyBookingDates(bookings){
   });
 }
 </script>
-
+<script>
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.register("/StadBook/sw.js");
+}
+</script>
 </body>
 </html>
 
