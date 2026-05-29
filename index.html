@@ -100,7 +100,7 @@ function getMonthGrid(y,m){const f=new Date(y,m,1),c=[];for(let i=0;i<f.getDay()
 // ── TRANSLATIONS ─────────────────────────────────────────────────────────────
 const T={
   en:{
-    appName:"StadBook",home:"Home",schedule:"Schedule",earnings:"Earnings",settings:"Settings",
+    appName:"StadBook",home:"Home",schedule:"Schedule",earnings:"Earnings",settings:"Settings",reports:"Reports",
     price:"Price / hr",currency:"MRU",book:"Book",cancel:"Cancel",play:"Played",confirm:"Confirm",
     playerName:"Player / Team",phone:"Phone number",todayEarnings:"Today's Earnings",
     booked:"Reserved",played:"Played",day:"Day",week:"Week",month:"Month",save:"Save",edit:"Edit",
@@ -135,7 +135,7 @@ const T={
     subDelConfirm:"Delete this subscription?",maxAmount:"Maximum",
   },
   fr:{
-    appName:"StadBook",home:"Accueil",schedule:"Planning",earnings:"Recettes",settings:"Paramètres",
+    appName:"StadBook",home:"Accueil",schedule:"Planning",earnings:"Recettes",settings:"Paramètres",reports:"Rapports",
     price:"Prix / h",currency:"MRU",book:"Réserver",cancel:"Annuler",play:"Joué",confirm:"Confirmer",
     playerName:"Joueur / Équipe",phone:"Numéro de téléphone",todayEarnings:"Recettes du Jour",
     booked:"Réservé",played:"Joué",day:"Jour",week:"Semaine",month:"Mois",save:"Enregistrer",edit:"Modifier",
@@ -170,7 +170,7 @@ const T={
     subDelConfirm:"Supprimer cet abonnement ?",maxAmount:"Maximum",
   },
   ar:{
-    appName:"ستاد بوك",home:"الرئيسية",schedule:"الجدول",earnings:"الأرباح",settings:"الإعدادات",
+    appName:"ستاد بوك",home:"الرئيسية",schedule:"الجدول",earnings:"الأرباح",settings:"الإعدادات",reports:"التقارير",
     price:"السعر / س",currency:"أوقية",book:"احجز",cancel:"إلغاء",play:"تم اللعب",confirm:"تأكيد",
     playerName:"اللاعب / الفريق",phone:"رقم الهاتف",todayEarnings:"أرباح اليوم",
     booked:"محجوز",played:"تم اللعب",day:"يوم",week:"أسبوع",month:"شهر",save:"حفظ",edit:"تعديل",
@@ -216,6 +216,7 @@ const CalIcon=()=><svg width="22" height="22" viewBox="0 0 24 24" fill="none" st
 const EarnIcon=()=><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>;
 const SettIcon=()=><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>;
 const Check=({size=22,color=G})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none"><polyline points="4,13 9,18 20,6" stroke={color} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/></svg>;
+const ReportIcon=()=><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="12" width="4" height="9"/><rect x="10" y="7" width="4" height="14"/><rect x="17" y="3" width="4" height="18"/><line x1="1" y1="22" x2="23" y2="22"/></svg>;
 const SubIcon=()=><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>;
 const PenIcon=()=><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>;
 const BinIcon=()=><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>;
@@ -1023,7 +1024,7 @@ function StadBookApp({lang,setLang,user,uid}){
   const playSlot=async(dk,h)=>await saveBookings({...bookings,[dk]:{...(bookings[dk]||{}),[h]:{...bookings[dk][h],status:"played"}}});
   const goToDay=d=>{setSelectedDate(new Date(d));setCalView("day");setTab("schedule");};
 
-  const NAV=[{id:"home",icon:<HomeIcon/>,label:t.home},{id:"schedule",icon:<CalIcon/>,label:t.schedule},{id:"earnings",icon:<EarnIcon/>,label:t.earnings},{id:"subs",icon:<SubIcon/>,label:t.subs},{id:"settings",icon:<SettIcon/>,label:t.settings}];
+  const NAV=[{id:"home",icon:<HomeIcon/>,label:t.home},{id:"schedule",icon:<CalIcon/>,label:t.schedule},{id:"earnings",icon:<EarnIcon/>,label:t.earnings},{id:"subs",icon:<SubIcon/>,label:t.subs},{id:"settings",icon:<SettIcon/>,label:t.settings},{id:"reports",icon:<ReportIcon/>,label:t.reports,href:"reports.html"}];
 
   const SlotCard=({h,dk})=>{
     const slot=getSlot(dk,h),isPlayed=slot?.status==="played",isReserved=slot?.status==="reserved";
@@ -1880,13 +1881,18 @@ db.collection("bookings").doc(uid).update({
         {/* Bottom nav */}
         <div style={{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:430,zIndex:30}}>
           <div style={{background:"#0e1019",borderTop:`1px solid ${BORDER}`,display:"flex",paddingBottom:18,paddingTop:6}}>
-            {NAV.map(item=>{const isActive=tab===item.id;return(
+            {NAV.map(item=>{const isActive=tab===item.id;return item.href?(
+  <a key={item.id} href={item.href} style={{flex:1,background:"none",border:"none",display:"flex",flexDirection:"column",alignItems:"center",gap:2,position:"relative",paddingTop:10,textDecoration:"none"}}>
+    <div style={{color:"#444",marginBottom:2}}>{item.icon}</div>
+    <span style={{fontSize:8,fontWeight:800,color:"#444",letterSpacing:0.2}}>{item.label.toUpperCase()}</span>
+  </a>
+):(
               <button key={item.id} onClick={()=>setTab(item.id)} style={{flex:1,background:"none",border:"none",display:"flex",flexDirection:"column",alignItems:"center",gap:2,position:"relative",paddingTop:isActive?0:10}}>
                 {isActive&&<div style={{position:"absolute",top:-22,width:48,height:48,borderRadius:"50%",background:G,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:`0 0 20px ${G}66`}}><div style={{color:"#001a0e"}}>{item.icon}</div></div>}
                 {!isActive&&<div style={{color:"#444",marginBottom:2}}>{item.icon}</div>}
                 <span style={{fontSize:8,fontWeight:800,color:isActive?G:"#444",letterSpacing:0.2,marginTop:isActive?30:0}}>{item.label.toUpperCase()}</span>
               </button>
-            );})}
+            ));})}
           </div>
         </div>
         {/* Booking modal */}
