@@ -13,7 +13,7 @@
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -456,14 +456,9 @@ function PlanningTab({bookings,lang,t,stadiumName}){
     </div>`;
   };
 
-  const generate=async()=>{
-    if(!rows.length||gen)return;
-    setGen(true);
-    const el=document.getElementById("pdf-target");
-    el.innerHTML=pdfContent();el.style.display="block";
-    await new Promise(r=>setTimeout(r,300));
-    await html2pdf().set({margin:[8,8],filename:`StadBook_Planning_${from}_${to}.pdf`,html2canvas:{scale:2,backgroundColor:"#fff"},jsPDF:{unit:"mm",format:"a4",orientation:"portrait"}}).from(el).save();
-    el.style.display="none";setGen(false);
+  const generate=()=>{
+    if(!rows.length)return;
+    openPrint(pdfContent(),`StadBook_Planning_${from}_${to}`);
   };
 
   return(
@@ -531,7 +526,7 @@ function PlanningTab({bookings,lang,t,stadiumName}){
           })}
         </div>
       )}
-      {rows.length>0&&<PdfBtn label={t.dlPdf} gen={gen} onClick={generate}/>}
+      {rows.length>0&&<PdfBtn label={t.dlPdf} gen={false} onClick={generate}/>}
     </div>
   );
 }
@@ -623,14 +618,9 @@ function SubsTab({subs,lang,t,stadiumName}){
     </div>`;
   };
 
-  const generate=async()=>{
-    if(!shown.length||gen)return;
-    setGen(true);
-    const el=document.getElementById("pdf-target");
-    el.innerHTML=pdfContent();el.style.display="block";
-    await new Promise(r=>setTimeout(r,300));
-    await html2pdf().set({margin:[8,8],filename:`StadBook_Abonnements.pdf`,html2canvas:{scale:2,backgroundColor:"#fff"},jsPDF:{unit:"mm",format:"a4",orientation:"portrait"}}).from(el).save();
-    el.style.display="none";setGen(false);
+  const generate=()=>{
+    if(!shown.length)return;
+    openPrint(pdfContent(),"StadBook_Abonnements");
   };
 
   return(
@@ -701,7 +691,7 @@ function SubsTab({subs,lang,t,stadiumName}){
           })}
         </div>
       )}
-      {shown.length>0&&<PdfBtn label={t.dlPdf} gen={gen} onClick={generate}/>}
+      {shown.length>0&&<PdfBtn label={t.dlPdf} gen={false} onClick={generate}/>}
     </div>
   );
 }
@@ -803,14 +793,9 @@ function EarningsTab({bookings,subs,lang,t,stadiumName}){
     </div>`;
   };
 
-  const generate=async()=>{
-    if(!daysData.length||gen)return;
-    setGen(true);
-    const el=document.getElementById("pdf-target");
-    el.innerHTML=pdfContent();el.style.display="block";
-    await new Promise(r=>setTimeout(r,300));
-    await html2pdf().set({margin:[8,8],filename:`StadBook_${year}-${String(month+1).padStart(2,"0")}.pdf`,html2canvas:{scale:2,backgroundColor:"#fff"},jsPDF:{unit:"mm",format:"a4",orientation:"portrait"}}).from(el).save();
-    el.style.display="none";setGen(false);
+  const generate=()=>{
+    if(!daysData.length)return;
+    openPrint(pdfContent(),`StadBook_${year}-${String(month+1).padStart(2,"0")}`);
   };
 
   return(
@@ -868,7 +853,7 @@ function EarningsTab({bookings,subs,lang,t,stadiumName}){
           </div>
         </div>
       )}
-      {daysData.length>0&&<PdfBtn label={t.dlPdf} gen={gen} onClick={generate}/>}
+      {daysData.length>0&&<PdfBtn label={t.dlPdf} gen={false} onClick={generate}/>}
     </div>
   );
 }
@@ -1009,14 +994,8 @@ function AllTab({bookings,subs,lang,t,stadiumName}){
     </div>`;
   };
 
-  const generate=async()=>{
-    if(gen)return;
-    setGen(true);
-    const el=document.getElementById("pdf-target");
-    el.innerHTML=pdfContent();el.style.display="block";
-    await new Promise(r=>setTimeout(r,300));
-    await html2pdf().set({margin:[8,8],filename:`StadBook_Complet.pdf`,html2canvas:{scale:2,backgroundColor:"#fff"},jsPDF:{unit:"mm",format:"a4",orientation:"portrait"}}).from(el).save();
-    el.style.display="none";setGen(false);
+  const generate=()=>{
+    openPrint(pdfContent(),"StadBook_Complet");
   };
 
   return(
@@ -1116,7 +1095,7 @@ function AllTab({bookings,subs,lang,t,stadiumName}){
         )}
       </div>
 
-      <PdfBtn label={t.dlPdf} gen={gen} onClick={generate}/>
+      <PdfBtn label={t.dlPdf} gen={false} onClick={generate}/>
     </div>
   );
 }
@@ -1147,9 +1126,34 @@ function PdfBtn({label,gen,onClick}){
   );
 }
 
+
+// ── PDF via print window ───────────────────────────────────────────────────
+function openPrint(htmlContent, filename){
+  const win=window.open("","_blank");
+  if(!win){alert("Please allow popups for this site to download PDF.");return;}
+  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>'+filename+'</title>'+
+    '<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>'+
+    '<style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:Nunito,sans-serif;background:#fff;}'+
+    '@media print{@page{margin:10mm;}body{print-color-adjust:exact;-webkit-print-color-adjust:exact;}}'+
+    '</style></head><body>'+htmlContent+'</body></html>');
+  win.document.close();
+  win.onload=function(){setTimeout(function(){win.print();},500);};
+}
+
+function openPrint(htmlContent,filename){
+  const win=window.open("","_blank");
+  if(!win){alert("Please allow popups to download PDF.");return;}
+  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>'+filename+'</title>'+
+    '<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>'+
+    '<style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:Nunito,sans-serif;background:#fff;}'+
+    '@media print{@page{margin:10mm;}body{print-color-adjust:exact;-webkit-print-color-adjust:exact;}}</style>'+
+    '</head><body>'+htmlContent+'</body></html>');
+  win.document.close();
+  setTimeout(function(){try{win.print();}catch(e){}},800);
+}
+
 ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
 </script>
-<!-- Hidden PDF render target -->
-<div id="pdf-target" style="display:none;position:fixed;left:-9999px;top:0;width:210mm;background:#fff;"></div>
+
 </body>
 </html>
