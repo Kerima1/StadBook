@@ -429,22 +429,22 @@ function PlanningTab({bookings,lang,t,stadiumName}){
       </div>
       <table style="width:100%;border-collapse:collapse;font-size:11px;">
         <thead><tr style="background:#f5f5f5;">
-          <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">DATE</th>
+          <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"التاريخ":"DATE"}</th>
           <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${t.hours.toUpperCase()}</th>
-          <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">CLIENT</th>
-          <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">TÉL</th>
+          <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"العميل":"CLIENT"}</th>
+          <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"الهاتف":lang==="fr"?"TÉL":"PHONE"}</th>
           <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${t.currency}</th>
-          <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">STATUT</th>
+          <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"الحالة":lang==="fr"?"STATUT":"STATUS"}</th>
         </tr></thead>
         <tbody>
           ${rows.map((r,i)=>{
             const played=r.status==="played";const isSub=!!r.subId;
             return `<tr style="border-bottom:1px solid #f0f0f0;background:${i%2===0?"#fff":"#fafafa"};">
-              <td style="padding:6px 8px;color:#888;">${fmtShort(r.dk,lang)}</td>
+              <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};color:#888;">${fmtShort(r.dk,lang)}</td>
               <td style="padding:6px 8px;color:#4a90d9;font-weight:700;">${fmt24(r.hour)}</td>
-              <td style="padding:6px 8px;font-weight:700;">${r.name||"—"}</td>
-              <td style="padding:6px 8px;color:#aaa;">${r.phone||"—"}</td>
-              <td style="padding:6px 8px;font-weight:800;color:#00D48A;">${isSub?"—":`${r.price||0} ${t.currency}`}</td>
+              <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-weight:700;">${r.name||"—"}</td>
+              <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};color:#aaa;">${r.phone||"—"}</td>
+              <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-weight:800;color:#00D48A;">${isSub?"—":`${r.price||0} ${t.currency}`}</td>
               <td style="padding:6px 8px;"><span style="background:${played?"#e6f9f2":isSub?"#fff8e0":"#fff0f0"};color:${played?"#00a86b":isSub?"#d4a017":"#e05555"};border-radius:4px;padding:2px 6px;font-size:9px;font-weight:700;">${isSub?t.subLabel:played?t.played:t.reserved}</span></td>
             </tr>`;
           }).join("")}
@@ -571,10 +571,10 @@ function SubsTab({subs,lang,t,stadiumName}){
       </div>
       <table style="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:16px;">
         <thead><tr style="background:#f5f5f5;">
-          <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">CLIENT</th>
+          <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"العميل":"CLIENT"}</th>
           <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${t.hours.toUpperCase()}</th>
           <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${t.days.toUpperCase()}</th>
-          <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">TOTAL</th>
+          <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"الإجمالي":"TOTAL"}</th>
           <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${t.paid.toUpperCase()}</th>
           <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${t.remaining.toUpperCase()}</th>
         </tr></thead>
@@ -583,12 +583,12 @@ function SubsTab({subs,lang,t,stadiumName}){
             const paid=s.payments.reduce((a,p)=>a+(p.amount||0),0);
             const rem=Math.max(0,(s.totalPrice||0)-paid);
             return `<tr style="border-bottom:1px solid #f0f0f0;background:${i%2===0?"#fff":"#fafafa"};">
-              <td style="padding:6px 8px;font-weight:700;">${s.name||"—"}</td>
-              <td style="padding:6px 8px;color:#4a90d9;font-weight:700;">${fmt24(s.hour)}</td>
-              <td style="padding:6px 8px;">${s.days?.length||0}</td>
-              <td style="padding:6px 8px;font-weight:800;">${(s.totalPrice||0).toLocaleString()} ${t.currency}</td>
-              <td style="padding:6px 8px;color:#00a86b;font-weight:800;">${paid.toLocaleString()} ${t.currency}</td>
-              <td style="padding:6px 8px;color:${rem>0?"#e05555":"#00a86b"};font-weight:800;">${rem.toLocaleString()} ${t.currency}</td>
+              <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-weight:700;">${s.name||"—"}</td>
+              <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};color:#4a90d9;font-weight:700;">${fmt24(s.hour)}</td>
+              <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};">${s.days?.length||0}</td>
+              <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-weight:800;">${(s.totalPrice||0).toLocaleString()} ${t.currency}</td>
+              <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};color:#00a86b;font-weight:800;">${paid.toLocaleString()} ${t.currency}</td>
+              <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};color:${rem>0?"#e05555":"#00a86b"};font-weight:800;">${rem.toLocaleString()} ${t.currency}</td>
             </tr>`;
           }).join("")}
         </tbody>
@@ -767,23 +767,23 @@ function EarningsTab({bookings,subs,lang,t,stadiumName}){
       </div>
       <table style="width:100%;border-collapse:collapse;font-size:11px;">
         <thead><tr style="background:#f5f5f5;">
-          <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">DATE</th>
+          <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"التاريخ":"DATE"}</th>
           <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${t.matchEarn.toUpperCase()}</th>
           <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${t.subEarn.toUpperCase()}</th>
-          <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">TOTAL</th>
+          <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"الإجمالي":"TOTAL"}</th>
         </tr></thead>
         <tbody>
           ${daysData.map(([dk,d],i)=>`<tr style="border-bottom:1px solid #f0f0f0;background:${i%2===0?"#fff":"#fafafa"};">
-            <td style="padding:6px 8px;font-weight:700;">${fmtShort(dk,lang)}</td>
-            <td style="padding:6px 8px;color:#00a86b;font-weight:700;">${d.matchE>0?d.matchE.toLocaleString()+" "+t.currency:"—"}</td>
-            <td style="padding:6px 8px;color:#00b8ff;font-weight:700;">${d.subE>0?d.subE.toLocaleString()+" "+t.currency:"—"}</td>
-            <td style="padding:6px 8px;font-weight:900;">${(d.matchE+d.subE).toLocaleString()} ${t.currency}</td>
+            <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-weight:700;">${fmtShort(dk,lang)}</td>
+            <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};color:#00a86b;font-weight:700;">${d.matchE>0?d.matchE.toLocaleString()+" "+t.currency:"—"}</td>
+            <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};color:#00b8ff;font-weight:700;">${d.subE>0?d.subE.toLocaleString()+" "+t.currency:"—"}</td>
+            <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-weight:900;">${(d.matchE+d.subE).toLocaleString()} ${t.currency}</td>
           </tr>`).join("")}
           <tr style="background:#f0fdf8;border-top:2px solid #00D48A;">
-            <td style="padding:8px;font-weight:900;">TOTAL</td>
-            <td style="padding:8px;color:#00a86b;font-weight:900;">${totalMatchE.toLocaleString()} ${t.currency}</td>
-            <td style="padding:8px;color:#00b8ff;font-weight:900;">${totalSubE.toLocaleString()} ${t.currency}</td>
-            <td style="padding:8px;font-weight:900;font-size:14px;">${total.toLocaleString()} ${t.currency}</td>
+            <td style="padding:8px;text-align:${isRTL?"right":"left"};font-weight:900;">${lang==="ar"?"الإجمالي":"TOTAL"}</td>
+            <td style="padding:8px;text-align:${isRTL?"right":"left"};color:#00a86b;font-weight:900;">${totalMatchE.toLocaleString()} ${t.currency}</td>
+            <td style="padding:8px;text-align:${isRTL?"right":"left"};color:#00b8ff;font-weight:900;">${totalSubE.toLocaleString()} ${t.currency}</td>
+            <td style="padding:8px;text-align:${isRTL?"right":"left"};font-weight:900;font-size:14px;">${total.toLocaleString()} ${t.currency}</td>
           </tr>
         </tbody>
       </table>
@@ -945,20 +945,20 @@ function AllTab({bookings,subs,lang,t,stadiumName}){
       <div style="font-size:10px;font-weight:800;color:#333;letter-spacing:0.5px;margin-bottom:6px;">${t.lastMatches.toUpperCase()} (${allBookingRows.length})</div>
       <table style="width:100%;border-collapse:collapse;font-size:10px;margin-bottom:14px;">
         <thead><tr style="background:#f5f5f5;">
-          <th style="padding:6px 8px;text-align:left;font-size:8px;color:#888;">DATE</th>
-          <th style="padding:6px 8px;text-align:left;font-size:8px;color:#888;">H</th>
-          <th style="padding:6px 8px;text-align:left;font-size:8px;color:#888;">CLIENT</th>
-          <th style="padding:6px 8px;text-align:left;font-size:8px;color:#888;">${t.currency}</th>
-          <th style="padding:6px 8px;text-align:left;font-size:8px;color:#888;">STATUT</th>
+          <th style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"التاريخ":lang==="fr"?"DATE":"DATE"}</th>
+          <th style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"الساعة":"H"}</th>
+          <th style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"العميل":lang==="fr"?"CLIENT":"CLIENT"}</th>
+          <th style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${t.currency}</th>
+          <th style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"الحالة":lang==="fr"?"STATUT":"STATUS"}</th>
         </tr></thead>
         <tbody>
           ${allBookingRows.slice(0,50).map((r,i)=>{
             const played=r.status==="played";const isSub=!!r.subId;
             return `<tr style="border-bottom:1px solid #f0f0f0;background:${i%2===0?"#fff":"#fafafa"};">
-              <td style="padding:5px 8px;color:#888;">${fmtShort(r.dk,lang)}</td>
-              <td style="padding:5px 8px;color:#4a90d9;font-weight:700;">${fmt24(r.hour)}</td>
-              <td style="padding:5px 8px;font-weight:700;">${r.name||"—"}</td>
-              <td style="padding:5px 8px;color:#00a86b;font-weight:700;">${isSub?"—":`${r.price||0}`}</td>
+              <td style="padding:5px 8px;text-align:${isRTL?"right":"left"};color:#888;">${fmtShort(r.dk,lang)}</td>
+              <td style="padding:5px 8px;text-align:${isRTL?"right":"left"};color:#4a90d9;font-weight:700;">${fmt24(r.hour)}</td>
+              <td style="padding:5px 8px;text-align:${isRTL?"right":"left"};font-weight:700;">${r.name||"—"}</td>
+              <td style="padding:5px 8px;text-align:${isRTL?"right":"left"};color:#00a86b;font-weight:700;">${isSub?"—":`${r.price||0}`}</td>
               <td style="padding:5px 8px;"><span style="background:${played?"#e6f9f2":isSub?"#fff8e0":"#fff0f0"};color:${played?"#00a86b":isSub?"#d4a017":"#e05555"};border-radius:4px;padding:1px 5px;font-size:8px;font-weight:700;">${isSub?t.subLabel:played?t.played:t.reserved}</span></td>
             </tr>`;
           }).join("")}
@@ -968,21 +968,21 @@ function AllTab({bookings,subs,lang,t,stadiumName}){
       <div style="font-size:10px;font-weight:800;color:#333;letter-spacing:0.5px;margin-bottom:6px;">${t.allSubs.toUpperCase()} (${filteredSubs.length})</div>
       <table style="width:100%;border-collapse:collapse;font-size:10px;">
         <thead><tr style="background:#f5f5f5;">
-          <th style="padding:6px 8px;text-align:left;font-size:8px;color:#888;">CLIENT</th>
-          <th style="padding:6px 8px;text-align:left;font-size:8px;color:#888;">H</th>
-          <th style="padding:6px 8px;text-align:left;font-size:8px;color:#888;">TOTAL</th>
-          <th style="padding:6px 8px;text-align:left;font-size:8px;color:#888;">${t.paid.toUpperCase()}</th>
-          <th style="padding:6px 8px;text-align:left;font-size:8px;color:#888;">STATUT</th>
+          <th style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"العميل":lang==="fr"?"CLIENT":"CLIENT"}</th>
+          <th style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"الساعة":"H"}</th>
+          <th style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"الإجمالي":"TOTAL"}</th>
+          <th style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${t.paid.toUpperCase()}</th>
+          <th style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"الحالة":lang==="fr"?"STATUT":"STATUS"}</th>
         </tr></thead>
         <tbody>
           ${filteredSubs.map((s,i)=>{
             const paid=s.payments.reduce((a,p)=>a+(p.amount||0),0);
             const rem=Math.max(0,(s.totalPrice||0)-paid);
             return `<tr style="border-bottom:1px solid #f0f0f0;background:${i%2===0?"#fff":"#fafafa"};">
-              <td style="padding:5px 8px;font-weight:700;">${s.name||"—"}</td>
-              <td style="padding:5px 8px;color:#4a90d9;font-weight:700;">${fmt24(s.hour)}</td>
-              <td style="padding:5px 8px;font-weight:800;">${(s.totalPrice||0).toLocaleString()}</td>
-              <td style="padding:5px 8px;color:#00a86b;font-weight:800;">${paid.toLocaleString()}</td>
+              <td style="padding:5px 8px;text-align:${isRTL?"right":"left"};font-weight:700;">${s.name||"—"}</td>
+              <td style="padding:5px 8px;text-align:${isRTL?"right":"left"};color:#4a90d9;font-weight:700;">${fmt24(s.hour)}</td>
+              <td style="padding:5px 8px;text-align:${isRTL?"right":"left"};font-weight:800;">${(s.totalPrice||0).toLocaleString()}</td>
+              <td style="padding:5px 8px;text-align:${isRTL?"right":"left"};color:#00a86b;font-weight:800;">${paid.toLocaleString()}</td>
               <td style="padding:5px 8px;"><span style="background:${rem===0?"#e6f9f2":"#fff0f0"};color:${rem===0?"#00a86b":"#e05555"};border-radius:4px;padding:1px 5px;font-size:8px;font-weight:700;">${rem===0?t.settled:`${rem.toLocaleString()} ${t.remaining}`}</span></td>
             </tr>`;
           }).join("")}
@@ -1127,29 +1127,24 @@ function PdfBtn({label,gen,onClick}){
 }
 
 
-// ── PDF via print window ───────────────────────────────────────────────────
-function openPrint(htmlContent, filename){
-  const win=window.open("","_blank");
-  if(!win){alert("Please allow popups for this site to download PDF.");return;}
-  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>'+filename+'</title>'+
-    '<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>'+
-    '<style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:Nunito,sans-serif;background:#fff;}'+
-    '@media print{@page{margin:10mm;}body{print-color-adjust:exact;-webkit-print-color-adjust:exact;}}'+
-    '</style></head><body>'+htmlContent+'</body></html>');
-  win.document.close();
-  win.onload=function(){setTimeout(function(){win.print();},500);};
-}
-
 function openPrint(htmlContent,filename){
-  const win=window.open("","_blank");
-  if(!win){alert("Please allow popups to download PDF.");return;}
-  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>'+filename+'</title>'+
-    '<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>'+
-    '<style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:Nunito,sans-serif;background:#fff;}'+
-    '@media print{@page{margin:10mm;}body{print-color-adjust:exact;-webkit-print-color-adjust:exact;}}</style>'+
-    '</head><body>'+htmlContent+'</body></html>');
-  win.document.close();
-  setTimeout(function(){try{win.print();}catch(e){}},800);
+  const w=window.open("","_blank");
+  if(!w){alert("Please allow popups to download PDF.");return;}
+  const full='<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>'+filename+'</title>'+
+    '<style>'+
+    '*{box-sizing:border-box;margin:0;padding:0;}'+
+    'body{font-family:Arial,sans-serif;background:#fff;color:#111;padding:20px;}'+
+    'table{width:100%;border-collapse:collapse;font-size:11px;}'+
+    'th{padding:7px 8px;font-size:8px;font-weight:800;color:#888;background:#f5f5f5;}'+
+    'td{padding:6px 8px;border-bottom:1px solid #f0f0f0;}'+
+    'tr:nth-child(even) td{background:#fafafa;}'+
+    '@media print{@page{margin:10mm;}body{print-color-adjust:exact;-webkit-print-color-adjust:exact;}}'+
+    '</style></head><body>'+htmlContent+
+    '<script>window.addEventListener("load",function(){setTimeout(function(){window.print();},500);});<\/script>'+
+    '</body></html>';
+  w.document.open();
+  w.document.write(full);
+  w.document.close();
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
