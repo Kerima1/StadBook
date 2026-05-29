@@ -1140,7 +1140,7 @@ function openPrint(htmlContent,filename){
     'tr:nth-child(even) td{background:#fafafa;}'+
     '@media print{@page{margin:10mm;}body{print-color-adjust:exact;-webkit-print-color-adjust:exact;}}'+
     '</style></head><body>'+htmlContent+
-    '<script>window.addEventListener("load",function(){setTimeout(function(){window.print();},500);});<\/script>'+
+    '<script>window.addEventListener("load",function(){setTimeout(function(){window.print();setTimeout(function(){window.close();},500);},500);});<\/script>'+
     '</body></html>';
   w.document.open();
   w.document.write(full);
