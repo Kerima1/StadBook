@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+<meta name="theme-color" content="#0D0F18"/>
+<link rel="apple-touch-icon" href="apple-touch-icon.png"/>
+<link rel="icon" type="image/svg+xml" href="icon.svg"/>
+<title>StadBook — Rapports</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#0D0F18;font-family:'Nunito',sans-serif;}
+input,button,select{font-family:inherit;outline:none;}
+button{cursor:pointer;}
+::-webkit-scrollbar{width:0;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+@keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.04);}}
+@keyframes popIn{0%{opacity:0;transform:scale(0.85);}100%{opacity:1;transform:scale(1);}}
+@keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyBsXXdzbcN-32NQh7wDTVB8oHhyZVnOM1A",
+  authDomain:"stadbook-ade2e.firebaseapp.com",
+  projectId:"stadbook-ade2e",
+  storageBucket:"stadbook-ade2e.firebasestorage.app",
+  messagingSenderId:"95034341479",
+  appId:"1:95034341479:web:a92c479b8b23cb8be0bcc2"
+});
+const auth=firebase.auth();
+const db=firebase.firestore();
+</script>
+<script type="text/babel">
+const {useState,useEffect,useMemo,useCallback,useRef}=React;
+const G="#00D48A",G_DARK="#001a0e",BG="#0D0F18",CARD="#111420",BORDER="#1c2030";
+const FLAGS={fr:"🇫🇷",en:"🇬🇧",ar:"🇲🇷"};
+
+// ── ICONS (same as index.html) ────────────────────────────────────────────────
+const HomeIcon=()=><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>;
+const CalIcon=()=><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>;
+const SubIcon=()=><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>;
+const EarnIcon=()=><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>;
+const GridIcon=()=><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>;
+const DlIcon=()=><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>;
+
+// ── TRANSLATIONS ───────────────────────────────────────────────────────────────
+const T={
+  fr:{
+    appName:"Rapports",login:"Connexion",email:"Email",password:"Mot de passe",
+    loginBtn:"Se connecter",signupBtn:"Créer un compte",loading:"Chargement...",
+    errorWrong:"Email ou mot de passe incorrect.",errorEmail:"Adresse email invalide.",
+    errorPassword:"Le mot de passe doit contenir au moins 6 caractères.",
+    forgotPassword:"Mot de passe oublié ?",forgotDesc:"Contactez-nous sur WhatsApp et nous réinitialiserons votre mot de passe.",
+    back:"← Retour",signOut:"Déconnexion",currency:"MRU",noData:"Aucune donnée.",
+    // tabs
+    tabPlanning:"Planning",tabSubs:"Abonnements",tabEarnings:"Recettes",tabAll:"Tout",
+    // planning
+    from:"Du",to:"Au",pickRange:"Période",
+    played:"Joué ✓",reserved:"Réservé",subLabel:"Abonnement",
+    totalEarnings:"Recettes",totalPlayed:"Joués",totalReserved:"Réservés",
+    matches:"matchs",noMatches:"Aucun match sur cette période.",
+    // subs
+    totalSubs:"Total",paid:"Payé",remaining:"Restant",
+    filterAll:"Tous",filterActive:"Actifs",filterArchived:"Archivés",
+    payments:"Paiements",hours:"Heure",days:"matchs",
+    active:"Actif",archived:"Archivé",settled:"✓ Soldé",noSubs:"Aucun abonnement.",
+    // earnings
+    pickMonth:"Mois",totalMonth:"Total du mois",matchEarn:"Matches",subEarn:"Abonnements",
+    perDay:"Par jour",noEarnings:"Aucune recette ce mois.",
+    // all
+    allTime:"Tout le temps",byMonth:"Par mois",
+    totalGeneral:"Total Général",totalMatches:"Matchs joués",totalSubsCount:"Abonnements",
+    unpaid:"Non payé",lastMatches:"Derniers matchs",allSubs:"Abonnements",
+    more:"autres",
+    // pdf
+    dlPdf:"Télécharger PDF",generating:"Génération...",
+    reportPlanning:"Rapport Planning",reportSubs:"Rapport Abonnements",
+    reportEarnings:"Rapport Recettes",reportAll:"Rapport Complet",
+    generatedOn:"Généré le",since:"Depuis le début",
+    monthlyReport:"Rapport mensuel",
+    paymentDetail:"Détail des paiements",
+  },
+  en:{
+    appName:"Reports",login:"Sign In",email:"Email",password:"Password",
+    loginBtn:"Sign In",signupBtn:"Create Account",loading:"Loading...",
+    errorWrong:"Incorrect email or password.",errorEmail:"Invalid email address.",
+    errorPassword:"Password must be at least 6 characters.",
+    forgotPassword:"Forgot password?",forgotDesc:"Contact us on WhatsApp and we will reset your password for you.",
+    back:"← Back",signOut:"Sign Out",currency:"MRU",noData:"No data.",
+    tabPlanning:"Planning",tabSubs:"Subscriptions",tabEarnings:"Earnings",tabAll:"All",
+    from:"From",to:"To",pickRange:"Period",
+    played:"Played ✓",reserved:"Reserved",subLabel:"Subscription",
+    totalEarnings:"Earnings",totalPlayed:"Played",totalReserved:"Reserved",
+    matches:"matches",noMatches:"No matches for this period.",
+    totalSubs:"Total",paid:"Paid",remaining:"Remaining",
+    filterAll:"All",filterActive:"Active",filterArchived:"Archived",
+    payments:"Payments",hours:"Hour",days:"matches",
+    active:"Active",archived:"Archived",settled:"✓ Settled",noSubs:"No subscriptions.",
+    pickMonth:"Month",totalMonth:"Month total",matchEarn:"Matches",subEarn:"Subscriptions",
+    perDay:"Per day",noEarnings:"No earnings this month.",
+    allTime:"All time",byMonth:"By month",
+    totalGeneral:"Grand Total",totalMatches:"Matches played",totalSubsCount:"Subscriptions",
+    unpaid:"Unpaid",lastMatches:"Recent matches",allSubs:"Subscriptions",
+    more:"more",
+    dlPdf:"Download PDF",generating:"Generating...",
+    reportPlanning:"Planning Report",reportSubs:"Subscriptions Report",
+    reportEarnings:"Earnings Report",reportAll:"Full Report",
+    generatedOn:"Generated on",since:"Since the beginning",
+    monthlyReport:"Monthly Report",paymentDetail:"Payment details",
+  },
+  ar:{
+    appName:"التقارير",login:"تسجيل الدخول",email:"البريد الإلكتروني",password:"كلمة المرور",
+    loginBtn:"تسجيل الدخول",signupBtn:"إنشاء حساب",loading:"جارٍ التحميل...",
+    errorWrong:"البريد الإلكتروني أو كلمة المرور غير صحيحة.",errorEmail:"عنوان البريد الإلكتروني غير صالح.",
+    errorPassword:"يجب أن تحتوي كلمة المرور على 6 أحرف على الأقل.",
+    forgotPassword:"نسيت كلمة المرور؟",forgotDesc:"تواصل معنا على واتساب وسنقوم بإعادة تعيين كلمة مرورك.",
+    back:"رجوع →",signOut:"خروج",currency:"أوقية",noData:"لا توجد بيانات.",
+    tabPlanning:"الجدول",tabSubs:"الاشتراكات",tabEarnings:"الأرباح",tabAll:"الكل",
+    from:"من",to:"إلى",pickRange:"الفترة",
+    played:"تم اللعب ✓",reserved:"محجوز",subLabel:"اشتراك",
+    totalEarnings:"الأرباح",totalPlayed:"ملعوب",totalReserved:"محجوز",
+    matches:"مباريات",noMatches:"لا توجد مباريات في هذه الفترة.",
+    totalSubs:"الإجمالي",paid:"مدفوع",remaining:"متبقي",
+    filterAll:"الكل",filterActive:"نشط",filterArchived:"مؤرشف",
+    payments:"المدفوعات",hours:"الساعة",days:"مباريات",
+    active:"نشط",archived:"مؤرشف",settled:"✓ مسدد",noSubs:"لا توجد اشتراكات.",
+    pickMonth:"الشهر",totalMonth:"مجموع الشهر",matchEarn:"المباريات",subEarn:"الاشتراكات",
+    perDay:"يومياً",noEarnings:"لا أرباح هذا الشهر.",
+    allTime:"كل الوقت",byMonth:"حسب الشهر",
+    totalGeneral:"الإجمالي العام",totalMatches:"مباريات ملعوبة",totalSubsCount:"اشتراكات",
+    unpaid:"غير مدفوع",lastMatches:"آخر المباريات",allSubs:"الاشتراكات",
+    more:"أخرى",
+    dlPdf:"تحميل PDF",generating:"جارٍ الإنشاء...",
+    reportPlanning:"تقرير الجدول",reportSubs:"تقرير الاشتراكات",
+    reportEarnings:"تقرير الأرباح",reportAll:"التقرير الكامل",
+    generatedOn:"تم الإنشاء في",since:"منذ البداية",
+    monthlyReport:"التقرير الشهري",paymentDetail:"تفاصيل المدفوعات",
+  },
+};
+
+const MONTHS={
+  fr:["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"],
+  en:["January","February","March","April","May","June","July","August","September","October","November","December"],
+  ar:["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"],
+};
+
+function toKey(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;}
+function fmt24(h){return `${String(h).padStart(2,"0")}:00`;}
+function fmtDate(dk,lang){
+  const d=new Date(dk+"T12:00:00");
+  const locale=lang==="ar"?"ar-MA":lang==="fr"?"fr-FR":"en-GB";
+  return d.toLocaleDateString(locale,{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+}
+function fmtShort(dk,lang){
+  const d=new Date(dk+"T12:00:00");
+  const locale=lang==="ar"?"ar-MA":lang==="fr"?"fr-FR":"en-GB";
+  return d.toLocaleDateString(locale,{weekday:"short",day:"numeric",month:"short"});
+}
+function fmtMonthYear(y,m,lang){
+  return new Date(y,m,1).toLocaleDateString(lang==="ar"?"ar-MA":lang==="fr"?"fr-FR":"en-GB",{month:"long",year:"numeric"});
+}
+
+// ── Spinner ───────────────────────────────────────────────────────────────────
+function Spin({s=32}){
+  return <div style={{width:s,height:s,border:`${s<=20?2:3}px solid ${G}`,borderTopColor:"transparent",borderRadius:"50%",animation:"spin 0.8s linear infinite",display:"inline-block"}}/>;
+}
+
+// ── APP ROOT ──────────────────────────────────────────────────────────────────
+function App(){
+  const [lang,setLang]=useState("fr");
+  const [user,setUser]=useState(undefined);
+  useEffect(()=>{const u=auth.onAuthStateChanged(x=>setUser(x));return u;},[]);
+  const isRTL=lang==="ar";
+  if(user===undefined)return(
+    <div style={{background:BG,minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:16}}>
+      <Spin/><div style={{color:G,fontSize:16,fontWeight:800}}>StadBook</div>
+    </div>
+  );
+  if(!user)return <LoginScreen lang={lang} setLang={setLang}/>;
+  return <ReportsApp lang={lang} setLang={setLang} user={user}/>;
+}
+
+// ── LOGIN (exact same style as index.html) ────────────────────────────────────
+function LoginScreen({lang,setLang}){
+  const t=T[lang],isRTL=lang==="ar";
+  const [mode,setMode]=useState("login");
+  const [email,setEmail]=useState(""),
+        [password,setPassword]=useState(""),
+        [showPass,setShowPass]=useState(false),
+        [error,setError]=useState(""),
+        [loading,setLoading]=useState(false),
+        [pulse,setPulse]=useState(false);
+  useEffect(()=>{const iv=setInterval(()=>setPulse(p=>!p),1800);return()=>clearInterval(iv);},[]);
+  const gc=pulse?"#00D48A":"#007a50";
+  const inp={width:"100%",background:BG,border:`2px solid ${BORDER}`,borderRadius:12,padding:"13px 15px",color:"#fff",fontSize:15,transition:"border-color 0.1s"};
+
+  const handleAuth=async()=>{
+    setError("");
+    if(!email.includes("@"))return setError(t.errorEmail);
+    if(password.length<6)return setError(t.errorPassword);
+    setLoading(true);
+    try{await auth.signInWithEmailAndPassword(email,password);}
+    catch(e){setError(t.errorWrong);}
+    setLoading(false);
+  };
+
+  return(
+    <div style={{fontFamily:isRTL?"'Cairo',sans-serif":"'Nunito',sans-serif",direction:isRTL?"rtl":"ltr",background:BG,minHeight:"100vh",overflowY:"auto",paddingBottom:40}}>
+      {/* Lang */}
+      <div style={{display:"flex",justifyContent:"center",gap:10,padding:"20px 20px 0"}}>
+        {["fr","en","ar"].map(l=>(
+          <button key={l} onClick={()=>setLang(l)} style={{background:lang===l?G:CARD,border:`1.5px solid ${lang===l?G:BORDER}`,borderRadius:12,padding:"8px 14px",fontWeight:800,fontSize:13,color:lang===l?"#001a0e":"#555",display:"flex",alignItems:"center",gap:6}}>
+            <span style={{fontSize:18}}>{FLAGS[l]}</span>{l.toUpperCase()}
+          </button>
+        ))}
+      </div>
+      {/* Logo */}
+      <div style={{textAlign:"center",padding:"28px 20px 20px"}}>
+        <svg width="64" height="64" viewBox="0 0 200 200" style={{marginBottom:8}}>
+          <rect width="200" height="200" rx="44" fill="#060810"/>
+          <ellipse cx="100" cy="88" rx="78" ry="55" fill="none" stroke={G} strokeWidth="3"/>
+          <ellipse cx="100" cy="88" rx="62" ry="41" fill="#0a2010" stroke={G} strokeWidth="1.5" opacity="0.8"/>
+          <circle cx="100" cy="88" r="16" fill="none" stroke={G} strokeWidth="1.5" opacity="0.7"/>
+          <circle cx="100" cy="88" r="3" fill={G}/>
+          <line x1="38" y1="88" x2="162" y2="88" stroke={G} strokeWidth="1.5" opacity="0.6"/>
+          <rect x="38" y="77" width="20" height="22" fill="none" stroke={G} strokeWidth="1.2" opacity="0.6"/>
+          <rect x="142" y="77" width="20" height="22" fill="none" stroke={G} strokeWidth="1.2" opacity="0.6"/>
+          <circle cx="100" cy="158" r="20" fill="white"/>
+          <polygon points="100,139 108,145 106,154 94,154 92,145" fill="#111"/>
+          <polygon points="117,151 119,160 112,166 105,162 107,154" fill="#111"/>
+          <polygon points="83,151 81,160 88,166 95,162 93,154" fill="#111"/>
+          <circle cx="100" cy="158" r="20" fill="none" stroke={G} strokeWidth="2.5"/>
+        </svg>
+        <div style={{fontSize:28,fontWeight:900,color:G,letterSpacing:-0.5}}>StadBook</div>
+        <div style={{fontSize:12,color:"#444",marginTop:4}}>{t.appName}</div>
+      </div>
+      {/* Form */}
+      <div style={{margin:"0 16px",background:CARD,borderRadius:20,padding:"24px 20px",border:`1px solid ${BORDER}`}}>
+        {mode==="forgot"?(
+          <>
+            <div style={{fontSize:16,fontWeight:900,color:"#fff",marginBottom:16}}>{t.forgotPassword}</div>
+            <div style={{background:`${G}15`,borderRadius:16,padding:"20px",border:`1px solid ${G}44`,marginBottom:20,textAlign:"center"}}>
+              <div style={{fontSize:32,marginBottom:12}}>📞</div>
+              <div style={{fontSize:14,color:"#aaa",lineHeight:1.6}}>{t.forgotDesc}</div>
+            </div>
+            <button onClick={()=>{setMode("login");setError("");}} style={{width:"100%",background:"#1c2030",border:"none",color:"#888",borderRadius:12,padding:"13px",fontWeight:700,fontSize:14}}>← {t.back}</button>
+          </>
+        ):(
+          <>
+            <div style={{marginBottom:14}}>
+              <div style={{fontSize:10,color:"#555",fontWeight:700,marginBottom:6,letterSpacing:0.5}}>{t.email.toUpperCase()}</div>
+              <input value={email} onChange={e=>setEmail(e.target.value)} type="email" style={inp}
+                onFocus={e=>e.target.style.borderColor=G} onBlur={e=>e.target.style.borderColor=BORDER}/>
+            </div>
+            <div style={{marginBottom:8}}>
+              <div style={{fontSize:10,color:"#555",fontWeight:700,marginBottom:6,letterSpacing:0.5}}>{t.password.toUpperCase()}</div>
+              <div style={{position:"relative"}}>
+                <input value={password} onChange={e=>setPassword(e.target.value)} type={showPass?"text":"password"}
+                  onKeyDown={e=>e.key==="Enter"&&handleAuth()}
+                  style={{...inp,padding:"13px 46px 13px 15px",fontSize:showPass?15:20,letterSpacing:showPass?"normal":"6px"}}
+                  onFocus={e=>e.target.style.borderColor=G} onBlur={e=>e.target.style.borderColor=BORDER}/>
+                <button onClick={()=>setShowPass(v=>!v)} style={{position:"absolute",right:14,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",padding:0}}>
+                  {showPass
+                    ?<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                    :<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>}
+                </button>
+              </div>
+            </div>
+            <div style={{textAlign:isRTL?"left":"right",marginBottom:16}}>
+              <button onClick={()=>{setMode("forgot");setError("");}} style={{background:"none",border:"none",color:G,fontSize:12,fontWeight:700}}>{t.forgotPassword}</button>
+            </div>
+            {error&&<div style={{background:"#1f0e0e",border:"1px solid #2e1414",borderRadius:10,padding:"10px 14px",color:"#ff5555",fontSize:13,marginBottom:14,fontWeight:700}}>{error}</div>}
+            <button onClick={handleAuth} disabled={loading} style={{width:"100%",background:G,color:G_DARK,border:"none",borderRadius:12,padding:"15px",fontWeight:900,fontSize:16,opacity:loading?0.7:1}}>
+              {loading?<Spin s={20}/>:t.loginBtn}
+            </button>
+          </>
+        )}
+      </div>
+      <div style={{textAlign:"center",marginTop:20}}>
+        <a href="index.html" style={{color:"#333",fontSize:12,fontWeight:700,textDecoration:"none"}}>← StadBook</a>
+      </div>
+    </div>
+  );
+}
+
+// ── REPORTS APP ───────────────────────────────────────────────────────────────
+function ReportsApp({lang,setLang,user}){
+  const t=T[lang],isRTL=lang==="ar";
+  const [tab,setTab]=useState("planning");
+  const [bookings,setBookings]=useState({});
+  const [subsData,setSubsData]=useState([]);
+  const [userData,setUserData]=useState(null);
+  const [loading,setLoading]=useState(true);
+  const uid=user.uid;
+
+  useEffect(()=>{
+    let b=false,s=false,u=false;
+    const done=()=>{if(b&&s&&u)setLoading(false);};
+    const u1=db.collection("bookings").doc(uid).onSnapshot(snap=>{setBookings(snap.exists?snap.data().data||{}:{});b=true;done();});
+    const u2=db.collection("subs").doc(uid).onSnapshot(snap=>{setSubsData(snap.exists?snap.data().list||[]:[]);s=true;done();});
+    const u3=db.collection("users").doc(uid).onSnapshot(snap=>{setUserData(snap.exists?snap.data():null);u=true;done();});
+    return()=>{u1();u2();u3();};
+  },[uid]);
+
+  const stadiumName=userData?.stadiumName||"";
+  const TABS=[
+    {id:"planning",label:t.tabPlanning,icon:<CalIcon/>},
+    {id:"subs",label:t.tabSubs,icon:<SubIcon/>},
+    {id:"earnings",label:t.tabEarnings,icon:<EarnIcon/>},
+    {id:"all",label:t.tabAll,icon:<GridIcon/>},
+  ];
+
+  return(
+    <div style={{fontFamily:isRTL?"'Cairo',sans-serif":"'Nunito',sans-serif",direction:isRTL?"rtl":"ltr",maxWidth:430,margin:"0 auto",minHeight:"100vh",background:BG,color:"#f0f0f0",display:"flex",flexDirection:"column"}}>
+      {/* Header */}
+      <div style={{background:CARD,padding:"13px 16px",borderBottom:`1px solid ${BORDER}`,position:"sticky",top:0,zIndex:20,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <div style={{display:"flex",alignItems:"center",gap:10}}>
+          <a href="index.html" style={{color:"#555",fontSize:22,textDecoration:"none",lineHeight:1,paddingRight:4}}>←</a>
+          <div>
+            <div style={{fontSize:17,fontWeight:900,color:G}}>⚽ StadBook <span style={{fontSize:11,color:"#444",fontWeight:600}}>· {stadiumName}</span></div>
+            <div style={{fontSize:9,color:"#444",fontWeight:700,letterSpacing:1}}>{t.appName.toUpperCase()}</div>
+          </div>
+        </div>
+        <div style={{display:"flex",gap:5,alignItems:"center"}}>
+          {["fr","en","ar"].map(l=>(
+            <button key={l} onClick={()=>setLang(l)} style={{background:lang===l?G:CARD,border:`1.5px solid ${lang===l?G:BORDER}`,borderRadius:10,padding:"5px 9px",fontWeight:800,fontSize:11,color:lang===l?G_DARK:"#555"}}>
+              {FLAGS[l]}
+            </button>
+          ))}
+          <button onClick={()=>auth.signOut()} style={{background:"#1f0e0e",color:"#ff5555",border:"1px solid #2e1414",borderRadius:8,padding:"6px 9px",fontWeight:700,fontSize:11,marginLeft:2}}>{t.signOut}</button>
+        </div>
+      </div>
+
+      {/* Tab bar */}
+      <div style={{background:CARD,padding:"6px 10px",borderBottom:`1px solid ${BORDER}`,display:"flex",gap:4,position:"sticky",top:57,zIndex:19}}>
+        {TABS.map(tb=>{
+          const active=tab===tb.id;
+          return(
+            <button key={tb.id} onClick={()=>setTab(tb.id)}
+              style={{flex:1,background:active?G:BG,borderRadius:10,padding:"8px 2px",border:active?"none":`1px solid ${BORDER}`,display:"flex",flexDirection:"column",alignItems:"center",gap:2,transition:"background 0.15s"}}>
+              <div style={{color:active?G_DARK:"#444",lineHeight:0}}>{tb.icon}</div>
+              <span style={{fontSize:7,fontWeight:900,color:active?G_DARK:"#444",letterSpacing:0.2}}>{tb.label.toUpperCase()}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Content */}
+      <div style={{flex:1,overflowY:"auto",paddingBottom:20}}>
+        {loading?(
+          <div style={{display:"flex",alignItems:"center",justifyContent:"center",padding:"80px 0"}}><Spin/></div>
+        ):(
+          <div style={{animation:"fadeIn 0.25s ease forwards"}}>
+            {tab==="planning"&&<PlanningTab bookings={bookings} lang={lang} t={t} stadiumName={stadiumName}/>}
+            {tab==="subs"&&<SubsTab subs={subsData} lang={lang} t={t} stadiumName={stadiumName}/>}
+            {tab==="earnings"&&<EarningsTab bookings={bookings} subs={subsData} lang={lang} t={t} stadiumName={stadiumName}/>}
+            {tab==="all"&&<AllTab bookings={bookings} subs={subsData} lang={lang} t={t} stadiumName={stadiumName}/>}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// TAB 1 — PLANNING
+// ═══════════════════════════════════════════════
+function PlanningTab({bookings,lang,t,stadiumName}){
+  const today=toKey(new Date());
+  const [from,setFrom]=useState(today);
+  const [to,setTo]=useState(today);
+  const [gen,setGen]=useState(false);
+
+  const rows=useMemo(()=>{
+    const arr=[];
+    Object.entries(bookings).forEach(([dk,slots])=>{
+      if(dk<from||dk>to)return;
+      Object.entries(slots).forEach(([h,slot])=>{
+        if(!slot)return;
+        arr.push({dk,hour:Number(h),...slot});
+      });
+    });
+    return arr.sort((a,b)=>a.dk!==b.dk?a.dk.localeCompare(b.dk):a.hour-b.hour);
+  },[bookings,from,to]);
+
+  const earned=rows.filter(r=>r.status==="played"&&!r.subId).reduce((a,r)=>a+(r.price||0),0);
+  const played=rows.filter(r=>r.status==="played").length;
+  const reserved=rows.filter(r=>r.status==="reserved").length;
+
+  const pdfContent=()=>{
+    const isRTL=lang==="ar";
+    const locale=lang==="ar"?"ar-MA":lang==="fr"?"fr-FR":"en-GB";
+    const period=from===to?fmtDate(from,lang):`${fmtDate(from,lang)} → ${fmtDate(to,lang)}`;
+    return `<div style="font-family:${isRTL?"Cairo":"Nunito"},sans-serif;direction:${isRTL?"rtl":"ltr"};padding:20px;background:#fff;color:#111;">
+      <div style="border-bottom:3px solid #00D48A;padding-bottom:14px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:flex-end;">
+        <div><div style="font-size:22px;font-weight:900;color:#00D48A;">⚽ StadBook</div>
+        <div style="font-size:11px;color:#888;font-weight:700;margin-top:2px;">${t.reportPlanning}</div>
+        <div style="font-size:10px;color:#aaa;margin-top:1px;">${period}</div></div>
+        <div style="text-align:right;"><div style="font-size:12px;font-weight:900;">${stadiumName}</div>
+        <div style="font-size:9px;color:#bbb;">${t.generatedOn} ${new Date().toLocaleDateString(locale)}</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;">
+        <div style="border:1.5px solid #00D48A22;border-radius:8px;padding:10px;text-align:center;background:#00D48A08;">
+          <div style="font-size:7px;color:#888;font-weight:700;margin-bottom:3px;">${t.totalEarnings.toUpperCase()}</div>
+          <div style="font-size:20px;font-weight:900;color:#00D48A;">${earned.toLocaleString()}</div>
+          <div style="font-size:8px;color:#aaa;">${t.currency}</div>
+        </div>
+        <div style="border:1.5px solid #4a90d922;border-radius:8px;padding:10px;text-align:center;background:#4a90d908;">
+          <div style="font-size:7px;color:#888;font-weight:700;margin-bottom:3px;">${t.totalPlayed.toUpperCase()}</div>
+          <div style="font-size:20px;font-weight:900;color:#4a90d9;">${played}</div>
+          <div style="font-size:8px;color:#aaa;">${t.matches}</div>
+        </div>
+        <div style="border:1.5px solid #d4a01722;border-radius:8px;padding:10px;text-align:center;background:#d4a01708;">
+          <div style="font-size:7px;color:#888;font-weight:700;margin-bottom:3px;">${t.totalReserved.toUpperCase()}</div>
+          <div style="font-size:20px;font-weight:900;color:#d4a017;">${reserved}</div>
+          <div style="font-size:8px;color:#aaa;">${t.matches}</div>
+        </div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:11px;">
+        <thead><tr style="background:#f5f5f5;">
+          <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">DATE</th>
+          <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${t.hours.toUpperCase()}</th>
+          <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">CLIENT</th>
+          <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">TÉL</th>
+          <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${t.currency}</th>
+          <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">STATUT</th>
+        </tr></thead>
+        <tbody>
+          ${rows.map((r,i)=>{
+            const played=r.status==="played";const isSub=!!r.subId;
+            return `<tr style="border-bottom:1px solid #f0f0f0;background:${i%2===0?"#fff":"#fafafa"};">
+              <td style="padding:6px 8px;color:#888;">${fmtShort(r.dk,lang)}</td>
+              <td style="padding:6px 8px;color:#4a90d9;font-weight:700;">${fmt24(r.hour)}</td>
+              <td style="padding:6px 8px;font-weight:700;">${r.name||"—"}</td>
+              <td style="padding:6px 8px;color:#aaa;">${r.phone||"—"}</td>
+              <td style="padding:6px 8px;font-weight:800;color:#00D48A;">${isSub?"—":`${r.price||0} ${t.currency}`}</td>
+              <td style="padding:6px 8px;"><span style="background:${played?"#e6f9f2":isSub?"#fff8e0":"#fff0f0"};color:${played?"#00a86b":isSub?"#d4a017":"#e05555"};border-radius:4px;padding:2px 6px;font-size:9px;font-weight:700;">${isSub?t.subLabel:played?t.played:t.reserved}</span></td>
+            </tr>`;
+          }).join("")}
+        </tbody>
+      </table>
+      <div style="border-top:1px solid #eee;margin-top:14px;padding-top:10px;display:flex;justify-content:space-between;font-size:8px;color:#ccc;">
+        <span>StadBook · ${t.reportPlanning}</span><span>${stadiumName}</span>
+      </div>
+    </div>`;
+  };
+
+  const generate=async()=>{
+    if(!rows.length||gen)return;
+    setGen(true);
+    const el=document.getElementById("pdf-target");
+    el.innerHTML=pdfContent();el.style.display="block";
+    await new Promise(r=>setTimeout(r,300));
+    await html2pdf().set({margin:[8,8],filename:`StadBook_Planning_${from}_${to}.pdf`,html2canvas:{scale:2,backgroundColor:"#fff"},jsPDF:{unit:"mm",format:"a4",orientation:"portrait"}}).from(el).save();
+    el.style.display="none";setGen(false);
+  };
+
+  return(
+    <div style={{padding:"14px 12px",display:"flex",flexDirection:"column",gap:10}}>
+      {/* Date range */}
+      <div style={{background:CARD,borderRadius:14,padding:"12px 14px",border:`1px solid ${BORDER}`}}>
+        <div style={{fontSize:9,color:"#555",fontWeight:700,letterSpacing:0.5,marginBottom:8}}>{t.pickRange.toUpperCase()}</div>
+        <div style={{display:"flex",gap:8,alignItems:"center"}}>
+          <div style={{flex:1}}>
+            <div style={{fontSize:8,color:"#444",fontWeight:700,marginBottom:4}}>{t.from.toUpperCase()}</div>
+            <input type="date" value={from} onChange={e=>{setFrom(e.target.value);if(e.target.value>to)setTo(e.target.value);}}
+              style={{width:"100%",background:BG,border:`1.5px solid ${BORDER}`,borderRadius:8,padding:"9px 10px",color:"#fff",fontSize:13,fontWeight:700}}
+              onFocus={e=>e.target.style.borderColor=G} onBlur={e=>e.target.style.borderColor=BORDER}/>
+          </div>
+          <div style={{color:"#333",paddingTop:16,fontSize:16}}>→</div>
+          <div style={{flex:1}}>
+            <div style={{fontSize:8,color:"#444",fontWeight:700,marginBottom:4}}>{t.to.toUpperCase()}</div>
+            <input type="date" value={to} onChange={e=>setTo(e.target.value)} min={from}
+              style={{width:"100%",background:BG,border:`1.5px solid ${BORDER}`,borderRadius:8,padding:"9px 10px",color:"#fff",fontSize:13,fontWeight:700}}
+              onFocus={e=>e.target.style.borderColor=G} onBlur={e=>e.target.style.borderColor=BORDER}/>
+          </div>
+        </div>
+        {from&&<div style={{fontSize:10,color:"#444",marginTop:6,fontWeight:600}}>{from===to?fmtDate(from,lang):`${fmtShort(from,lang)} → ${fmtShort(to,lang)}`}</div>}
+      </div>
+
+      {/* Summary */}
+      {rows.length>0&&(
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6}}>
+          <StatCard label={t.totalEarnings} val={earned.toLocaleString()} unit={t.currency} color={G} bg="#071510"/>
+          <StatCard label={t.totalPlayed} val={played} unit={t.matches} color="#7eb8ff" bg="#0a0e1f"/>
+          <StatCard label={t.totalReserved} val={reserved} unit={t.matches} color="#ffd700" bg="#1a1400"/>
+        </div>
+      )}
+
+      {/* Matches */}
+      {rows.length===0?(
+        <Empty text={t.noMatches}/>
+      ):(
+        <div style={{background:CARD,borderRadius:14,border:`1px solid ${BORDER}`,overflow:"hidden"}}>
+          <div style={{padding:"10px 14px",borderBottom:`1px solid ${BORDER}`,fontSize:9,color:"#555",fontWeight:700,letterSpacing:0.5}}>
+            {t.tabPlanning.toUpperCase()} · {rows.length} {t.matches.toUpperCase()}
+          </div>
+          {rows.map((r,i)=>{
+            const isPlayed=r.status==="played";const isSub=!!r.subId;
+            const hd=r.hour===0?12:r.hour>12?r.hour-12:r.hour;
+            return(
+              <div key={i} style={{padding:"11px 14px",borderBottom:i<rows.length-1?`1px solid ${BORDER}22`:"none",display:"flex",alignItems:"center",gap:8}}>
+                <div style={{minWidth:44,height:44,borderRadius:10,background:isPlayed?isSub?"#d4a01722":`${G}22`:"#1c2030",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                  <span style={{fontSize:13,fontWeight:900,color:isPlayed?isSub?"#d4a017":G:"#555",lineHeight:1.1}}>{hd}</span>
+                  <span style={{fontSize:7,fontWeight:700,color:isPlayed?isSub?"#d4a01766":`${G}66`:"#333"}}>{r.hour>=12?"PM":"AM"}</span>
+                </div>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontSize:9,color:"#444",marginBottom:1}}>{fmtShort(r.dk,lang)}</div>
+                  <div style={{fontWeight:800,fontSize:13,color:isPlayed?"#777":"#fff",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.name||"—"}</div>
+                  {r.phone&&<div style={{fontSize:10,color:"#444",marginTop:1}}>📞 {r.phone}</div>}
+                  <div style={{fontSize:10,marginTop:1,fontWeight:700,color:isPlayed?isSub?"#d4a017":`${G}88`:"#7eb8ff"}}>
+                    {isSub?t.subLabel:isPlayed?t.played:t.reserved}
+                    {!isSub&&<span style={{color:"#555"}}> · {r.price||0} {t.currency}</span>}
+                  </div>
+                </div>
+                {isPlayed&&<div style={{width:26,height:26,borderRadius:"50%",background:`${G}22`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,color:G,flexShrink:0}}>✓</div>}
+                {!isPlayed&&!isSub&&<div style={{width:8,height:8,borderRadius:"50%",background:"#ffd700",flexShrink:0}}/>}
+              </div>
+            );
+          })}
+        </div>
+      )}
+      {rows.length>0&&<PdfBtn label={t.dlPdf} gen={gen} onClick={generate}/>}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// TAB 2 — SUBSCRIPTIONS
+// ═══════════════════════════════════════════════
+function SubsTab({subs,lang,t,stadiumName}){
+  const [filter,setFilter]=useState("all");
+  const [gen,setGen]=useState(false);
+
+  const shown=filter==="active"?subs.filter(s=>!s.archived):filter==="archived"?subs.filter(s=>s.archived):subs;
+  const totalPaid=subs.reduce((a,s)=>a+s.payments.reduce((x,p)=>x+(p.amount||0),0),0);
+  const totalPrice=subs.reduce((a,s)=>a+(s.totalPrice||0),0);
+  const totalRem=Math.max(0,totalPrice-totalPaid);
+
+  const pdfContent=()=>{
+    const isRTL=lang==="ar";
+    const locale=lang==="ar"?"ar-MA":lang==="fr"?"fr-FR":"en-GB";
+    return `<div style="font-family:${isRTL?"Cairo":"Nunito"},sans-serif;direction:${isRTL?"rtl":"ltr"};padding:20px;background:#fff;color:#111;">
+      <div style="border-bottom:3px solid #00D48A;padding-bottom:14px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:flex-end;">
+        <div><div style="font-size:22px;font-weight:900;color:#00D48A;">⚽ StadBook</div>
+        <div style="font-size:11px;color:#888;font-weight:700;margin-top:2px;">${t.reportSubs}</div></div>
+        <div style="text-align:right;"><div style="font-size:12px;font-weight:900;">${stadiumName}</div>
+        <div style="font-size:9px;color:#bbb;">${t.generatedOn} ${new Date().toLocaleDateString(locale)}</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;">
+        <div style="border:1.5px solid #00D48A22;border-radius:8px;padding:10px;text-align:center;background:#00D48A08;">
+          <div style="font-size:7px;color:#888;font-weight:700;margin-bottom:3px;">${t.totalSubs.toUpperCase()}</div>
+          <div style="font-size:20px;font-weight:900;color:#00D48A;">${subs.length}</div>
+        </div>
+        <div style="border:1.5px solid #00b8ff22;border-radius:8px;padding:10px;text-align:center;background:#00b8ff08;">
+          <div style="font-size:7px;color:#888;font-weight:700;margin-bottom:3px;">${t.paid.toUpperCase()}</div>
+          <div style="font-size:20px;font-weight:900;color:#00b8ff;">${totalPaid.toLocaleString()}</div>
+          <div style="font-size:8px;color:#aaa;">${t.currency}</div>
+        </div>
+        <div style="border:1.5px solid #e0555522;border-radius:8px;padding:10px;text-align:center;background:#e0555508;">
+          <div style="font-size:7px;color:#888;font-weight:700;margin-bottom:3px;">${t.remaining.toUpperCase()}</div>
+          <div style="font-size:20px;font-weight:900;color:#e05555;">${totalRem.toLocaleString()}</div>
+          <div style="font-size:8px;color:#aaa;">${t.currency}</div>
+        </div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:16px;">
+        <thead><tr style="background:#f5f5f5;">
+          <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">CLIENT</th>
+          <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${t.hours.toUpperCase()}</th>
+          <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${t.days.toUpperCase()}</th>
+          <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">TOTAL</th>
+          <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${t.paid.toUpperCase()}</th>
+          <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${t.remaining.toUpperCase()}</th>
+        </tr></thead>
+        <tbody>
+          ${shown.map((s,i)=>{
+            const paid=s.payments.reduce((a,p)=>a+(p.amount||0),0);
+            const rem=Math.max(0,(s.totalPrice||0)-paid);
+            return `<tr style="border-bottom:1px solid #f0f0f0;background:${i%2===0?"#fff":"#fafafa"};">
+              <td style="padding:6px 8px;font-weight:700;">${s.name||"—"}</td>
+              <td style="padding:6px 8px;color:#4a90d9;font-weight:700;">${fmt24(s.hour)}</td>
+              <td style="padding:6px 8px;">${s.days?.length||0}</td>
+              <td style="padding:6px 8px;font-weight:800;">${(s.totalPrice||0).toLocaleString()} ${t.currency}</td>
+              <td style="padding:6px 8px;color:#00a86b;font-weight:800;">${paid.toLocaleString()} ${t.currency}</td>
+              <td style="padding:6px 8px;color:${rem>0?"#e05555":"#00a86b"};font-weight:800;">${rem.toLocaleString()} ${t.currency}</td>
+            </tr>`;
+          }).join("")}
+        </tbody>
+      </table>
+      <div style="font-size:10px;font-weight:800;color:#333;letter-spacing:0.5px;margin-bottom:8px;">${t.paymentDetail.toUpperCase()}</div>
+      ${shown.map(s=>{
+        if(!s.payments.length)return "";
+        return `<div style="margin-bottom:10px;border:1px solid #f0f0f0;border-radius:8px;overflow:hidden;">
+          <div style="background:#f8f8f8;padding:7px 10px;font-size:10px;font-weight:800;border-bottom:1px solid #eee;">${s.name}</div>
+          ${s.payments.map((p,i,arr)=>{
+            const d=new Date((p.date||"")+"T12:00:00");
+            const mLabel=isNaN(d)?"":`${MONTHS[lang]?.[d.getMonth()]||""} ${d.getFullYear()}`;
+            return `<div style="padding:5px 10px;display:flex;justify-content:space-between;border-bottom:${i<arr.length-1?"1px solid #f5f5f5":"none"};">
+              <div style="display:flex;align-items:center;gap:6px;">
+                <div style="width:5px;height:5px;border-radius:50%;background:#00D48A;"></div>
+                <span style="font-size:9px;color:#555;">${p.date||""}</span>
+                <span style="font-size:9px;color:#aaa;">${mLabel}</span>
+              </div>
+              <span style="font-size:11px;font-weight:800;color:#00a86b;">+${(p.amount||0).toLocaleString()} ${t.currency}</span>
+            </div>`;
+          }).join("")}
+        </div>`;
+      }).join("")}
+      <div style="border-top:1px solid #eee;margin-top:10px;padding-top:10px;display:flex;justify-content:space-between;font-size:8px;color:#ccc;">
+        <span>StadBook · ${t.reportSubs}</span><span>${stadiumName}</span>
+      </div>
+    </div>`;
+  };
+
+  const generate=async()=>{
+    if(!shown.length||gen)return;
+    setGen(true);
+    const el=document.getElementById("pdf-target");
+    el.innerHTML=pdfContent();el.style.display="block";
+    await new Promise(r=>setTimeout(r,300));
+    await html2pdf().set({margin:[8,8],filename:`StadBook_Abonnements.pdf`,html2canvas:{scale:2,backgroundColor:"#fff"},jsPDF:{unit:"mm",format:"a4",orientation:"portrait"}}).from(el).save();
+    el.style.display="none";setGen(false);
+  };
+
+  return(
+    <div style={{padding:"14px 12px",display:"flex",flexDirection:"column",gap:10}}>
+      {/* Summary */}
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6}}>
+        <StatCard label={t.totalSubs} val={subs.length} unit="" color={G} bg="#071510"/>
+        <StatCard label={t.paid} val={totalPaid.toLocaleString()} unit={t.currency} color="#00b8ff" bg="#0a1828"/>
+        <StatCard label={t.remaining} val={totalRem.toLocaleString()} unit={t.currency} color="#ff9955" bg="#1f1208"/>
+      </div>
+      {/* Filter */}
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6}}>
+        {[["all",`${t.filterAll} (${subs.length})`],["active",`${t.filterActive} (${subs.filter(s=>!s.archived).length})`],["archived",`${t.filterArchived} (${subs.filter(s=>s.archived).length})`]].map(([v,l])=>(
+          <button key={v} onClick={()=>setFilter(v)} style={{padding:"9px 4px",borderRadius:10,border:"none",fontWeight:800,fontSize:10,background:filter===v?G:CARD,color:filter===v?G_DARK:"#555"}}>{l}</button>
+        ))}
+      </div>
+      {/* Cards */}
+      {shown.length===0?<Empty text={t.noSubs}/>:(
+        <div style={{display:"flex",flexDirection:"column",gap:10}}>
+          {shown.map(s=>{
+            const paid=s.payments.reduce((a,p)=>a+(p.amount||0),0);
+            const rem=Math.max(0,(s.totalPrice||0)-paid);
+            const pct=s.totalPrice>0?Math.min(100,Math.round(paid/s.totalPrice*100)):0;
+            const full=rem===0;
+            return(
+              <div key={s.id} style={{background:CARD,borderRadius:14,padding:"13px",border:`1.5px solid ${full?G+"44":BORDER}`}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
+                  <div>
+                    <div style={{fontWeight:900,fontSize:14,color:"#fff"}}>{s.name}</div>
+                    {s.phone&&<div style={{fontSize:10,color:"#444",marginTop:1}}>📞 {s.phone}</div>}
+                  </div>
+                  <div style={{textAlign:"right"}}>
+                    <div style={{fontSize:16,fontWeight:900,color:G}}>{paid.toLocaleString()} <span style={{fontSize:9,color:"#444"}}>{t.currency}</span></div>
+                    <div style={{fontSize:9,color:"#555"}}>/ {(s.totalPrice||0).toLocaleString()} {t.currency}</div>
+                    <div style={{fontSize:8,marginTop:2,background:s.archived?"#1c2030":`${G}18`,color:s.archived?"#555":G,borderRadius:4,padding:"2px 5px",display:"inline-block",fontWeight:700}}>{s.archived?t.archived:t.active}</div>
+                  </div>
+                </div>
+                <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:8}}>
+                  <Tag color="#7eb8ff">{fmt24(s.hour)}</Tag>
+                  <Tag color="#aaa">{s.days?.length||0} {t.days}</Tag>
+                  <Tag color={full?G:"#ff9955"}>{full?t.settled:`${rem.toLocaleString()} ${t.currency} ${t.remaining}`}</Tag>
+                </div>
+                <div style={{background:"#1c2030",borderRadius:6,height:6,overflow:"hidden",marginBottom:6}}>
+                  <div style={{background:`linear-gradient(90deg,${G},#00a86b)`,height:"100%",width:`${pct}%`,borderRadius:6}}/>
+                </div>
+                {/* Payments list */}
+                {s.payments.length>0&&(
+                  <div style={{borderTop:`1px solid ${BORDER}88`,paddingTop:8,marginTop:4}}>
+                    <div style={{fontSize:8,color:"#444",fontWeight:700,letterSpacing:0.3,marginBottom:5}}>{t.payments.toUpperCase()}</div>
+                    {s.payments.map((p,i)=>{
+                      const d=new Date((p.date||"")+"T12:00:00");
+                      const mLabel=isNaN(d)?"":`${MONTHS[lang]?.[d.getMonth()]||""} ${d.getFullYear()}`;
+                      return(
+                        <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"4px 0",borderBottom:i<s.payments.length-1?`1px solid ${BORDER}44`:"none"}}>
+                          <div style={{display:"flex",alignItems:"center",gap:6}}>
+                            <div style={{width:5,height:5,borderRadius:"50%",background:G,flexShrink:0}}/>
+                            <span style={{fontSize:10,color:"#555"}}>{p.date||""}</span>
+                            <span style={{fontSize:9,color:"#333",background:"#1c2030",borderRadius:4,padding:"1px 5px"}}>{mLabel}</span>
+                          </div>
+                          <span style={{fontSize:11,fontWeight:800,color:G}}>+{(p.amount||0).toLocaleString()} {t.currency}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+      {shown.length>0&&<PdfBtn label={t.dlPdf} gen={gen} onClick={generate}/>}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// TAB 3 — EARNINGS
+// ═══════════════════════════════════════════════
+function EarningsTab({bookings,subs,lang,t,stadiumName}){
+  const now=new Date();
+  const [year,setYear]=useState(now.getFullYear());
+  const [month,setMonth]=useState(now.getMonth());
+  const [gen,setGen]=useState(false);
+  const locale=lang==="ar"?"ar-MA":lang==="fr"?"fr-FR":"en-GB";
+
+  const daysData=useMemo(()=>{
+    const map={};
+    Object.entries(bookings).forEach(([dk,slots])=>{
+      const d=new Date(dk+"T12:00:00");
+      if(d.getFullYear()!==year||d.getMonth()!==month)return;
+      const matchE=Object.values(slots).filter(s=>s&&s.status==="played"&&!s.subId).reduce((a,s)=>a+(s.price||0),0);
+      const matchCount=Object.values(slots).filter(s=>s&&s.status==="played").length;
+      if(matchE>0||matchCount>0){
+        if(!map[dk])map[dk]={matchE:0,subE:0,matchCount:0,subPays:[]};
+        map[dk].matchE+=matchE;map[dk].matchCount+=matchCount;
+      }
+    });
+    subs.forEach(s=>{
+      (s.payments||[]).forEach(p=>{
+        if(!p.date)return;
+        const d=new Date(p.date+"T12:00:00");
+        if(d.getFullYear()!==year||d.getMonth()!==month)return;
+        if(!map[p.date])map[p.date]={matchE:0,subE:0,matchCount:0,subPays:[]};
+        map[p.date].subE+=(p.amount||0);
+        map[p.date].subPays.push({name:s.name,amount:p.amount});
+      });
+    });
+    return Object.entries(map).sort(([a],[b])=>a.localeCompare(b));
+  },[bookings,subs,year,month]);
+
+  const totalMatchE=daysData.reduce((a,[,d])=>a+d.matchE,0);
+  const totalSubE=daysData.reduce((a,[,d])=>a+d.subE,0);
+  const total=totalMatchE+totalSubE;
+  const mLabel=fmtMonthYear(year,month,lang);
+
+  const prevM=()=>{if(month===0){setMonth(11);setYear(y=>y-1);}else setMonth(m=>m-1);};
+  const nextM=()=>{if(month===11){setMonth(0);setYear(y=>y+1);}else setMonth(m=>m+1);};
+
+  const pdfContent=()=>{
+    const isRTL=lang==="ar";
+    return `<div style="font-family:${isRTL?"Cairo":"Nunito"},sans-serif;direction:${isRTL?"rtl":"ltr"};padding:20px;background:#fff;color:#111;">
+      <div style="border-bottom:3px solid #00D48A;padding-bottom:14px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:flex-end;">
+        <div><div style="font-size:22px;font-weight:900;color:#00D48A;">⚽ StadBook</div>
+        <div style="font-size:11px;color:#888;font-weight:700;margin-top:2px;">${t.reportEarnings} — ${mLabel}</div></div>
+        <div style="text-align:right;"><div style="font-size:12px;font-weight:900;">${stadiumName}</div>
+        <div style="font-size:9px;color:#bbb;">${t.generatedOn} ${new Date().toLocaleDateString(locale)}</div></div>
+      </div>
+      <div style="background:linear-gradient(135deg,#f0fdf8,#e6f9f2);border:2px solid #00D48A33;border-radius:12px;padding:14px;margin-bottom:12px;text-align:center;">
+        <div style="font-size:9px;color:#00a86b;font-weight:700;margin-bottom:4px;">${t.totalMonth.toUpperCase()} — ${mLabel}</div>
+        <div style="font-size:36px;font-weight:900;color:#00a86b;line-height:1;">${total.toLocaleString()}</div>
+        <div style="font-size:11px;color:#00a86b88;margin-top:3px;">${t.currency}</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
+        <div style="border:1.5px solid #00b8ff22;border-radius:8px;padding:10px;text-align:center;">
+          <div style="font-size:7px;color:#888;font-weight:700;margin-bottom:3px;">${t.subEarn.toUpperCase()}</div>
+          <div style="font-size:20px;font-weight:900;color:#00b8ff;">${totalSubE.toLocaleString()}</div>
+          <div style="font-size:8px;color:#aaa;">${t.currency}</div>
+        </div>
+        <div style="border:1.5px solid #00D48A22;border-radius:8px;padding:10px;text-align:center;">
+          <div style="font-size:7px;color:#888;font-weight:700;margin-bottom:3px;">${t.matchEarn.toUpperCase()}</div>
+          <div style="font-size:20px;font-weight:900;color:#00a86b;">${totalMatchE.toLocaleString()}</div>
+          <div style="font-size:8px;color:#aaa;">${t.currency}</div>
+        </div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:11px;">
+        <thead><tr style="background:#f5f5f5;">
+          <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">DATE</th>
+          <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${t.matchEarn.toUpperCase()}</th>
+          <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${t.subEarn.toUpperCase()}</th>
+          <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">TOTAL</th>
+        </tr></thead>
+        <tbody>
+          ${daysData.map(([dk,d],i)=>`<tr style="border-bottom:1px solid #f0f0f0;background:${i%2===0?"#fff":"#fafafa"};">
+            <td style="padding:6px 8px;font-weight:700;">${fmtShort(dk,lang)}</td>
+            <td style="padding:6px 8px;color:#00a86b;font-weight:700;">${d.matchE>0?d.matchE.toLocaleString()+" "+t.currency:"—"}</td>
+            <td style="padding:6px 8px;color:#00b8ff;font-weight:700;">${d.subE>0?d.subE.toLocaleString()+" "+t.currency:"—"}</td>
+            <td style="padding:6px 8px;font-weight:900;">${(d.matchE+d.subE).toLocaleString()} ${t.currency}</td>
+          </tr>`).join("")}
+          <tr style="background:#f0fdf8;border-top:2px solid #00D48A;">
+            <td style="padding:8px;font-weight:900;">TOTAL</td>
+            <td style="padding:8px;color:#00a86b;font-weight:900;">${totalMatchE.toLocaleString()} ${t.currency}</td>
+            <td style="padding:8px;color:#00b8ff;font-weight:900;">${totalSubE.toLocaleString()} ${t.currency}</td>
+            <td style="padding:8px;font-weight:900;font-size:14px;">${total.toLocaleString()} ${t.currency}</td>
+          </tr>
+        </tbody>
+      </table>
+      <div style="border-top:1px solid #eee;margin-top:14px;padding-top:10px;display:flex;justify-content:space-between;font-size:8px;color:#ccc;">
+        <span>StadBook · ${t.reportEarnings}</span><span>${stadiumName} · ${mLabel}</span>
+      </div>
+    </div>`;
+  };
+
+  const generate=async()=>{
+    if(!daysData.length||gen)return;
+    setGen(true);
+    const el=document.getElementById("pdf-target");
+    el.innerHTML=pdfContent();el.style.display="block";
+    await new Promise(r=>setTimeout(r,300));
+    await html2pdf().set({margin:[8,8],filename:`StadBook_${year}-${String(month+1).padStart(2,"0")}.pdf`,html2canvas:{scale:2,backgroundColor:"#fff"},jsPDF:{unit:"mm",format:"a4",orientation:"portrait"}}).from(el).save();
+    el.style.display="none";setGen(false);
+  };
+
+  return(
+    <div style={{padding:"14px 12px",display:"flex",flexDirection:"column",gap:10}}>
+      {/* Month picker */}
+      <div style={{background:CARD,borderRadius:14,padding:"12px 14px",border:`1px solid ${BORDER}`}}>
+        <div style={{fontSize:9,color:"#555",fontWeight:700,letterSpacing:0.5,marginBottom:8}}>{t.pickMonth.toUpperCase()}</div>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+          <button onClick={prevM} style={{background:"#1c2030",border:"none",borderRadius:8,padding:"7px 14px",color:"#888",fontWeight:900,fontSize:18}}>‹</button>
+          <div style={{fontWeight:900,fontSize:16,color:"#fff"}}>{mLabel}</div>
+          <button onClick={nextM} style={{background:"#1c2030",border:"none",borderRadius:8,padding:"7px 14px",color:"#888",fontWeight:900,fontSize:18}}>›</button>
+        </div>
+      </div>
+      {/* Big total */}
+      <div style={{background:"linear-gradient(135deg,#071510,#0e2a1e)",borderRadius:16,padding:"18px",border:`1px solid ${G}44`,textAlign:"center"}}>
+        <div style={{fontSize:9,color:`${G}88`,fontWeight:700,letterSpacing:0.8,marginBottom:4}}>{t.totalMonth.toUpperCase()}</div>
+        <div style={{fontSize:40,fontWeight:900,color:G,lineHeight:1}}>{total.toLocaleString()}</div>
+        <div style={{fontSize:13,color:`${G}77`,marginTop:4}}>{t.currency}</div>
+      </div>
+      {/* Split */}
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+        <div style={{background:"linear-gradient(135deg,#0a1220,#0e1a2e)",borderRadius:14,padding:"13px",border:"1px solid #00b8ff44",textAlign:"center"}}>
+          <div style={{fontSize:8,color:"#00b8ff88",fontWeight:700,marginBottom:5}}>{t.subEarn.toUpperCase()}</div>
+          <div style={{fontSize:24,fontWeight:900,color:"#00b8ff"}}>{totalSubE.toLocaleString()}</div>
+          <div style={{fontSize:10,color:"#00b8ff55"}}>{t.currency}</div>
+        </div>
+        <div style={{background:"linear-gradient(135deg,#071510,#0b1e14)",borderRadius:14,padding:"13px",border:`1px solid ${G}44`,textAlign:"center"}}>
+          <div style={{fontSize:8,color:`${G}88`,fontWeight:700,marginBottom:5}}>{t.matchEarn.toUpperCase()}</div>
+          <div style={{fontSize:24,fontWeight:900,color:G}}>{totalMatchE.toLocaleString()}</div>
+          <div style={{fontSize:10,color:`${G}55`}}>{t.currency}</div>
+        </div>
+      </div>
+      {/* Day by day */}
+      {daysData.length===0?<Empty text={t.noEarnings}/>:(
+        <div style={{background:CARD,borderRadius:14,border:`1px solid ${BORDER}`,overflow:"hidden"}}>
+          <div style={{padding:"10px 14px",borderBottom:`1px solid ${BORDER}`,fontSize:9,color:"#555",fontWeight:700,letterSpacing:0.5}}>{t.perDay.toUpperCase()}</div>
+          {daysData.map(([dk,d],i)=>(
+            <div key={dk} style={{padding:"11px 14px",borderBottom:i<daysData.length-1?`1px solid ${BORDER}22`:"none"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:d.subPays.length>0?5:0}}>
+                <div>
+                  <div style={{fontWeight:800,fontSize:13}}>{fmtShort(dk,lang)}</div>
+                  {d.matchCount>0&&<div style={{fontSize:10,color:"#444",marginTop:1}}>⚽ {d.matchCount} {t.matches}</div>}
+                </div>
+                <div style={{fontSize:16,fontWeight:900,color:"#fff"}}>{(d.matchE+d.subE).toLocaleString()} <span style={{fontSize:9,color:"#444"}}>{t.currency}</span></div>
+              </div>
+              <div style={{display:"flex",gap:5,flexWrap:"wrap",marginTop:4}}>
+                {d.matchE>0&&<Tag color={G}>⚽ {d.matchE.toLocaleString()} {t.currency}</Tag>}
+                {d.subPays.map((p,pi)=><Tag key={pi} color="#00b8ff">📋 {p.name}: {(p.amount||0).toLocaleString()} {t.currency}</Tag>)}
+              </div>
+            </div>
+          ))}
+          <div style={{padding:"11px 14px",background:"#0b2018",borderTop:`1px solid ${G}33`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+            <div style={{fontWeight:900,fontSize:10,color:`${G}88`,letterSpacing:0.5}}>TOTAL</div>
+            <div style={{fontSize:18,fontWeight:900,color:G}}>{total.toLocaleString()} <span style={{fontSize:9,color:`${G}66`}}>{t.currency}</span></div>
+          </div>
+        </div>
+      )}
+      {daysData.length>0&&<PdfBtn label={t.dlPdf} gen={gen} onClick={generate}/>}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// TAB 4 — ALL
+// ═══════════════════════════════════════════════
+function AllTab({bookings,subs,lang,t,stadiumName}){
+  const now=new Date();
+  const [mode,setMode]=useState("alltime"); // alltime | bymonth
+  const [year,setYear]=useState(now.getFullYear());
+  const [month,setMonth]=useState(now.getMonth());
+  const [gen,setGen]=useState(false);
+  const locale=lang==="ar"?"ar-MA":lang==="fr"?"fr-FR":"en-GB";
+
+  const allBookingRows=useMemo(()=>{
+    const arr=[];
+    Object.entries(bookings).forEach(([dk,slots])=>{
+      Object.entries(slots).forEach(([h,slot])=>{
+        if(!slot)return;
+        const d=new Date(dk+"T12:00:00");
+        if(mode==="bymonth"&&(d.getFullYear()!==year||d.getMonth()!==month))return;
+        arr.push({dk,hour:Number(h),...slot});
+      });
+    });
+    return arr.sort((a,b)=>b.dk.localeCompare(a.dk)||a.hour-b.hour);
+  },[bookings,mode,year,month]);
+
+  const filteredSubs=useMemo(()=>{
+    if(mode==="alltime")return subs;
+    return subs.filter(s=>{
+      const created=(s.createdAt||"").substring(0,7);
+      return created===`${year}-${String(month+1).padStart(2,"0")}`;
+    });
+  },[subs,mode,year,month]);
+
+  const totalMatchE=allBookingRows.filter(r=>r.status==="played"&&!r.subId).reduce((a,r)=>a+(r.price||0),0);
+  const totalSubE=filteredSubs.reduce((a,s)=>a+s.payments.reduce((x,p)=>x+(p.amount||0),0),0);
+  const totalUnpaid=filteredSubs.reduce((a,s)=>a+Math.max(0,(s.totalPrice||0)-s.payments.reduce((x,p)=>x+(p.amount||0),0)),0);
+  const total=totalMatchE+totalSubE;
+  const played=allBookingRows.filter(r=>r.status==="played").length;
+  const mLabel=fmtMonthYear(year,month,lang);
+
+  const prevM=()=>{if(month===0){setMonth(11);setYear(y=>y-1);}else setMonth(m=>m-1);};
+  const nextM=()=>{if(month===11){setMonth(0);setYear(y=>y+1);}else setMonth(m=>m+1);};
+
+  const pdfContent=()=>{
+    const isRTL=lang==="ar";
+    return `<div style="font-family:${isRTL?"Cairo":"Nunito"},sans-serif;direction:${isRTL?"rtl":"ltr"};padding:20px;background:#fff;color:#111;">
+      <div style="border-bottom:3px solid #00D48A;padding-bottom:14px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:flex-end;">
+        <div><div style="font-size:22px;font-weight:900;color:#00D48A;">⚽ StadBook</div>
+        <div style="font-size:11px;color:#888;font-weight:700;margin-top:2px;">${t.reportAll}</div>
+        <div style="font-size:10px;color:#aaa;">${mode==="alltime"?t.since:mLabel}</div></div>
+        <div style="text-align:right;"><div style="font-size:12px;font-weight:900;">${stadiumName}</div>
+        <div style="font-size:9px;color:#bbb;">${t.generatedOn} ${new Date().toLocaleDateString(locale)}</div></div>
+      </div>
+      <div style="background:linear-gradient(135deg,#f0fdf8,#e6f9f2);border:2px solid #00D48A33;border-radius:12px;padding:14px;margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div><div style="font-size:9px;color:#00a86b;font-weight:700;margin-bottom:3px;">${t.totalGeneral.toUpperCase()}</div>
+          <div style="font-size:32px;font-weight:900;color:#00a86b;line-height:1;">${total.toLocaleString()}</div>
+          <div style="font-size:10px;color:#00a86b88;">${t.currency}</div></div>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <div style="background:#fff;border-radius:8px;padding:6px 10px;border:1px solid #00D48A22;">
+              <div style="font-size:7px;color:#888;font-weight:700;">${t.matchEarn.toUpperCase()}</div>
+              <div style="font-size:13px;font-weight:900;color:#00a86b;">${totalMatchE.toLocaleString()} ${t.currency}</div>
+            </div>
+            <div style="background:#fff;border-radius:8px;padding:6px 10px;border:1px solid #00b8ff22;">
+              <div style="font-size:7px;color:#888;font-weight:700;">${t.subEarn.toUpperCase()}</div>
+              <div style="font-size:13px;font-weight:900;color:#00b8ff;">${totalSubE.toLocaleString()} ${t.currency}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:14px;">
+        <div style="border:1px solid #eee;border-radius:8px;padding:8px;text-align:center;">
+          <div style="font-size:7px;color:#888;font-weight:700;margin-bottom:3px;">${t.totalMatches.toUpperCase()}</div>
+          <div style="font-size:16px;font-weight:900;color:#4a90d9;">${played}</div>
+        </div>
+        <div style="border:1px solid #eee;border-radius:8px;padding:8px;text-align:center;">
+          <div style="font-size:7px;color:#888;font-weight:700;margin-bottom:3px;">${t.totalSubsCount.toUpperCase()}</div>
+          <div style="font-size:16px;font-weight:900;color:#00a86b;">${filteredSubs.length}</div>
+        </div>
+        <div style="border:1px solid #ffe0e0;border-radius:8px;padding:8px;text-align:center;background:#fff8f8;">
+          <div style="font-size:7px;color:#e05555;font-weight:700;margin-bottom:3px;">${t.unpaid.toUpperCase()}</div>
+          <div style="font-size:16px;font-weight:900;color:#e05555;">${totalUnpaid.toLocaleString()}</div>
+          <div style="font-size:8px;color:#e05555aa;">${t.currency}</div>
+        </div>
+      </div>
+      <div style="font-size:10px;font-weight:800;color:#333;letter-spacing:0.5px;margin-bottom:6px;">${t.lastMatches.toUpperCase()} (${allBookingRows.length})</div>
+      <table style="width:100%;border-collapse:collapse;font-size:10px;margin-bottom:14px;">
+        <thead><tr style="background:#f5f5f5;">
+          <th style="padding:6px 8px;text-align:left;font-size:8px;color:#888;">DATE</th>
+          <th style="padding:6px 8px;text-align:left;font-size:8px;color:#888;">H</th>
+          <th style="padding:6px 8px;text-align:left;font-size:8px;color:#888;">CLIENT</th>
+          <th style="padding:6px 8px;text-align:left;font-size:8px;color:#888;">${t.currency}</th>
+          <th style="padding:6px 8px;text-align:left;font-size:8px;color:#888;">STATUT</th>
+        </tr></thead>
+        <tbody>
+          ${allBookingRows.slice(0,50).map((r,i)=>{
+            const played=r.status==="played";const isSub=!!r.subId;
+            return `<tr style="border-bottom:1px solid #f0f0f0;background:${i%2===0?"#fff":"#fafafa"};">
+              <td style="padding:5px 8px;color:#888;">${fmtShort(r.dk,lang)}</td>
+              <td style="padding:5px 8px;color:#4a90d9;font-weight:700;">${fmt24(r.hour)}</td>
+              <td style="padding:5px 8px;font-weight:700;">${r.name||"—"}</td>
+              <td style="padding:5px 8px;color:#00a86b;font-weight:700;">${isSub?"—":`${r.price||0}`}</td>
+              <td style="padding:5px 8px;"><span style="background:${played?"#e6f9f2":isSub?"#fff8e0":"#fff0f0"};color:${played?"#00a86b":isSub?"#d4a017":"#e05555"};border-radius:4px;padding:1px 5px;font-size:8px;font-weight:700;">${isSub?t.subLabel:played?t.played:t.reserved}</span></td>
+            </tr>`;
+          }).join("")}
+          ${allBookingRows.length>50?`<tr><td colspan="5" style="padding:8px;text-align:center;color:#bbb;font-size:9px;">... ${allBookingRows.length-50} ${t.more}</td></tr>`:""}
+        </tbody>
+      </table>
+      <div style="font-size:10px;font-weight:800;color:#333;letter-spacing:0.5px;margin-bottom:6px;">${t.allSubs.toUpperCase()} (${filteredSubs.length})</div>
+      <table style="width:100%;border-collapse:collapse;font-size:10px;">
+        <thead><tr style="background:#f5f5f5;">
+          <th style="padding:6px 8px;text-align:left;font-size:8px;color:#888;">CLIENT</th>
+          <th style="padding:6px 8px;text-align:left;font-size:8px;color:#888;">H</th>
+          <th style="padding:6px 8px;text-align:left;font-size:8px;color:#888;">TOTAL</th>
+          <th style="padding:6px 8px;text-align:left;font-size:8px;color:#888;">${t.paid.toUpperCase()}</th>
+          <th style="padding:6px 8px;text-align:left;font-size:8px;color:#888;">STATUT</th>
+        </tr></thead>
+        <tbody>
+          ${filteredSubs.map((s,i)=>{
+            const paid=s.payments.reduce((a,p)=>a+(p.amount||0),0);
+            const rem=Math.max(0,(s.totalPrice||0)-paid);
+            return `<tr style="border-bottom:1px solid #f0f0f0;background:${i%2===0?"#fff":"#fafafa"};">
+              <td style="padding:5px 8px;font-weight:700;">${s.name||"—"}</td>
+              <td style="padding:5px 8px;color:#4a90d9;font-weight:700;">${fmt24(s.hour)}</td>
+              <td style="padding:5px 8px;font-weight:800;">${(s.totalPrice||0).toLocaleString()}</td>
+              <td style="padding:5px 8px;color:#00a86b;font-weight:800;">${paid.toLocaleString()}</td>
+              <td style="padding:5px 8px;"><span style="background:${rem===0?"#e6f9f2":"#fff0f0"};color:${rem===0?"#00a86b":"#e05555"};border-radius:4px;padding:1px 5px;font-size:8px;font-weight:700;">${rem===0?t.settled:`${rem.toLocaleString()} ${t.remaining}`}</span></td>
+            </tr>`;
+          }).join("")}
+        </tbody>
+      </table>
+      <div style="border-top:1px solid #eee;margin-top:14px;padding-top:10px;display:flex;justify-content:space-between;font-size:8px;color:#ccc;">
+        <span>StadBook · ${t.reportAll}</span><span>${stadiumName}</span>
+      </div>
+    </div>`;
+  };
+
+  const generate=async()=>{
+    if(gen)return;
+    setGen(true);
+    const el=document.getElementById("pdf-target");
+    el.innerHTML=pdfContent();el.style.display="block";
+    await new Promise(r=>setTimeout(r,300));
+    await html2pdf().set({margin:[8,8],filename:`StadBook_Complet.pdf`,html2canvas:{scale:2,backgroundColor:"#fff"},jsPDF:{unit:"mm",format:"a4",orientation:"portrait"}}).from(el).save();
+    el.style.display="none";setGen(false);
+  };
+
+  return(
+    <div style={{padding:"14px 12px",display:"flex",flexDirection:"column",gap:10}}>
+      {/* Mode toggle */}
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
+        <button onClick={()=>setMode("alltime")} style={{padding:"11px",borderRadius:12,border:"none",fontWeight:800,fontSize:12,background:mode==="alltime"?G:CARD,color:mode==="alltime"?G_DARK:"#555"}}>🕐 {t.allTime}</button>
+        <button onClick={()=>setMode("bymonth")} style={{padding:"11px",borderRadius:12,border:`1px solid ${BORDER}`,fontWeight:800,fontSize:12,background:mode==="bymonth"?G:CARD,color:mode==="bymonth"?G_DARK:"#555"}}>📅 {t.byMonth}</button>
+      </div>
+
+      {/* Month picker (only if bymonth) */}
+      {mode==="bymonth"&&(
+        <div style={{background:CARD,borderRadius:14,padding:"12px 14px",border:`1px solid ${BORDER}`}}>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+            <button onClick={prevM} style={{background:"#1c2030",border:"none",borderRadius:8,padding:"7px 14px",color:"#888",fontWeight:900,fontSize:18}}>‹</button>
+            <div style={{fontWeight:900,fontSize:16,color:"#fff"}}>{mLabel}</div>
+            <button onClick={nextM} style={{background:"#1c2030",border:"none",borderRadius:8,padding:"7px 14px",color:"#888",fontWeight:900,fontSize:18}}>›</button>
+          </div>
+        </div>
+      )}
+
+      {/* Big total */}
+      <div style={{background:"linear-gradient(135deg,#071510,#0e2a1e)",borderRadius:16,padding:"16px",border:`1px solid ${G}44`}}>
+        <div style={{fontSize:9,color:`${G}88`,fontWeight:700,letterSpacing:0.8,marginBottom:8}}>{mode==="alltime"?t.since.toUpperCase():mLabel.toUpperCase()}</div>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div>
+            <div style={{fontSize:36,fontWeight:900,color:G,lineHeight:1}}>{total.toLocaleString()}</div>
+            <div style={{fontSize:12,color:`${G}66`,marginTop:2}}>{t.currency}</div>
+          </div>
+          <div style={{display:"flex",flexDirection:"column",gap:6}}>
+            <div style={{background:"#0D0F18",borderRadius:8,padding:"6px 10px",border:`1px solid ${G}33`}}>
+              <div style={{fontSize:7,color:"#444",fontWeight:700}}>MATCHES</div>
+              <div style={{fontSize:13,fontWeight:900,color:G}}>{totalMatchE.toLocaleString()} {t.currency}</div>
+            </div>
+            <div style={{background:"#0D0F18",borderRadius:8,padding:"6px 10px",border:"1px solid #00b8ff33"}}>
+              <div style={{fontSize:7,color:"#444",fontWeight:700}}>ABONNEMENTS</div>
+              <div style={{fontSize:13,fontWeight:900,color:"#00b8ff"}}>{totalSubE.toLocaleString()} {t.currency}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6}}>
+        <StatCard label={t.totalMatches} val={played} unit="" color="#7eb8ff" bg="#0a0e1f"/>
+        <StatCard label={t.totalSubsCount} val={filteredSubs.length} unit="" color={G} bg="#071510"/>
+        <StatCard label={t.unpaid} val={totalUnpaid.toLocaleString()} unit={t.currency} color="#ff5555" bg="#1f0e0e"/>
+      </div>
+
+      {/* Matches section */}
+      <div style={{background:CARD,borderRadius:14,border:`1px solid ${BORDER}`,overflow:"hidden"}}>
+        <div style={{padding:"10px 14px",borderBottom:`1px solid ${BORDER}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div style={{fontSize:9,color:"#555",fontWeight:700,letterSpacing:0.5}}>{t.lastMatches.toUpperCase()}</div>
+          <div style={{fontSize:9,color:G,fontWeight:700}}>{allBookingRows.length} total</div>
+        </div>
+        {allBookingRows.slice(0,8).map((r,i)=>{
+          const isPlayed=r.status==="played";const isSub=!!r.subId;
+          return(
+            <div key={i} style={{padding:"9px 14px",borderBottom:i<Math.min(8,allBookingRows.length)-1?`1px solid ${BORDER}22`:"none",display:"flex",alignItems:"center",gap:8}}>
+              <div style={{minWidth:36,height:36,borderRadius:8,background:isPlayed?isSub?"#d4a01722":`${G}22`:"#1c2030",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                <span style={{fontSize:11,fontWeight:900,color:isPlayed?isSub?"#d4a017":G:"#555"}}>{fmt24(r.hour).slice(0,2)}</span>
+              </div>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontWeight:800,fontSize:12,color:isPlayed?"#888":"#fff",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.name||"—"}</div>
+                <div style={{fontSize:9,color:"#444"}}>{fmtShort(r.dk,lang)} · {isSub?t.subLabel:isPlayed?t.played:t.reserved}{!isSub?` · ${r.price||0} ${t.currency}`:""}</div>
+              </div>
+              {isPlayed&&<span style={{fontSize:10,color:G,flexShrink:0}}>✓</span>}
+            </div>
+          );
+        })}
+        {allBookingRows.length>8&&(
+          <div style={{padding:"8px 14px",background:"#071510",borderTop:`1px solid ${G}22`,textAlign:"center",fontSize:9,color:`${G}66`,fontWeight:700}}>+ {allBookingRows.length-8} {t.more}</div>
+        )}
+      </div>
+
+      {/* Subs section */}
+      <div style={{background:CARD,borderRadius:14,border:`1px solid ${BORDER}`,overflow:"hidden"}}>
+        <div style={{padding:"10px 14px",borderBottom:`1px solid ${BORDER}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div style={{fontSize:9,color:"#555",fontWeight:700,letterSpacing:0.5}}>{t.allSubs.toUpperCase()}</div>
+          <div style={{fontSize:9,color:"#00b8ff",fontWeight:700}}>{filteredSubs.length} total</div>
+        </div>
+        {filteredSubs.slice(0,6).map((s,i)=>{
+          const paid=s.payments.reduce((a,p)=>a+(p.amount||0),0);
+          const rem=Math.max(0,(s.totalPrice||0)-paid);
+          return(
+            <div key={s.id||i} style={{padding:"9px 14px",borderBottom:i<Math.min(6,filteredSubs.length)-1?`1px solid ${BORDER}22`:"none",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <div>
+                <div style={{fontWeight:800,fontSize:12,color:"#fff"}}>{s.name}</div>
+                <div style={{fontSize:9,color:"#444",marginTop:1}}>{paid.toLocaleString()} / {(s.totalPrice||0).toLocaleString()} {t.currency}</div>
+              </div>
+              <Tag color={rem===0?G:"#ff5555"}>{rem===0?t.settled:`${rem.toLocaleString()} ${t.remaining}`}</Tag>
+            </div>
+          );
+        })}
+        {filteredSubs.length>6&&(
+          <div style={{padding:"8px 14px",background:"#071510",borderTop:`1px solid ${G}22`,textAlign:"center",fontSize:9,color:`${G}66`,fontWeight:700}}>+ {filteredSubs.length-6} {t.more}</div>
+        )}
+      </div>
+
+      <PdfBtn label={t.dlPdf} gen={gen} onClick={generate}/>
+    </div>
+  );
+}
+
+// ── Shared components ─────────────────────────────────────────────────────────
+function StatCard({label,val,unit,color,bg}){
+  return(
+    <div style={{background:bg,borderRadius:12,padding:"11px 8px",border:`1px solid ${BORDER}`,textAlign:"center"}}>
+      <div style={{fontSize:7,color:"#555",fontWeight:700,letterSpacing:0.3,marginBottom:4}}>{label.toUpperCase()}</div>
+      <div style={{fontSize:18,fontWeight:900,color}}>{val}</div>
+      {unit&&<div style={{fontSize:8,color:"#444",marginTop:2}}>{unit}</div>}
+    </div>
+  );
+}
+function Tag({color,children}){
+  return <span style={{background:`${color}18`,border:`1px solid ${color}33`,borderRadius:5,padding:"2px 7px",fontSize:9,fontWeight:700,color,whiteSpace:"nowrap"}}>{children}</span>;
+}
+function Empty({text}){
+  return <div style={{background:CARD,borderRadius:14,padding:"30px 20px",border:`1px solid ${BORDER}`,textAlign:"center",color:"#333",fontSize:13,fontWeight:700}}>{text}</div>;
+}
+function PdfBtn({label,gen,onClick}){
+  return(
+    <button onClick={onClick} disabled={gen}
+      style={{width:"100%",background:gen?"#0b2018":G,color:gen?G:G_DARK,border:gen?`1px solid ${G}44`:"none",borderRadius:14,padding:"14px",fontWeight:900,fontSize:14,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
+      {gen?<Spin s={18}/>:<DlIcon/>}
+      {gen?T.fr.generating:label}
+    </button>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+<!-- Hidden PDF render target -->
+<div id="pdf-target" style="display:none;position:fixed;left:-9999px;top:0;width:210mm;background:#fff;"></div>
+</body>
+</html>
