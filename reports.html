@@ -1140,7 +1140,9 @@ function openPrint(htmlContent,filename){
     'tr:nth-child(even) td{background:#fafafa;}'+
     '@media print{@page{margin:10mm;}body{print-color-adjust:exact;-webkit-print-color-adjust:exact;}}'+
     '</style></head><body>'+htmlContent+
-    '<script>window.addEventListener("load",function(){setTimeout(function(){window.print();setTimeout(function(){window.close();},500);},500);});<\/script>'+
+    '<script>function doPrint(){window.print();setTimeout(function(){window.close();},500);}<\/script>'+
+'<div style="position:fixed;bottom:0;left:0;right:0;padding:16px;background:#fff;border-top:2px solid #00D48A;text-align:center;z-index:999;">'+
+'<button onclick="doPrint()" style="background:#00D48A;color:#001a0e;border:none;border-radius:12px;padding:14px 40px;font-size:16px;font-weight:900;cursor:pointer;">📄 Save as PDF</button></div>'+
     '</body></html>';
   w.document.open();
   w.document.write(full);
