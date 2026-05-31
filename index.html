@@ -1024,7 +1024,7 @@ function StadBookApp({lang,setLang,user,uid}){
   const playSlot=async(dk,h)=>await saveBookings({...bookings,[dk]:{...(bookings[dk]||{}),[h]:{...bookings[dk][h],status:"played"}}});
   const goToDay=d=>{setSelectedDate(new Date(d));setCalView("day");setTab("schedule");};
 
-  const NAV=[{id:"home",icon:<HomeIcon/>,label:t.home},{id:"schedule",icon:<CalIcon/>,label:t.schedule},{id:"earnings",icon:<EarnIcon/>,label:t.earnings},{id:"subs",icon:<SubIcon/>,label:t.subs},{id:"settings",icon:<SettIcon/>,label:t.settings},{id:"reports",icon:<ReportIcon/>,label:t.reports,href:"reports.html"}];
+  const NAV=[{id:"home",icon:<HomeIcon/>,label:t.home},{id:"schedule",icon:<CalIcon/>,label:t.schedule},{id:"earnings",icon:<EarnIcon/>,label:t.earnings},{id:"subs",icon:<SubIcon/>,label:t.subs},{id:"reports",icon:<ReportIcon/>,label:t.reports},{id:"settings",icon:<SettIcon/>,label:t.settings}];
 
   const SlotCard=({h,dk})=>{
     const slot=getSlot(dk,h),isPlayed=slot?.status==="played",isReserved=slot?.status==="reserved";
@@ -1876,13 +1876,13 @@ db.collection("bookings").doc(uid).update({
           <div style={{fontSize:18,fontWeight:900,color:G}}>⚽ {t.appName} <span style={{fontSize:12,color:"#444",fontWeight:600}}>· {stadiumName}</span></div>
         </div>
         <div style={{flex:1,overflowY:"auto",paddingBottom:90}}>
-          {tab==="home"&&<HomeTab/>}{tab==="schedule"&&<ScheduleTab/>}{tab==="earnings"&&<EarningsTab/>}{tab==="subs"&&<SubsTab/>}{tab==="settings"&&<SettingsTab/>}
+          {tab==="home"&&<HomeTab/>}{tab==="schedule"&&<ScheduleTab/>}{tab==="earnings"&&<EarningsTab/>}{tab==="subs"&&<SubsTab/>}{tab==="settings"&&<SettingsTab/>}{tab==="reports"&&<ReportsTab lang={lang} user={user} uid={uid}/>}
         </div>
         {/* Bottom nav */}
         <div style={{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:430,zIndex:30}}>
           <div style={{background:"#0e1019",borderTop:`1px solid ${BORDER}`,display:"flex",paddingBottom:18,paddingTop:6}}>
 {NAV.map(item=>{const isActive=tab===item.id;return(
-              <button key={item.id} onClick={()=>item.href?window.location.href=item.href:setTab(item.id)} style={{flex:1,background:"none",border:"none",display:"flex",flexDirection:"column",alignItems:"center",gap:2,position:"relative",paddingTop:isActive?0:10}}>
+              <button key={item.id} onClick={()=>setTab(item.id)} style={{flex:1,background:"none",border:"none",display:"flex",flexDirection:"column",alignItems:"center",gap:2,position:"relative",paddingTop:isActive?0:10}}>
                 {isActive&&<div style={{position:"absolute",top:-22,width:48,height:48,borderRadius:"50%",background:G,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:`0 0 20px ${G}66`}}><div style={{color:"#001a0e"}}>{item.icon}</div></div>}
                 {!isActive&&<div style={{color:"#444",marginBottom:2}}>{item.icon}</div>}
                 <span style={{fontSize:8,fontWeight:800,color:isActive?G:"#444",letterSpacing:0.2,marginTop:isActive?30:0}}>{item.label.toUpperCase()}</span>
@@ -1981,6 +1981,898 @@ db.collection("bookings").doc(uid).update({
         )}
       </div>
     </>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════
+// REPORTS TAB — merged from reports.html (all components renamed
+// with R_ prefix to avoid conflicts with index.html components)
+// ══════════════════════════════════════════════════════════════════
+
+const R_MONTHS={
+  fr:["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"],
+  en:["January","February","March","April","May","June","July","August","September","October","November","December"],
+  ar:["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"],
+};
+
+const R_T={
+  fr:{
+    appName:"Rapports",currency:"MRU",noData:"Aucune donnée.",
+    tabPlanning:"Planning",tabSubs:"Abonnements",tabEarnings:"Recettes",tabAll:"Tout",
+    from:"Du",to:"Au",pickRange:"Période",
+    played:"Joué ✓",reserved:"Réservé",subLabel:"Abonnement",
+    totalEarnings:"Recettes",totalPlayed:"Joués",totalReserved:"Réservés",
+    matches:"matchs",noMatches:"Aucun match sur cette période.",
+    totalSubs:"Total",paid:"Payé",remaining:"Restant",
+    filterAll:"Tous",filterActive:"Actifs",filterArchived:"Archivés",
+    payments:"Paiements",hours:"Heure",days:"matchs",
+    active:"Actif",archived:"Archivé",settled:"✓ Soldé",noSubs:"Aucun abonnement.",
+    pickMonth:"Mois",totalMonth:"Total du mois",matchEarn:"Matches",subEarn:"Abonnements",
+    perDay:"Par jour",noEarnings:"Aucune recette ce mois.",
+    allTime:"Tout le temps",byMonth:"Par mois",
+    totalGeneral:"Total Général",totalMatches:"Matchs joués",totalSubsCount:"Abonnements",
+    unpaid:"Non payé",lastMatches:"Derniers matchs",allSubs:"Abonnements",more:"autres",
+    dlPdf:"Télécharger PDF",generating:"Génération...",
+    reportPlanning:"Rapport Planning",reportSubs:"Rapport Abonnements",
+    reportEarnings:"Rapport Recettes",reportAll:"Rapport Complet",
+    generatedOn:"Généré le",since:"Depuis le début",monthlyReport:"Rapport mensuel",
+    paymentDetail:"Détail des paiements",
+  },
+  en:{
+    appName:"Reports",currency:"MRU",noData:"No data.",
+    tabPlanning:"Planning",tabSubs:"Subscriptions",tabEarnings:"Earnings",tabAll:"All",
+    from:"From",to:"To",pickRange:"Period",
+    played:"Played ✓",reserved:"Reserved",subLabel:"Subscription",
+    totalEarnings:"Earnings",totalPlayed:"Played",totalReserved:"Reserved",
+    matches:"matches",noMatches:"No matches for this period.",
+    totalSubs:"Total",paid:"Paid",remaining:"Remaining",
+    filterAll:"All",filterActive:"Active",filterArchived:"Archived",
+    payments:"Payments",hours:"Hour",days:"matches",
+    active:"Active",archived:"Archived",settled:"✓ Settled",noSubs:"No subscriptions.",
+    pickMonth:"Month",totalMonth:"Month total",matchEarn:"Matches",subEarn:"Subscriptions",
+    perDay:"Per day",noEarnings:"No earnings this month.",
+    allTime:"All time",byMonth:"By month",
+    totalGeneral:"Grand Total",totalMatches:"Matches played",totalSubsCount:"Subscriptions",
+    unpaid:"Unpaid",lastMatches:"Recent matches",allSubs:"Subscriptions",more:"more",
+    dlPdf:"Download PDF",generating:"Generating...",
+    reportPlanning:"Planning Report",reportSubs:"Subscriptions Report",
+    reportEarnings:"Earnings Report",reportAll:"Full Report",
+    generatedOn:"Generated on",since:"Since the beginning",monthlyReport:"Monthly Report",
+    paymentDetail:"Payment details",
+  },
+  ar:{
+    appName:"التقارير",currency:"أوقية",noData:"لا توجد بيانات.",
+    tabPlanning:"الجدول",tabSubs:"الاشتراكات",tabEarnings:"الأرباح",tabAll:"الكل",
+    from:"من",to:"إلى",pickRange:"الفترة",
+    played:"تم اللعب ✓",reserved:"محجوز",subLabel:"اشتراك",
+    totalEarnings:"الأرباح",totalPlayed:"ملعوب",totalReserved:"محجوز",
+    matches:"مباريات",noMatches:"لا توجد مباريات في هذه الفترة.",
+    totalSubs:"الإجمالي",paid:"مدفوع",remaining:"متبقي",
+    filterAll:"الكل",filterActive:"نشط",filterArchived:"مؤرشف",
+    payments:"المدفوعات",hours:"الساعة",days:"مباريات",
+    active:"نشط",archived:"مؤرشف",settled:"✓ مسدد",noSubs:"لا توجد اشتراكات.",
+    pickMonth:"الشهر",totalMonth:"مجموع الشهر",matchEarn:"المباريات",subEarn:"الاشتراكات",
+    perDay:"يومياً",noEarnings:"لا أرباح هذا الشهر.",
+    allTime:"كل الوقت",byMonth:"حسب الشهر",
+    totalGeneral:"الإجمالي العام",totalMatches:"مباريات ملعوبة",totalSubsCount:"اشتراكات",
+    unpaid:"غير مدفوع",lastMatches:"آخر المباريات",allSubs:"الاشتراكات",more:"أخرى",
+    dlPdf:"تحميل PDF",generating:"جارٍ الإنشاء...",
+    reportPlanning:"تقرير الجدول",reportSubs:"تقرير الاشتراكات",
+    reportEarnings:"تقرير الأرباح",reportAll:"التقرير الكامل",
+    generatedOn:"تم الإنشاء في",since:"منذ البداية",monthlyReport:"التقرير الشهري",
+    paymentDetail:"تفاصيل المدفوعات",
+  },
+};
+
+function r_toKey(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;}
+function r_fmt24(h){return `${String(h).padStart(2,"0")}:00`;}
+function r_fmtDate(dk,lang){const d=new Date(dk+"T12:00:00");const locale=lang==="ar"?"ar-MA":lang==="fr"?"fr-FR":"en-GB";return d.toLocaleDateString(locale,{weekday:"long",day:"numeric",month:"long",year:"numeric"});}
+function r_fmtShort(dk,lang){const d=new Date(dk+"T12:00:00");const locale=lang==="ar"?"ar-MA":lang==="fr"?"fr-FR":"en-GB";return d.toLocaleDateString(locale,{weekday:"short",day:"numeric",month:"short"});}
+function r_fmtMonthYear(y,m,lang){return new Date(y,m,1).toLocaleDateString(lang==="ar"?"ar-MA":lang==="fr"?"fr-FR":"en-GB",{month:"long",year:"numeric"});}
+
+function r_openPrint(htmlContent,filename){
+  const full='<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>'+filename+'</title>'+
+    '<style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:Arial,sans-serif;background:#fff;color:#111;padding:20px;}table{width:100%;border-collapse:collapse;font-size:11px;}th{padding:7px 8px;font-size:8px;font-weight:800;color:#888;background:#f5f5f5;}td{padding:6px 8px;border-bottom:1px solid #f0f0f0;}tr:nth-child(even) td{background:#fafafa;}@media print{@page{margin:10mm;}body{print-color-adjust:exact;-webkit-print-color-adjust:exact;}}</style>'+
+    '</head><body>'+htmlContent+'</body></html>';
+  const blob=new Blob([full],{type:"text/html"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;a.download=filename+".html";
+  document.body.appendChild(a);a.click();
+  document.body.removeChild(a);URL.revokeObjectURL(url);
+}
+
+function R_StatCard({label,val,unit,color,bg}){
+  return(
+    <div style={{background:bg,borderRadius:12,padding:"11px 8px",border:`1px solid ${BORDER}`,textAlign:"center"}}>
+      <div style={{fontSize:7,color:"#555",fontWeight:700,letterSpacing:0.3,marginBottom:4}}>{label.toUpperCase()}</div>
+      <div style={{fontSize:18,fontWeight:900,color}}>{val}</div>
+      {unit&&<div style={{fontSize:8,color:"#444",marginTop:2}}>{unit}</div>}
+    </div>
+  );
+}
+function R_Tag({color,children}){
+  return <span style={{background:`${color}18`,border:`1px solid ${color}33`,borderRadius:5,padding:"2px 7px",fontSize:9,fontWeight:700,color,whiteSpace:"nowrap"}}>{children}</span>;
+}
+function R_Empty({text}){
+  return <div style={{background:CARD,borderRadius:14,padding:"30px 20px",border:`1px solid ${BORDER}`,textAlign:"center",color:"#333",fontSize:13,fontWeight:700}}>{text}</div>;
+}
+function R_PdfBtn({label,gen,onClick}){
+  return(
+    <button onClick={onClick} disabled={gen}
+      style={{width:"100%",background:gen?"#0b2018":G,color:gen?G:"#001a0e",border:gen?`1px solid ${G}44`:"none",borderRadius:14,padding:"14px",fontWeight:900,fontSize:14,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
+      {gen?"...":label}
+    </button>
+  );
+}
+
+// ── REPORTS: Planning Tab ─────────────────────────────────────────
+function R_PlanningTab({bookings,lang,t,stadiumName}){
+  const today=r_toKey(new Date());
+  const [from,setFrom]=useState(today);
+  const [to,setTo]=useState(today);
+
+  const rows=useMemo(()=>{
+    const arr=[];
+    Object.entries(bookings).forEach(([dk,slots])=>{
+      if(dk<from||dk>to)return;
+      Object.entries(slots).forEach(([h,slot])=>{
+        if(!slot)return;
+        arr.push({dk,hour:Number(h),...slot});
+      });
+    });
+    return arr.sort((a,b)=>a.dk!==b.dk?a.dk.localeCompare(b.dk):a.hour-b.hour);
+  },[bookings,from,to]);
+
+  const earned=rows.filter(r=>r.status==="played"&&!r.subId).reduce((a,r)=>a+(r.price||0),0);
+  const played=rows.filter(r=>r.status==="played").length;
+  const reserved=rows.filter(r=>r.status==="reserved").length;
+
+  const pdfContent=()=>{
+    const isRTL=lang==="ar";
+    const locale=lang==="ar"?"ar-MA":lang==="fr"?"fr-FR":"en-GB";
+    const period=from===to?r_fmtDate(from,lang):`${r_fmtDate(from,lang)} → ${r_fmtDate(to,lang)}`;
+    return `<div style="font-family:${isRTL?"Cairo":"Nunito"},sans-serif;direction:${isRTL?"rtl":"ltr"};padding:20px;background:#fff;color:#111;">
+      <div style="border-bottom:3px solid #00D48A;padding-bottom:14px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:flex-end;">
+        <div><div style="font-size:22px;font-weight:900;color:#00D48A;">⚽ StadBook</div>
+        <div style="font-size:11px;color:#888;font-weight:700;margin-top:2px;">${t.reportPlanning}</div>
+        <div style="font-size:10px;color:#aaa;margin-top:1px;">${period}</div></div>
+        <div style="text-align:right;"><div style="font-size:12px;font-weight:900;">${stadiumName}</div>
+        <div style="font-size:9px;color:#bbb;">${t.generatedOn} ${new Date().toLocaleDateString(locale)}</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;">
+        <div style="border:1.5px solid #00D48A22;border-radius:8px;padding:10px;text-align:center;background:#00D48A08;">
+          <div style="font-size:7px;color:#888;font-weight:700;margin-bottom:3px;">${t.totalEarnings.toUpperCase()}</div>
+          <div style="font-size:20px;font-weight:900;color:#00D48A;">${earned.toLocaleString()}</div>
+          <div style="font-size:8px;color:#aaa;">${t.currency}</div>
+        </div>
+        <div style="border:1.5px solid #4a90d922;border-radius:8px;padding:10px;text-align:center;background:#4a90d908;">
+          <div style="font-size:7px;color:#888;font-weight:700;margin-bottom:3px;">${t.totalPlayed.toUpperCase()}</div>
+          <div style="font-size:20px;font-weight:900;color:#4a90d9;">${played}</div>
+          <div style="font-size:8px;color:#aaa;">${t.matches}</div>
+        </div>
+        <div style="border:1.5px solid #d4a01722;border-radius:8px;padding:10px;text-align:center;background:#d4a01708;">
+          <div style="font-size:7px;color:#888;font-weight:700;margin-bottom:3px;">${t.totalReserved.toUpperCase()}</div>
+          <div style="font-size:20px;font-weight:900;color:#d4a017;">${reserved}</div>
+          <div style="font-size:8px;color:#aaa;">${t.matches}</div>
+        </div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:11px;">
+        <thead><tr style="background:#f5f5f5;">
+          <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"التاريخ":"DATE"}</th>
+          <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${t.hours.toUpperCase()}</th>
+          <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"العميل":"CLIENT"}</th>
+          <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"الهاتف":lang==="fr"?"TÉL":"PHONE"}</th>
+          <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${t.currency}</th>
+          <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"الحالة":lang==="fr"?"STATUT":"STATUS"}</th>
+        </tr></thead>
+        <tbody>
+          ${rows.map((r,i)=>{
+            const isP=r.status==="played";const isSub=!!r.subId;
+            return `<tr style="border-bottom:1px solid #f0f0f0;background:${i%2===0?"#fff":"#fafafa"};">
+              <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};color:#888;">${r_fmtShort(r.dk,lang)}</td>
+              <td style="padding:6px 8px;color:#4a90d9;font-weight:700;">${r_fmt24(r.hour)}</td>
+              <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-weight:700;">${r.name||"—"}</td>
+              <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};color:#aaa;">${r.phone||"—"}</td>
+              <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-weight:800;color:#00D48A;">${isSub?"—":`${r.price||0} ${t.currency}`}</td>
+              <td style="padding:6px 8px;"><span style="background:${isP?"#e6f9f2":isSub?"#fff8e0":"#fff0f0"};color:${isP?"#00a86b":isSub?"#d4a017":"#e05555"};border-radius:4px;padding:2px 6px;font-size:9px;font-weight:700;">${isSub?t.subLabel:isP?t.played:t.reserved}</span></td>
+            </tr>`;
+          }).join("")}
+        </tbody>
+      </table>
+      <div style="border-top:1px solid #eee;margin-top:14px;padding-top:10px;display:flex;justify-content:space-between;font-size:8px;color:#ccc;">
+        <span>StadBook · ${t.reportPlanning}</span><span>${stadiumName}</span>
+      </div>
+    </div>`;
+  };
+
+  return(
+    <div style={{padding:"14px 12px",display:"flex",flexDirection:"column",gap:10}}>
+      <div style={{background:CARD,borderRadius:14,padding:"12px 14px",border:`1px solid ${BORDER}`}}>
+        <div style={{fontSize:9,color:"#555",fontWeight:700,letterSpacing:0.5,marginBottom:8}}>{t.pickRange.toUpperCase()}</div>
+        <div style={{display:"flex",gap:8,alignItems:"center"}}>
+          <div style={{flex:1}}>
+            <div style={{fontSize:8,color:"#444",fontWeight:700,marginBottom:4}}>{t.from.toUpperCase()}</div>
+            <input type="date" value={from} onChange={e=>{setFrom(e.target.value);if(e.target.value>to)setTo(e.target.value);}}
+              style={{width:"100%",background:BG,border:`1.5px solid ${BORDER}`,borderRadius:8,padding:"9px 10px",color:"#fff",fontSize:13,fontWeight:700}}
+              onFocus={e=>e.target.style.borderColor=G} onBlur={e=>e.target.style.borderColor=BORDER}/>
+          </div>
+          <div style={{color:"#333",paddingTop:16,fontSize:16}}>→</div>
+          <div style={{flex:1}}>
+            <div style={{fontSize:8,color:"#444",fontWeight:700,marginBottom:4}}>{t.to.toUpperCase()}</div>
+            <input type="date" value={to} onChange={e=>setTo(e.target.value)} min={from}
+              style={{width:"100%",background:BG,border:`1.5px solid ${BORDER}`,borderRadius:8,padding:"9px 10px",color:"#fff",fontSize:13,fontWeight:700}}
+              onFocus={e=>e.target.style.borderColor=G} onBlur={e=>e.target.style.borderColor=BORDER}/>
+          </div>
+        </div>
+        {from&&<div style={{fontSize:10,color:"#444",marginTop:6,fontWeight:600}}>{from===to?r_fmtDate(from,lang):`${r_fmtShort(from,lang)} → ${r_fmtShort(to,lang)}`}</div>}
+      </div>
+      {rows.length>0&&(
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6}}>
+          <R_StatCard label={t.totalEarnings} val={earned.toLocaleString()} unit={t.currency} color={G} bg="#071510"/>
+          <R_StatCard label={t.totalPlayed} val={played} unit={t.matches} color="#7eb8ff" bg="#0a0e1f"/>
+          <R_StatCard label={t.totalReserved} val={reserved} unit={t.matches} color="#ffd700" bg="#1a1400"/>
+        </div>
+      )}
+      {rows.length===0?(<R_Empty text={t.noMatches}/>):(
+        <div style={{background:CARD,borderRadius:14,border:`1px solid ${BORDER}`,overflow:"hidden"}}>
+          <div style={{padding:"10px 14px",borderBottom:`1px solid ${BORDER}`,fontSize:9,color:"#555",fontWeight:700,letterSpacing:0.5}}>
+            {t.tabPlanning.toUpperCase()} · {rows.length} {t.matches.toUpperCase()}
+          </div>
+          {rows.map((r,i)=>{
+            const isPlayed=r.status==="played";const isSub=!!r.subId;
+            const hd=r.hour===0?12:r.hour>12?r.hour-12:r.hour;
+            return(
+              <div key={i} style={{padding:"11px 14px",borderBottom:i<rows.length-1?`1px solid ${BORDER}22`:"none",display:"flex",alignItems:"center",gap:8}}>
+                <div style={{minWidth:44,height:44,borderRadius:10,background:isPlayed?isSub?"#d4a01722":`${G}22`:"#1c2030",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                  <span style={{fontSize:13,fontWeight:900,color:isPlayed?isSub?"#d4a017":G:"#555",lineHeight:1.1}}>{hd}</span>
+                  <span style={{fontSize:7,fontWeight:700,color:isPlayed?isSub?"#d4a01766":`${G}66`:"#333"}}>{r.hour>=12?"PM":"AM"}</span>
+                </div>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontSize:9,color:"#444",marginBottom:1}}>{r_fmtShort(r.dk,lang)}</div>
+                  <div style={{fontWeight:800,fontSize:13,color:isPlayed?"#777":"#fff",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.name||"—"}</div>
+                  {r.phone&&<div style={{fontSize:10,color:"#444",marginTop:1}}>📞 {r.phone}</div>}
+                  <div style={{fontSize:10,marginTop:1,fontWeight:700,color:isPlayed?isSub?"#d4a017":`${G}88`:"#7eb8ff"}}>
+                    {isSub?t.subLabel:isPlayed?t.played:t.reserved}
+                    {!isSub&&<span style={{color:"#555"}}> · {r.price||0} {t.currency}</span>}
+                  </div>
+                </div>
+                {isPlayed&&<div style={{width:26,height:26,borderRadius:"50%",background:`${G}22`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,color:G,flexShrink:0}}>✓</div>}
+                {!isPlayed&&!isSub&&<div style={{width:8,height:8,borderRadius:"50%",background:"#ffd700",flexShrink:0}}/>}
+              </div>
+            );
+          })}
+        </div>
+      )}
+      {rows.length>0&&<R_PdfBtn label={t.dlPdf} gen={false} onClick={()=>r_openPrint(pdfContent(),`StadBook_Planning_${from}_${to}`)}/>}
+    </div>
+  );
+}
+
+// ── REPORTS: Subscriptions Tab ────────────────────────────────────
+function R_SubsTab({subs,lang,t,stadiumName}){
+  const [filter,setFilter]=useState("all");
+
+  const shown=filter==="active"?subs.filter(s=>!s.archived):filter==="archived"?subs.filter(s=>s.archived):subs;
+  const totalPaid=subs.reduce((a,s)=>a+s.payments.reduce((x,p)=>x+(p.amount||0),0),0);
+  const totalPrice=subs.reduce((a,s)=>a+(s.totalPrice||0),0);
+  const totalRem=Math.max(0,totalPrice-totalPaid);
+
+  const pdfContent=()=>{
+    const isRTL=lang==="ar";
+    const locale=lang==="ar"?"ar-MA":lang==="fr"?"fr-FR":"en-GB";
+    return `<div style="font-family:${isRTL?"Cairo":"Nunito"},sans-serif;direction:${isRTL?"rtl":"ltr"};padding:20px;background:#fff;color:#111;">
+      <div style="border-bottom:3px solid #00D48A;padding-bottom:14px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:flex-end;">
+        <div><div style="font-size:22px;font-weight:900;color:#00D48A;">⚽ StadBook</div>
+        <div style="font-size:11px;color:#888;font-weight:700;margin-top:2px;">${t.reportSubs}</div></div>
+        <div style="text-align:right;"><div style="font-size:12px;font-weight:900;">${stadiumName}</div>
+        <div style="font-size:9px;color:#bbb;">${t.generatedOn} ${new Date().toLocaleDateString(locale)}</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;">
+        <div style="border:1.5px solid #00D48A22;border-radius:8px;padding:10px;text-align:center;background:#00D48A08;">
+          <div style="font-size:7px;color:#888;font-weight:700;margin-bottom:3px;">${t.totalSubs.toUpperCase()}</div>
+          <div style="font-size:20px;font-weight:900;color:#00D48A;">${subs.length}</div>
+        </div>
+        <div style="border:1.5px solid #00b8ff22;border-radius:8px;padding:10px;text-align:center;background:#00b8ff08;">
+          <div style="font-size:7px;color:#888;font-weight:700;margin-bottom:3px;">${t.paid.toUpperCase()}</div>
+          <div style="font-size:20px;font-weight:900;color:#00b8ff;">${totalPaid.toLocaleString()}</div>
+          <div style="font-size:8px;color:#aaa;">${t.currency}</div>
+        </div>
+        <div style="border:1.5px solid #e0555522;border-radius:8px;padding:10px;text-align:center;background:#e0555508;">
+          <div style="font-size:7px;color:#888;font-weight:700;margin-bottom:3px;">${t.remaining.toUpperCase()}</div>
+          <div style="font-size:20px;font-weight:900;color:#e05555;">${totalRem.toLocaleString()}</div>
+          <div style="font-size:8px;color:#aaa;">${t.currency}</div>
+        </div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:16px;">
+        <thead><tr style="background:#f5f5f5;">
+          <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"العميل":"CLIENT"}</th>
+          <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${t.hours.toUpperCase()}</th>
+          <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"الشهر":lang==="fr"?"MOIS":"MONTH"}</th>
+          <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${t.days.toUpperCase()}</th>
+          <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"الإجمالي":"TOTAL"}</th>
+          <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${t.paid.toUpperCase()}</th>
+          <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${t.remaining.toUpperCase()}</th>
+        </tr></thead>
+        <tbody>
+          ${shown.map((s,i)=>{
+            const paid=s.payments.reduce((a,p)=>a+(p.amount||0),0);
+            const rem=Math.max(0,(s.totalPrice||0)-paid);
+            return `<tr style="border-bottom:1px solid #f0f0f0;background:${i%2===0?"#fff":"#fafafa"};">
+              <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-weight:700;">${s.name||"—"}</td>
+              <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};color:#4a90d9;font-weight:700;">${r_fmt24(s.hour)}</td>
+              <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};color:#888;">${(R_MONTHS[lang]?.[s.month]||"")+" "+s.year}</td>
+              <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};">${s.days?.length||0}</td>
+              <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-weight:800;">${(s.totalPrice||0).toLocaleString()} ${t.currency}</td>
+              <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};color:#00a86b;font-weight:800;">${paid.toLocaleString()} ${t.currency}</td>
+              <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};color:${rem>0?"#e05555":"#00a86b"};font-weight:800;">${rem.toLocaleString()} ${t.currency}</td>
+            </tr>`;
+          }).join("")}
+        </tbody>
+      </table>
+      <div style="font-size:10px;font-weight:800;color:#333;letter-spacing:0.5px;margin-bottom:8px;">${t.paymentDetail.toUpperCase()}</div>
+      ${shown.map(s=>{
+        if(!s.payments.length)return "";
+        return `<div style="margin-bottom:10px;border:1px solid #f0f0f0;border-radius:8px;overflow:hidden;">
+          <div style="background:#f8f8f8;padding:7px 10px;font-size:10px;font-weight:800;border-bottom:1px solid #eee;display:flex;justify-content:space-between;"><span>${s.name}</span><span style="color:#888;font-size:9px;">${r_fmt24(s.hour)} · ${(R_MONTHS[lang]?.[s.month]||"")+" "+s.year}</span></div>
+          <div style="padding:6px 10px;border-bottom:1px solid #f0f0f0;"><div style="font-size:8px;color:#888;font-weight:700;margin-bottom:4px;">${lang==="ar"?"الأيام":lang==="fr"?"JOURS":"DAYS"} (${s.days?.length||0})</div><div style="display:flex;flex-wrap:wrap;gap:3px;">${(s.days||[]).map(d=>`<span style="background:#e6f0ff;color:#4a90d9;border-radius:4px;padding:2px 5px;font-size:9px;font-weight:700;">${d} ${R_MONTHS[lang]?.[s.month]||""}</span>`).join("")}</div></div>
+          ${s.payments.map((p,i,arr)=>{
+            const d=new Date((p.date||"")+"T12:00:00");
+            const mLabel=isNaN(d)?"":`${R_MONTHS[lang]?.[d.getMonth()]||""} ${d.getFullYear()}`;
+            return `<div style="padding:5px 10px;display:flex;justify-content:space-between;border-bottom:${i<arr.length-1?"1px solid #f5f5f5":"none"};">
+              <div style="display:flex;align-items:center;gap:6px;">
+                <div style="width:5px;height:5px;border-radius:50%;background:#00D48A;"></div>
+                <span style="font-size:9px;color:#555;">${p.date||""}</span>
+                <span style="font-size:9px;color:#aaa;">${mLabel}</span>
+              </div>
+              <span style="font-size:11px;font-weight:800;color:#00a86b;">+${(p.amount||0).toLocaleString()} ${t.currency}</span>
+            </div>`;
+          }).join("")}
+        </div>`;
+      }).join("")}
+      <div style="border-top:1px solid #eee;margin-top:10px;padding-top:10px;display:flex;justify-content:space-between;font-size:8px;color:#ccc;">
+        <span>StadBook · ${t.reportSubs}</span><span>${stadiumName}</span>
+      </div>
+    </div>`;
+  };
+
+  return(
+    <div style={{padding:"14px 12px",display:"flex",flexDirection:"column",gap:10}}>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6}}>
+        <R_StatCard label={t.totalSubs} val={subs.length} unit="" color={G} bg="#071510"/>
+        <R_StatCard label={t.paid} val={totalPaid.toLocaleString()} unit={t.currency} color="#00b8ff" bg="#0a1828"/>
+        <R_StatCard label={t.remaining} val={totalRem.toLocaleString()} unit={t.currency} color="#ff9955" bg="#1f1208"/>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6}}>
+        {[["all",`${t.filterAll} (${subs.length})`],["active",`${t.filterActive} (${subs.filter(s=>!s.archived).length})`],["archived",`${t.filterArchived} (${subs.filter(s=>s.archived).length})`]].map(([v,l])=>(
+          <button key={v} onClick={()=>setFilter(v)} style={{padding:"9px 4px",borderRadius:10,border:"none",fontWeight:800,fontSize:10,background:filter===v?G:CARD,color:filter===v?"#001a0e":"#555"}}>{l}</button>
+        ))}
+      </div>
+      {shown.length===0?<R_Empty text={t.noSubs}/>:(
+        <div style={{display:"flex",flexDirection:"column",gap:10}}>
+          {shown.map(s=>{
+            const paid=s.payments.reduce((a,p)=>a+(p.amount||0),0);
+            const rem=Math.max(0,(s.totalPrice||0)-paid);
+            const pct=s.totalPrice>0?Math.min(100,Math.round(paid/s.totalPrice*100)):0;
+            const full=rem===0;
+            return(
+              <div key={s.id} style={{background:CARD,borderRadius:14,padding:"13px",border:`1.5px solid ${full?G+"44":BORDER}`}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
+                  <div>
+                    <div style={{fontWeight:900,fontSize:14,color:"#fff"}}>{s.name}</div>
+                    {s.phone&&<div style={{fontSize:10,color:"#444",marginTop:1}}>📞 {s.phone}</div>}
+                  </div>
+                  <div style={{textAlign:"right"}}>
+                    <div style={{fontSize:16,fontWeight:900,color:G}}>{paid.toLocaleString()} <span style={{fontSize:9,color:"#444"}}>{t.currency}</span></div>
+                    <div style={{fontSize:9,color:"#555"}}>/ {(s.totalPrice||0).toLocaleString()} {t.currency}</div>
+                    <div style={{fontSize:8,marginTop:2,background:s.archived?"#1c2030":`${G}18`,color:s.archived?"#555":G,borderRadius:4,padding:"2px 5px",display:"inline-block",fontWeight:700}}>{s.archived?t.archived:t.active}</div>
+                  </div>
+                </div>
+                <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:8}}>
+                  <R_Tag color="#7eb8ff">{r_fmt24(s.hour)}</R_Tag>
+                  <R_Tag color="#aaa">{s.days?.length||0} {t.days}</R_Tag>
+                  <R_Tag color={full?G:"#ff9955"}>{full?t.settled:`${rem.toLocaleString()} ${t.currency} ${t.remaining}`}</R_Tag>
+                </div>
+                <div style={{background:"#1c2030",borderRadius:6,height:6,overflow:"hidden",marginBottom:6}}>
+                  <div style={{background:`linear-gradient(90deg,${G},#00a86b)`,height:"100%",width:`${pct}%`,borderRadius:6}}/>
+                </div>
+                {s.payments.length>0&&(
+                  <div style={{borderTop:`1px solid ${BORDER}88`,paddingTop:8,marginTop:4}}>
+                    <div style={{fontSize:8,color:"#444",fontWeight:700,letterSpacing:0.3,marginBottom:5}}>{t.payments.toUpperCase()}</div>
+                    {s.payments.map((p,i)=>{
+                      const d=new Date((p.date||"")+"T12:00:00");
+                      const mLabel=isNaN(d)?"":`${R_MONTHS[lang]?.[d.getMonth()]||""} ${d.getFullYear()}`;
+                      return(
+                        <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"4px 0",borderBottom:i<s.payments.length-1?`1px solid ${BORDER}44`:"none"}}>
+                          <div style={{display:"flex",alignItems:"center",gap:6}}>
+                            <div style={{width:5,height:5,borderRadius:"50%",background:G,flexShrink:0}}/>
+                            <span style={{fontSize:10,color:"#555"}}>{p.date||""}</span>
+                            <span style={{fontSize:9,color:"#333",background:"#1c2030",borderRadius:4,padding:"1px 5px"}}>{mLabel}</span>
+                          </div>
+                          <span style={{fontSize:11,fontWeight:800,color:G}}>+{(p.amount||0).toLocaleString()} {t.currency}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+      {shown.length>0&&<R_PdfBtn label={t.dlPdf} gen={false} onClick={()=>r_openPrint(pdfContent(),"StadBook_Abonnements")}/>}
+    </div>
+  );
+}
+
+// ── REPORTS: Earnings Tab ─────────────────────────────────────────
+function R_EarningsTab({bookings,subs,lang,t,stadiumName}){
+  const now=new Date();
+  const [year,setYear]=useState(now.getFullYear());
+  const [month,setMonth]=useState(now.getMonth());
+  const locale=lang==="ar"?"ar-MA":lang==="fr"?"fr-FR":"en-GB";
+
+  const daysData=useMemo(()=>{
+    const map={};
+    Object.entries(bookings).forEach(([dk,slots])=>{
+      const d=new Date(dk+"T12:00:00");
+      if(d.getFullYear()!==year||d.getMonth()!==month)return;
+      const matchE=Object.values(slots).filter(s=>s&&s.status==="played"&&!s.subId).reduce((a,s)=>a+(s.price||0),0);
+      const matchCount=Object.values(slots).filter(s=>s&&s.status==="played").length;
+      if(matchE>0||matchCount>0){
+        if(!map[dk])map[dk]={matchE:0,subE:0,matchCount:0,subPays:[]};
+        map[dk].matchE+=matchE;map[dk].matchCount+=matchCount;
+      }
+    });
+    subs.forEach(s=>{
+      (s.payments||[]).forEach(p=>{
+        if(!p.date)return;
+        const d=new Date(p.date+"T12:00:00");
+        if(d.getFullYear()!==year||d.getMonth()!==month)return;
+        if(!map[p.date])map[p.date]={matchE:0,subE:0,matchCount:0,subPays:[]};
+        map[p.date].subE+=(p.amount||0);
+        map[p.date].subPays.push({name:s.name,amount:p.amount});
+      });
+    });
+    return Object.entries(map).sort(([a],[b])=>a.localeCompare(b));
+  },[bookings,subs,year,month]);
+
+  const totalMatchE=daysData.reduce((a,[,d])=>a+d.matchE,0);
+  const totalSubE=daysData.reduce((a,[,d])=>a+d.subE,0);
+  const total=totalMatchE+totalSubE;
+  const mLabel=r_fmtMonthYear(year,month,lang);
+
+  const prevM=()=>{if(month===0){setMonth(11);setYear(y=>y-1);}else setMonth(m=>m-1);};
+  const nextM=()=>{if(month===11){setMonth(0);setYear(y=>y+1);}else setMonth(m=>m+1);};
+
+  const pdfContent=()=>{
+    const isRTL=lang==="ar";
+    return `<div style="font-family:${isRTL?"Cairo":"Nunito"},sans-serif;direction:${isRTL?"rtl":"ltr"};padding:20px;background:#fff;color:#111;">
+      <div style="border-bottom:3px solid #00D48A;padding-bottom:14px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:flex-end;">
+        <div><div style="font-size:22px;font-weight:900;color:#00D48A;">⚽ StadBook</div>
+        <div style="font-size:11px;color:#888;font-weight:700;margin-top:2px;">${t.reportEarnings} — ${mLabel}</div></div>
+        <div style="text-align:right;"><div style="font-size:12px;font-weight:900;">${stadiumName}</div>
+        <div style="font-size:9px;color:#bbb;">${t.generatedOn} ${new Date().toLocaleDateString(locale)}</div></div>
+      </div>
+      <div style="background:linear-gradient(135deg,#f0fdf8,#e6f9f2);border:2px solid #00D48A33;border-radius:12px;padding:14px;margin-bottom:12px;text-align:center;">
+        <div style="font-size:9px;color:#00a86b;font-weight:700;margin-bottom:4px;">${t.totalMonth.toUpperCase()} — ${mLabel}</div>
+        <div style="font-size:36px;font-weight:900;color:#00a86b;line-height:1;">${total.toLocaleString()}</div>
+        <div style="font-size:11px;color:#00a86b88;margin-top:3px;">${t.currency}</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
+        <div style="border:1.5px solid #00b8ff22;border-radius:8px;padding:10px;text-align:center;">
+          <div style="font-size:7px;color:#888;font-weight:700;margin-bottom:3px;">${t.subEarn.toUpperCase()}</div>
+          <div style="font-size:20px;font-weight:900;color:#00b8ff;">${totalSubE.toLocaleString()}</div>
+          <div style="font-size:8px;color:#aaa;">${t.currency}</div>
+        </div>
+        <div style="border:1.5px solid #00D48A22;border-radius:8px;padding:10px;text-align:center;">
+          <div style="font-size:7px;color:#888;font-weight:700;margin-bottom:3px;">${t.matchEarn.toUpperCase()}</div>
+          <div style="font-size:20px;font-weight:900;color:#00a86b;">${totalMatchE.toLocaleString()}</div>
+          <div style="font-size:8px;color:#aaa;">${t.currency}</div>
+        </div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:11px;">
+        <thead><tr style="background:#f5f5f5;">
+          <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"التاريخ":"DATE"}</th>
+          <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${t.matchEarn.toUpperCase()}</th>
+          <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${t.subEarn.toUpperCase()}</th>
+          <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"الإجمالي":"TOTAL"}</th>
+        </tr></thead>
+        <tbody>
+          ${daysData.map(([dk,d],i)=>`<tr style="border-bottom:1px solid #f0f0f0;background:${i%2===0?"#fff":"#fafafa"};">
+            <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-weight:700;">${r_fmtShort(dk,lang)}</td>
+            <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};color:#00a86b;font-weight:700;">${d.matchE>0?d.matchE.toLocaleString()+" "+t.currency:"—"}</td>
+            <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};color:#00b8ff;font-weight:700;">${d.subE>0?d.subE.toLocaleString()+" "+t.currency:"—"}</td>
+            <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-weight:900;">${(d.matchE+d.subE).toLocaleString()} ${t.currency}</td>
+          </tr>`).join("")}
+          <tr style="background:#f0fdf8;border-top:2px solid #00D48A;">
+            <td style="padding:8px;text-align:${isRTL?"right":"left"};font-weight:900;">${lang==="ar"?"الإجمالي":"TOTAL"}</td>
+            <td style="padding:8px;text-align:${isRTL?"right":"left"};color:#00a86b;font-weight:900;">${totalMatchE.toLocaleString()} ${t.currency}</td>
+            <td style="padding:8px;text-align:${isRTL?"right":"left"};color:#00b8ff;font-weight:900;">${totalSubE.toLocaleString()} ${t.currency}</td>
+            <td style="padding:8px;text-align:${isRTL?"right":"left"};font-weight:900;font-size:14px;">${total.toLocaleString()} ${t.currency}</td>
+          </tr>
+        </tbody>
+      </table>
+      <div style="border-top:1px solid #eee;margin-top:14px;padding-top:10px;display:flex;justify-content:space-between;font-size:8px;color:#ccc;">
+        <span>StadBook · ${t.reportEarnings}</span><span>${stadiumName} · ${mLabel}</span>
+      </div>
+    </div>`;
+  };
+
+  return(
+    <div style={{padding:"14px 12px",display:"flex",flexDirection:"column",gap:10}}>
+      <div style={{background:CARD,borderRadius:14,padding:"12px 14px",border:`1px solid ${BORDER}`}}>
+        <div style={{fontSize:9,color:"#555",fontWeight:700,letterSpacing:0.5,marginBottom:8}}>{t.pickMonth.toUpperCase()}</div>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+          <button onClick={prevM} style={{background:"#1c2030",border:"none",borderRadius:8,padding:"7px 14px",color:"#888",fontWeight:900,fontSize:18}}>‹</button>
+          <div style={{fontWeight:900,fontSize:16,color:"#fff"}}>{mLabel}</div>
+          <button onClick={nextM} style={{background:"#1c2030",border:"none",borderRadius:8,padding:"7px 14px",color:"#888",fontWeight:900,fontSize:18}}>›</button>
+        </div>
+      </div>
+      <div style={{background:"linear-gradient(135deg,#071510,#0e2a1e)",borderRadius:16,padding:"18px",border:`1px solid ${G}44`,textAlign:"center"}}>
+        <div style={{fontSize:9,color:`${G}88`,fontWeight:700,letterSpacing:0.8,marginBottom:4}}>{t.totalMonth.toUpperCase()}</div>
+        <div style={{fontSize:40,fontWeight:900,color:G,lineHeight:1}}>{total.toLocaleString()}</div>
+        <div style={{fontSize:13,color:`${G}77`,marginTop:4}}>{t.currency}</div>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+        <div style={{background:"linear-gradient(135deg,#0a1220,#0e1a2e)",borderRadius:14,padding:"13px",border:"1px solid #00b8ff44",textAlign:"center"}}>
+          <div style={{fontSize:8,color:"#00b8ff88",fontWeight:700,marginBottom:5}}>{t.subEarn.toUpperCase()}</div>
+          <div style={{fontSize:24,fontWeight:900,color:"#00b8ff"}}>{totalSubE.toLocaleString()}</div>
+          <div style={{fontSize:10,color:"#00b8ff55"}}>{t.currency}</div>
+        </div>
+        <div style={{background:"linear-gradient(135deg,#071510,#0b1e14)",borderRadius:14,padding:"13px",border:`1px solid ${G}44`,textAlign:"center"}}>
+          <div style={{fontSize:8,color:`${G}88`,fontWeight:700,marginBottom:5}}>{t.matchEarn.toUpperCase()}</div>
+          <div style={{fontSize:24,fontWeight:900,color:G}}>{totalMatchE.toLocaleString()}</div>
+          <div style={{fontSize:10,color:`${G}55`}}>{t.currency}</div>
+        </div>
+      </div>
+      {daysData.length===0?<R_Empty text={t.noEarnings}/>:(
+        <div style={{background:CARD,borderRadius:14,border:`1px solid ${BORDER}`,overflow:"hidden"}}>
+          <div style={{padding:"10px 14px",borderBottom:`1px solid ${BORDER}`,fontSize:9,color:"#555",fontWeight:700,letterSpacing:0.5}}>{t.perDay.toUpperCase()}</div>
+          {daysData.map(([dk,d],i)=>(
+            <div key={dk} style={{padding:"11px 14px",borderBottom:i<daysData.length-1?`1px solid ${BORDER}22`:"none"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:d.subPays.length>0?5:0}}>
+                <div>
+                  <div style={{fontWeight:800,fontSize:13}}>{r_fmtShort(dk,lang)}</div>
+                  {d.matchCount>0&&<div style={{fontSize:10,color:"#444",marginTop:1}}>⚽ {d.matchCount} {t.matches}</div>}
+                </div>
+                <div style={{fontSize:16,fontWeight:900,color:"#fff"}}>{(d.matchE+d.subE).toLocaleString()} <span style={{fontSize:9,color:"#444"}}>{t.currency}</span></div>
+              </div>
+              <div style={{display:"flex",gap:5,flexWrap:"wrap",marginTop:4}}>
+                {d.matchE>0&&<R_Tag color={G}>⚽ {d.matchE.toLocaleString()} {t.currency}</R_Tag>}
+                {d.subPays.map((p,pi)=><R_Tag key={pi} color="#00b8ff">📋 {p.name}: {(p.amount||0).toLocaleString()} {t.currency}</R_Tag>)}
+              </div>
+            </div>
+          ))}
+          <div style={{padding:"11px 14px",background:"#0b2018",borderTop:`1px solid ${G}33`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+            <div style={{fontWeight:900,fontSize:10,color:`${G}88`,letterSpacing:0.5}}>TOTAL</div>
+            <div style={{fontSize:18,fontWeight:900,color:G}}>{total.toLocaleString()} <span style={{fontSize:9,color:`${G}66`}}>{t.currency}</span></div>
+          </div>
+        </div>
+      )}
+      {daysData.length>0&&<R_PdfBtn label={t.dlPdf} gen={false} onClick={()=>r_openPrint(pdfContent(),`StadBook_${year}-${String(month+1).padStart(2,"0")}`)}/>}
+    </div>
+  );
+}
+
+// ── REPORTS: All Tab ──────────────────────────────────────────────
+function R_AllTab({bookings,subs,lang,t,stadiumName}){
+  const now=new Date();
+  const [mode,setMode]=useState("alltime");
+  const [year,setYear]=useState(now.getFullYear());
+  const [month,setMonth]=useState(now.getMonth());
+  const locale=lang==="ar"?"ar-MA":lang==="fr"?"fr-FR":"en-GB";
+
+  const allBookingRows=useMemo(()=>{
+    const arr=[];
+    Object.entries(bookings).forEach(([dk,slots])=>{
+      Object.entries(slots).forEach(([h,slot])=>{
+        if(!slot)return;
+        const d=new Date(dk+"T12:00:00");
+        if(mode==="bymonth"&&(d.getFullYear()!==year||d.getMonth()!==month))return;
+        arr.push({dk,hour:Number(h),...slot});
+      });
+    });
+    return arr.sort((a,b)=>b.dk.localeCompare(a.dk)||a.hour-b.hour);
+  },[bookings,mode,year,month]);
+
+  const filteredSubs=useMemo(()=>{
+    if(mode==="alltime")return subs;
+    return subs.filter(s=>s.month===month&&s.year===year);
+  },[subs,mode,year,month]);
+
+  const paymentsInMonth=useMemo(()=>{
+    if(mode==="alltime")return[];
+    return subs.flatMap(s=>s.payments.filter(p=>{
+      if(!p.date)return false;
+      const d=new Date(p.date+"T12:00:00");
+      return d.getFullYear()===year&&d.getMonth()===month;
+    }).map(p=>({...p,sub:s})));
+  },[subs,mode,year,month]);
+
+  const totalMatchE=allBookingRows.filter(r=>r.status==="played"&&!r.subId).reduce((a,r)=>a+(r.price||0),0);
+  const totalSubE=mode==="alltime"
+    ?subs.reduce((a,s)=>a+s.payments.reduce((x,p)=>x+(p.amount||0),0),0)
+    :subs.reduce((a,s)=>a+s.payments.filter(p=>{if(!p.date)return false;const d=new Date(p.date+"T12:00:00");return d.getFullYear()===year&&d.getMonth()===month;}).reduce((x,p)=>x+(p.amount||0),0),0);
+  const totalUnpaid=filteredSubs.reduce((a,s)=>a+Math.max(0,(s.totalPrice||0)-s.payments.reduce((x,p)=>x+(p.amount||0),0)),0);
+  const total=totalMatchE+totalSubE;
+  const played=allBookingRows.filter(r=>r.status==="played").length;
+  const mLabel=r_fmtMonthYear(year,month,lang);
+
+  const prevM=()=>{if(month===0){setMonth(11);setYear(y=>y-1);}else setMonth(m=>m-1);};
+  const nextM=()=>{if(month===11){setMonth(0);setYear(y=>y+1);}else setMonth(m=>m+1);};
+
+  const pdfContent=()=>{
+    const isRTL=lang==="ar";
+    return `<div style="font-family:${isRTL?"Cairo":"Nunito"},sans-serif;direction:${isRTL?"rtl":"ltr"};padding:20px;background:#fff;color:#111;">
+      <div style="border-bottom:3px solid #00D48A;padding-bottom:14px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:flex-end;">
+        <div><div style="font-size:22px;font-weight:900;color:#00D48A;">⚽ StadBook</div>
+        <div style="font-size:11px;color:#888;font-weight:700;margin-top:2px;">${t.reportAll}</div>
+        <div style="font-size:10px;color:#aaa;">${mode==="alltime"?t.since:mLabel}</div></div>
+        <div style="text-align:right;"><div style="font-size:12px;font-weight:900;">${stadiumName}</div>
+        <div style="font-size:9px;color:#bbb;">${t.generatedOn} ${new Date().toLocaleDateString(locale)}</div></div>
+      </div>
+      <div style="background:linear-gradient(135deg,#f0fdf8,#e6f9f2);border:2px solid #00D48A33;border-radius:12px;padding:14px;margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div><div style="font-size:9px;color:#00a86b;font-weight:700;margin-bottom:3px;">${t.totalGeneral.toUpperCase()}</div>
+          <div style="font-size:32px;font-weight:900;color:#00a86b;line-height:1;">${total.toLocaleString()}</div>
+          <div style="font-size:10px;color:#00a86b88;">${t.currency}</div></div>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <div style="background:#fff;border-radius:8px;padding:6px 10px;border:1px solid #00D48A22;">
+              <div style="font-size:7px;color:#888;font-weight:700;">${t.matchEarn.toUpperCase()}</div>
+              <div style="font-size:13px;font-weight:900;color:#00a86b;">${totalMatchE.toLocaleString()} ${t.currency}</div>
+            </div>
+            <div style="background:#fff;border-radius:8px;padding:6px 10px;border:1px solid #00b8ff22;">
+              <div style="font-size:7px;color:#888;font-weight:700;">${t.subEarn.toUpperCase()}</div>
+              <div style="font-size:13px;font-weight:900;color:#00b8ff;">${totalSubE.toLocaleString()} ${t.currency}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:14px;">
+        <div style="border:1px solid #eee;border-radius:8px;padding:8px;text-align:center;">
+          <div style="font-size:7px;color:#888;font-weight:700;margin-bottom:3px;">${t.totalMatches.toUpperCase()}</div>
+          <div style="font-size:16px;font-weight:900;color:#4a90d9;">${played}</div>
+        </div>
+        <div style="border:1px solid #eee;border-radius:8px;padding:8px;text-align:center;">
+          <div style="font-size:7px;color:#888;font-weight:700;margin-bottom:3px;">${t.totalSubsCount.toUpperCase()}</div>
+          <div style="font-size:16px;font-weight:900;color:#00a86b;">${filteredSubs.length}</div>
+        </div>
+        <div style="border:1px solid #ffe0e0;border-radius:8px;padding:8px;text-align:center;background:#fff8f8;">
+          <div style="font-size:7px;color:#e05555;font-weight:700;margin-bottom:3px;">${t.unpaid.toUpperCase()}</div>
+          <div style="font-size:16px;font-weight:900;color:#e05555;">${totalUnpaid.toLocaleString()}</div>
+          <div style="font-size:8px;color:#e05555aa;">${t.currency}</div>
+        </div>
+      </div>
+      <div style="font-size:10px;font-weight:800;color:#333;letter-spacing:0.5px;margin-bottom:6px;">${lang==="ar"?"المباريات":lang==="fr"?"MATCHS":"MATCHES"} (${allBookingRows.length})</div>
+      <table style="width:100%;border-collapse:collapse;font-size:10px;margin-bottom:14px;">
+        <thead><tr style="background:#f5f5f5;">
+          <th style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"التاريخ":"DATE"}</th>
+          <th style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"الساعة":"H"}</th>
+          <th style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"العميل":"CLIENT"}</th>
+          <th style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${t.currency}</th>
+          <th style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"الحالة":lang==="fr"?"STATUT":"STATUS"}</th>
+        </tr></thead>
+        <tbody>
+          ${allBookingRows.slice(0,50).map((r,i)=>{
+            const isP=r.status==="played";const isSub=!!r.subId;
+            return `<tr style="border-bottom:1px solid #f0f0f0;background:${i%2===0?"#fff":"#fafafa"};">
+              <td style="padding:5px 8px;text-align:${isRTL?"right":"left"};color:#888;">${r_fmtShort(r.dk,lang)}</td>
+              <td style="padding:5px 8px;text-align:${isRTL?"right":"left"};color:#4a90d9;font-weight:700;">${r_fmt24(r.hour)}</td>
+              <td style="padding:5px 8px;text-align:${isRTL?"right":"left"};font-weight:700;">${r.name||"—"}</td>
+              <td style="padding:5px 8px;text-align:${isRTL?"right":"left"};color:#00a86b;font-weight:700;">${isSub?"—":`${r.price||0}`}</td>
+              <td style="padding:5px 8px;"><span style="background:${isP?"#e6f9f2":isSub?"#fff8e0":"#fff0f0"};color:${isP?"#00a86b":isSub?"#d4a017":"#e05555"};border-radius:4px;padding:1px 5px;font-size:8px;font-weight:700;">${isSub?t.subLabel:isP?t.played:t.reserved}</span></td>
+            </tr>`;
+          }).join("")}
+          ${allBookingRows.length>50?`<tr><td colspan="5" style="padding:8px;text-align:center;color:#bbb;font-size:9px;">... ${allBookingRows.length-50} ${t.more}</td></tr>`:""}
+        </tbody>
+      </table>
+      <div style="font-size:10px;font-weight:800;color:#333;letter-spacing:0.5px;margin-bottom:6px;">${t.allSubs.toUpperCase()} (${filteredSubs.length})</div>
+      <table style="width:100%;border-collapse:collapse;font-size:10px;">
+        <thead><tr style="background:#f5f5f5;">
+          <th style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"العميل":"CLIENT"}</th>
+          <th style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"الساعة":"H"}</th>
+          <th style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"الشهر":lang==="fr"?"MOIS":"MONTH"}</th>
+          <th style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"الإجمالي":"TOTAL"}</th>
+          <th style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${t.paid.toUpperCase()}</th>
+          <th style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"الحالة":lang==="fr"?"STATUT":"STATUS"}</th>
+        </tr></thead>
+        <tbody>
+          ${filteredSubs.map((s,i)=>{
+            const paid=s.payments.reduce((a,p)=>a+(p.amount||0),0);
+            const rem=Math.max(0,(s.totalPrice||0)-paid);
+            return `<tr style="border-bottom:1px solid #f0f0f0;background:${i%2===0?"#fff":"#fafafa"};">
+              <td style="padding:5px 8px;text-align:${isRTL?"right":"left"};font-weight:700;">${s.name||"—"}</td>
+              <td style="padding:5px 8px;text-align:${isRTL?"right":"left"};color:#4a90d9;font-weight:700;">${r_fmt24(s.hour)}</td>
+              <td style="padding:5px 8px;text-align:${isRTL?"right":"left"};color:#888;">${(R_MONTHS[lang]?.[s.month]||"")+" "+s.year}</td>
+              <td style="padding:5px 8px;text-align:${isRTL?"right":"left"};font-weight:800;">${(s.totalPrice||0).toLocaleString()}</td>
+              <td style="padding:5px 8px;text-align:${isRTL?"right":"left"};color:#00a86b;font-weight:800;">${paid.toLocaleString()}</td>
+              <td style="padding:5px 8px;"><span style="background:${rem===0?"#e6f9f2":"#fff0f0"};color:${rem===0?"#00a86b":"#e05555"};border-radius:4px;padding:1px 5px;font-size:8px;font-weight:700;">${rem===0?t.settled:`${rem.toLocaleString()} ${t.remaining}`}</span></td>
+            </tr>
+            <tr><td colspan="6" style="padding:4px 8px 8px;background:#f9fbff;border-bottom:1px solid #f0f0f0;"><div style="font-size:8px;color:#888;font-weight:700;margin-bottom:4px;">${lang==="ar"?"الأيام":lang==="fr"?"JOURS":"DAYS"} (${s.days?.length||0})</div><div style="display:flex;flex-wrap:wrap;gap:3px;">${(s.days||[]).map(d=>`<span style="background:#e6f0ff;color:#4a90d9;border-radius:4px;padding:2px 5px;font-size:9px;font-weight:700;">${d} ${R_MONTHS[lang]?.[s.month]||""}</span>`).join("")}</div></td></tr>`;
+          }).join("")}
+        </tbody>
+      </table>
+      ${mode==="bymonth"&&filteredSubs.length>0?`
+      <div style="font-size:10px;font-weight:800;color:#333;letter-spacing:0.5px;margin-top:16px;margin-bottom:8px;">${lang==="ar"?"اشتراكات الشهر":lang==="fr"?"ABONNEMENTS DU MOIS":"MONTH SUBSCRIPTIONS"} (${filteredSubs.length})</div>
+      ${filteredSubs.map(s=>{
+        const spaid=s.payments.reduce((a,p)=>a+(p.amount||0),0);
+        const srem=Math.max(0,(s.totalPrice||0)-spaid);
+        const monthPays=s.payments.filter(p=>{if(!p.date)return false;const d=new Date(p.date+"T12:00:00");return d.getFullYear()===year&&d.getMonth()===month;});
+        return `<div style="margin-bottom:10px;border:1px solid #f0f0f0;border-radius:8px;overflow:hidden;">
+          <div style="background:#f8f8f8;padding:7px 10px;font-size:10px;font-weight:800;border-bottom:1px solid #eee;display:flex;justify-content:space-between;"><span>${s.name}</span><span style="color:#888;font-size:9px;">${r_fmt24(s.hour)} · ${(R_MONTHS[lang]?.[s.month]||"")+" "+s.year}</span></div>
+          <div style="padding:6px 10px;border-bottom:1px solid #f0f0f0;"><div style="font-size:8px;color:#888;font-weight:700;margin-bottom:4px;">${lang==="ar"?"الأيام":lang==="fr"?"JOURS":"DAYS"} (${s.days?.length||0})</div><div style="display:flex;flex-wrap:wrap;gap:3px;">${(s.days||[]).map(d=>`<span style="background:#e6f0ff;color:#4a90d9;border-radius:4px;padding:2px 5px;font-size:9px;font-weight:700;">${d} ${R_MONTHS[lang]?.[s.month]||""}</span>`).join("")}</div></div>
+          <div style="padding:5px 10px;display:flex;gap:14px;border-bottom:${monthPays.length>0?"1px solid #f0f0f0":"none"};">
+            <span style="font-size:9px;color:#333;">${lang==="ar"?"الإجمالي":lang==="fr"?"Total":"Total"}: <b>${(s.totalPrice||0).toLocaleString()} ${t.currency}</b></span>
+            <span style="font-size:9px;color:#00a86b;">${lang==="ar"?"مدفوع":lang==="fr"?"Payé":"Paid"}: <b>${spaid.toLocaleString()} ${t.currency}</b></span>
+            <span style="font-size:9px;color:${srem>0?"#e05555":"#00a86b"};">${lang==="ar"?"متبقي":lang==="fr"?"Restant":"Remaining"}: <b>${srem.toLocaleString()} ${t.currency}</b></span>
+          </div>
+          ${monthPays.length>0?`<div style="padding:5px 10px;">${monthPays.map(p=>`<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #f5f5f5;"><span style="font-size:9px;color:#555;">${p.date}</span><span style="font-size:10px;font-weight:800;color:#00a86b;">+${(p.amount||0).toLocaleString()} ${t.currency}</span></div>`).join("")}</div>`:""}
+        </div>`;
+      }).join("")}
+      `:""}
+      ${mode==="bymonth"&&paymentsInMonth.filter(p=>!filteredSubs.find(s=>s.id===p.sub.id)).length>0?`
+      <div style="font-size:10px;font-weight:800;color:#333;letter-spacing:0.5px;margin-top:8px;margin-bottom:8px;">${lang==="ar"?"مدفوعات أخرى مستلمة هذا الشهر":lang==="fr"?"AUTRES PAIEMENTS REÇUS CE MOIS":"OTHER PAYMENTS THIS MONTH"}</div>
+      ${paymentsInMonth.filter(p=>!filteredSubs.find(s=>s.id===p.sub.id)).map(p=>`
+        <div style="margin-bottom:6px;border:1px solid #f0f0f0;border-radius:8px;overflow:hidden;">
+          <div style="background:#f8f8f8;padding:6px 10px;font-size:10px;font-weight:800;border-bottom:1px solid #eee;display:flex;justify-content:space-between;"><span>${p.sub.name}</span><span style="color:#d4a017;font-size:9px;">${r_fmt24(p.sub.hour)} · ${(R_MONTHS[lang]?.[p.sub.month]||"")+" "+p.sub.year}</span></div>
+          <div style="padding:5px 10px;display:flex;justify-content:space-between;"><span style="font-size:9px;color:#555;">${p.date}</span><span style="font-size:10px;font-weight:800;color:#00a86b;">+${(p.amount||0).toLocaleString()} ${t.currency}</span></div>
+        </div>`).join("")}
+      `:""}
+      <div style="border-top:1px solid #eee;margin-top:14px;padding-top:10px;display:flex;justify-content:space-between;font-size:8px;color:#ccc;">
+        <span>StadBook · ${t.reportAll}</span><span>${stadiumName}</span>
+      </div>
+    </div>`;
+  };
+
+  return(
+    <div style={{padding:"14px 12px",display:"flex",flexDirection:"column",gap:10}}>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
+        <button onClick={()=>setMode("alltime")} style={{padding:"11px",borderRadius:12,border:"none",fontWeight:800,fontSize:12,background:mode==="alltime"?G:CARD,color:mode==="alltime"?"#001a0e":"#555"}}>🕐 {t.allTime}</button>
+        <button onClick={()=>setMode("bymonth")} style={{padding:"11px",borderRadius:12,border:`1px solid ${BORDER}`,fontWeight:800,fontSize:12,background:mode==="bymonth"?G:CARD,color:mode==="bymonth"?"#001a0e":"#555"}}>📅 {t.byMonth}</button>
+      </div>
+      {mode==="bymonth"&&(
+        <div style={{background:CARD,borderRadius:14,padding:"12px 14px",border:`1px solid ${BORDER}`}}>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+            <button onClick={prevM} style={{background:"#1c2030",border:"none",borderRadius:8,padding:"7px 14px",color:"#888",fontWeight:900,fontSize:18}}>‹</button>
+            <div style={{fontWeight:900,fontSize:16,color:"#fff"}}>{mLabel}</div>
+            <button onClick={nextM} style={{background:"#1c2030",border:"none",borderRadius:8,padding:"7px 14px",color:"#888",fontWeight:900,fontSize:18}}>›</button>
+          </div>
+        </div>
+      )}
+      <div style={{background:"linear-gradient(135deg,#071510,#0e2a1e)",borderRadius:16,padding:"16px",border:`1px solid ${G}44`}}>
+        <div style={{fontSize:9,color:`${G}88`,fontWeight:700,letterSpacing:0.8,marginBottom:8}}>{mode==="alltime"?t.since.toUpperCase():mLabel.toUpperCase()}</div>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div>
+            <div style={{fontSize:36,fontWeight:900,color:G,lineHeight:1}}>{total.toLocaleString()}</div>
+            <div style={{fontSize:12,color:`${G}66`,marginTop:2}}>{t.currency}</div>
+          </div>
+          <div style={{display:"flex",flexDirection:"column",gap:6}}>
+            <div style={{background:"#0D0F18",borderRadius:8,padding:"6px 10px",border:`1px solid ${G}33`}}>
+              <div style={{fontSize:7,color:"#444",fontWeight:700}}>MATCHES</div>
+              <div style={{fontSize:13,fontWeight:900,color:G}}>{totalMatchE.toLocaleString()} {t.currency}</div>
+            </div>
+            <div style={{background:"#0D0F18",borderRadius:8,padding:"6px 10px",border:"1px solid #00b8ff33"}}>
+              <div style={{fontSize:7,color:"#444",fontWeight:700}}>ABONNEMENTS</div>
+              <div style={{fontSize:13,fontWeight:900,color:"#00b8ff"}}>{totalSubE.toLocaleString()} {t.currency}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6}}>
+        <R_StatCard label={t.totalMatches} val={played} unit="" color="#7eb8ff" bg="#0a0e1f"/>
+        <R_StatCard label={t.totalSubsCount} val={filteredSubs.length} unit="" color={G} bg="#071510"/>
+        <R_StatCard label={t.unpaid} val={totalUnpaid.toLocaleString()} unit={t.currency} color="#ff5555" bg="#1f0e0e"/>
+      </div>
+      <div style={{background:CARD,borderRadius:14,border:`1px solid ${BORDER}`,overflow:"hidden"}}>
+        <div style={{padding:"10px 14px",borderBottom:`1px solid ${BORDER}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div style={{fontSize:9,color:"#555",fontWeight:700,letterSpacing:0.5}}>{lang==="ar"?"المباريات":lang==="fr"?"MATCHS":"MATCHES"}</div>
+          <div style={{fontSize:9,color:G,fontWeight:700}}>{allBookingRows.length} total</div>
+        </div>
+        {allBookingRows.slice(0,8).map((r,i)=>{
+          const isPlayed=r.status==="played";const isSub=!!r.subId;
+          return(
+            <div key={i} style={{padding:"9px 14px",borderBottom:i<Math.min(8,allBookingRows.length)-1?`1px solid ${BORDER}22`:"none",display:"flex",alignItems:"center",gap:8}}>
+              <div style={{minWidth:36,height:36,borderRadius:8,background:isPlayed?isSub?"#d4a01722":`${G}22`:"#1c2030",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                <span style={{fontSize:11,fontWeight:900,color:isPlayed?isSub?"#d4a017":G:"#555"}}>{r_fmt24(r.hour).slice(0,2)}</span>
+              </div>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontWeight:800,fontSize:12,color:isPlayed?"#888":"#fff",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.name||"—"}</div>
+                <div style={{fontSize:9,color:"#444"}}>{r_fmtShort(r.dk,lang)} · {isSub?t.subLabel:isPlayed?t.played:t.reserved}{!isSub?` · ${r.price||0} ${t.currency}`:""}</div>
+              </div>
+              {isPlayed&&<span style={{fontSize:10,color:G,flexShrink:0}}>✓</span>}
+            </div>
+          );
+        })}
+        {allBookingRows.length>8&&(
+          <div style={{padding:"8px 14px",background:"#071510",borderTop:`1px solid ${G}22`,textAlign:"center",fontSize:9,color:`${G}66`,fontWeight:700}}>+ {allBookingRows.length-8} {t.more}</div>
+        )}
+      </div>
+      <div style={{background:CARD,borderRadius:14,border:`1px solid ${BORDER}`,overflow:"hidden"}}>
+        <div style={{padding:"10px 14px",borderBottom:`1px solid ${BORDER}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div style={{fontSize:9,color:"#555",fontWeight:700,letterSpacing:0.5}}>{t.allSubs.toUpperCase()}</div>
+          <div style={{fontSize:9,color:"#00b8ff",fontWeight:700}}>{filteredSubs.length} total</div>
+        </div>
+        {filteredSubs.slice(0,6).map((s,i)=>{
+          const paid=s.payments.reduce((a,p)=>a+(p.amount||0),0);
+          const rem=Math.max(0,(s.totalPrice||0)-paid);
+          return(
+            <div key={s.id||i} style={{padding:"9px 14px",borderBottom:i<Math.min(6,filteredSubs.length)-1?`1px solid ${BORDER}22`:"none",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <div>
+                <div style={{fontWeight:800,fontSize:12,color:"#fff"}}>{s.name}</div>
+                <div style={{fontSize:9,color:"#555",marginTop:1}}>{r_fmt24(s.hour)} · {R_MONTHS[lang][s.month]} {s.year}</div>
+                <div style={{fontSize:9,color:"#444"}}>{paid.toLocaleString()} / {(s.totalPrice||0).toLocaleString()} {t.currency}</div>
+              </div>
+              <R_Tag color={rem===0?G:"#ff5555"}>{rem===0?t.settled:`${rem.toLocaleString()} ${t.remaining}`}</R_Tag>
+            </div>
+          );
+        })}
+        {filteredSubs.length>6&&(
+          <div style={{padding:"8px 14px",background:"#071510",borderTop:`1px solid ${G}22`,textAlign:"center",fontSize:9,color:`${G}66`,fontWeight:700}}>+ {filteredSubs.length-6} {t.more}</div>
+        )}
+      </div>
+      <R_PdfBtn label={t.dlPdf} gen={false} onClick={()=>r_openPrint(pdfContent(),"StadBook_Complet")}/>
+    </div>
+  );
+}
+
+// ── REPORTS: Main container ───────────────────────────────────────
+function ReportsTab({lang,user,uid}){
+  const t=R_T[lang]||R_T.fr;
+  const [subTab,setSubTab]=useState("planning");
+  const [bookings,setBookings]=useState({});
+  const [subsData,setSubsData]=useState([]);
+  const [userData,setUserData]=useState(null);
+  const [loading,setLoading]=useState(true);
+
+  useEffect(()=>{
+    let b=false,s=false,u=false;
+    const done=()=>{if(b&&s&&u)setLoading(false);};
+    const u1=db.collection("bookings").doc(uid).onSnapshot(snap=>{setBookings(snap.exists?snap.data().data||{}:{});b=true;done();});
+    const u2=db.collection("subs").doc(uid).onSnapshot(snap=>{setSubsData(snap.exists?snap.data().list||[]:[]);s=true;done();});
+    const u3=db.collection("users").doc(uid).onSnapshot(snap=>{setUserData(snap.exists?snap.data():null);u=true;done();});
+    return()=>{u1();u2();u3();};
+  },[uid]);
+
+  const stadiumName=userData?.stadiumName||"";
+  const SUBTABS=[
+    {id:"planning",label:t.tabPlanning},
+    {id:"subs",label:t.tabSubs},
+    {id:"earnings",label:t.tabEarnings},
+    {id:"all",label:t.tabAll},
+  ];
+
+  const isRTL=lang==="ar";
+  return(
+    <div style={{display:"flex",flexDirection:"column",fontFamily:isRTL?"'Cairo',sans-serif":"'Nunito',sans-serif",direction:isRTL?"rtl":"ltr",background:BG}}>
+      {/* Sub-tab bar */}
+      <div style={{background:CARD,padding:"6px 10px",borderBottom:`1px solid ${BORDER}`,display:"flex",gap:4,position:"sticky",top:0,zIndex:19}}>
+        {SUBTABS.map(tb=>{
+          const active=subTab===tb.id;
+          return(
+            <button key={tb.id} onClick={()=>setSubTab(tb.id)}
+              style={{flex:1,background:active?G:"#0D0F18",borderRadius:10,padding:"9px 2px",border:active?"none":`1px solid ${BORDER}`,fontWeight:900,fontSize:9,color:active?"#001a0e":"#444",letterSpacing:0.2,transition:"background 0.15s",fontFamily:"inherit"}}>
+              {tb.label.toUpperCase()}
+            </button>
+          );
+        })}
+      </div>
+      {/* Content */}
+      <div>
+        {loading?(
+          <div style={{display:"flex",alignItems:"center",justifyContent:"center",padding:"80px 0"}}>
+            <div style={{width:32,height:32,border:`3px solid #00D48A`,borderTopColor:"transparent",borderRadius:"50%",animation:"spin 0.8s linear infinite"}}/>
+          </div>
+        ):(
+          <div style={{animation:"fadeIn 0.25s ease forwards"}}>
+            {subTab==="planning"&&<R_PlanningTab bookings={bookings} lang={lang} t={t} stadiumName={stadiumName}/>}
+            {subTab==="subs"&&<R_SubsTab subs={subsData} lang={lang} t={t} stadiumName={stadiumName}/>}
+            {subTab==="earnings"&&<R_EarningsTab bookings={bookings} subs={subsData} lang={lang} t={t} stadiumName={stadiumName}/>}
+            {subTab==="all"&&<R_AllTab bookings={bookings} subs={subsData} lang={lang} t={t} stadiumName={stadiumName}/>}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
