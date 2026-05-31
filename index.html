@@ -1876,7 +1876,7 @@ db.collection("bookings").doc(uid).update({
           <div style={{fontSize:18,fontWeight:900,color:G}}>⚽ {t.appName} <span style={{fontSize:12,color:"#444",fontWeight:600}}>· {stadiumName}</span></div>
         </div>
         <div style={{flex:1,overflowY:"auto",paddingBottom:90}}>
-          {tab==="home"&&<HomeTab/>}{tab==="schedule"&&<ScheduleTab/>}{tab==="earnings"&&<EarningsTab/>}{tab==="subs"&&<SubsTab/>}{tab==="settings"&&<SettingsTab/>}{tab==="reports"&&<ReportsTab lang={lang} user={user} uid={uid}/>}
+          {tab==="home"&&<HomeTab/>}{tab==="schedule"&&<ScheduleTab/>}{tab==="earnings"&&<EarningsTab/>}{tab==="subs"&&<SubsTab/>}{tab==="settings"&&<SettingsTab/>}{tab==="reports"&&<ReportsTab lang={lang} uid={uid} bookings={bookings} subs={subsData} stadiumName={stadiumName}/>}
         </div>
         {/* Bottom nav */}
         <div style={{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:430,zIndex:30}}>
@@ -2078,8 +2078,10 @@ function r_openPrint(htmlContent,filename){
   const url=URL.createObjectURL(blob);
   const a=document.createElement("a");
   a.href=url;a.download=filename+".html";
-  document.body.appendChild(a);a.click();
-  document.body.removeChild(a);URL.revokeObjectURL(url);
+  a.style.display="none";
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},1000);
 }
 
 function R_StatCard({label,val,unit,color,bg}){
@@ -2817,24 +2819,10 @@ function R_AllTab({bookings,subs,lang,t,stadiumName}){
 }
 
 // ── REPORTS: Main container ───────────────────────────────────────
-function ReportsTab({lang,user,uid}){
+function ReportsTab({lang,uid,bookings,subs,stadiumName}){
   const t=R_T[lang]||R_T.fr;
   const [subTab,setSubTab]=useState("planning");
-  const [bookings,setBookings]=useState({});
-  const [subsData,setSubsData]=useState([]);
-  const [userData,setUserData]=useState(null);
-  const [loading,setLoading]=useState(true);
-
-  useEffect(()=>{
-    let b=false,s=false,u=false;
-    const done=()=>{if(b&&s&&u)setLoading(false);};
-    const u1=db.collection("bookings").doc(uid).onSnapshot(snap=>{setBookings(snap.exists?snap.data().data||{}:{});b=true;done();});
-    const u2=db.collection("subs").doc(uid).onSnapshot(snap=>{setSubsData(snap.exists?snap.data().list||[]:[]);s=true;done();});
-    const u3=db.collection("users").doc(uid).onSnapshot(snap=>{setUserData(snap.exists?snap.data():null);u=true;done();});
-    return()=>{u1();u2();u3();};
-  },[uid]);
-
-  const stadiumName=userData?.stadiumName||"";
+  const subsData=subs||[];
   const SUBTABS=[
     {id:"planning",label:t.tabPlanning},
     {id:"subs",label:t.tabSubs},
@@ -2858,19 +2846,11 @@ function ReportsTab({lang,user,uid}){
         })}
       </div>
       {/* Content */}
-      <div>
-        {loading?(
-          <div style={{display:"flex",alignItems:"center",justifyContent:"center",padding:"80px 0"}}>
-            <div style={{width:32,height:32,border:`3px solid #00D48A`,borderTopColor:"transparent",borderRadius:"50%",animation:"spin 0.8s linear infinite"}}/>
-          </div>
-        ):(
-          <div style={{animation:"fadeIn 0.25s ease forwards"}}>
-            {subTab==="planning"&&<R_PlanningTab bookings={bookings} lang={lang} t={t} stadiumName={stadiumName}/>}
-            {subTab==="subs"&&<R_SubsTab subs={subsData} lang={lang} t={t} stadiumName={stadiumName}/>}
-            {subTab==="earnings"&&<R_EarningsTab bookings={bookings} subs={subsData} lang={lang} t={t} stadiumName={stadiumName}/>}
-            {subTab==="all"&&<R_AllTab bookings={bookings} subs={subsData} lang={lang} t={t} stadiumName={stadiumName}/>}
-          </div>
-        )}
+      <div style={{animation:"fadeIn 0.25s ease forwards"}}>
+        {subTab==="planning"&&<R_PlanningTab bookings={bookings} lang={lang} t={t} stadiumName={stadiumName}/>}
+        {subTab==="subs"&&<R_SubsTab subs={subsData} lang={lang} t={t} stadiumName={stadiumName}/>}
+        {subTab==="earnings"&&<R_EarningsTab bookings={bookings} subs={subsData} lang={lang} t={t} stadiumName={stadiumName}/>}
+        {subTab==="all"&&<R_AllTab bookings={bookings} subs={subsData} lang={lang} t={t} stadiumName={stadiumName}/>}
       </div>
     </div>
   );
