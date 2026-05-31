@@ -2071,26 +2071,52 @@ function r_fmtShort(dk,lang){const d=new Date(dk+"T12:00:00");const locale=lang=
 function r_fmtMonthYear(y,m,lang){return new Date(y,m,1).toLocaleDateString(lang==="ar"?"ar-MA":lang==="fr"?"fr-FR":"en-GB",{month:"long",year:"numeric"});}
 
 function r_openPrint(htmlContent,filename){
-  const full='<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>'+filename+'</title>'+
-    '<style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:Arial,sans-serif;background:#fff;color:#111;padding:20px;}table{width:100%;border-collapse:collapse;font-size:11px;}th{padding:7px 8px;font-size:8px;font-weight:800;color:#888;background:#f5f5f5;}td{padding:6px 8px;border-bottom:1px solid #f0f0f0;}tr:nth-child(even) td{background:#fafafa;}@media print{@page{margin:10mm;}body{print-color-adjust:exact;-webkit-print-color-adjust:exact;}}</style>'+
-    '</head><body>'+htmlContent+'</body></html>';
-  const blob=new Blob([full],{type:"text/html"});
-  const url=URL.createObjectURL(blob);
-  // PWA standalone mode: blob anchor clicks navigate away and break the app.
-  // Open in Safari browser instead so the PWA stays alive.
-  const isPWA=window.navigator.standalone===true;
-  if(isPWA){
-    window.open(url,"_blank");
-    setTimeout(()=>URL.revokeObjectURL(url),3000);
-    return;
-  }
-  // Normal Safari/browser: original behavior — shows download prompt, stays in app
-  const a=document.createElement("a");
-  a.href=url;a.download=filename+".html";
-  a.style.display="none";
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},1000);
+  // Remove any existing overlay
+  const existing=document.getElementById("r_print_overlay");
+  if(existing)existing.remove();
+
+  const printStyles='*{box-sizing:border-box;margin:0;padding:0;}body{font-family:Arial,sans-serif;background:#fff;color:#111;padding:20px;}table{width:100%;border-collapse:collapse;font-size:11px;}th{padding:7px 8px;font-size:8px;font-weight:800;color:#888;background:#f5f5f5;}td{padding:6px 8px;border-bottom:1px solid #f0f0f0;}tr:nth-child(even) td{background:#fafafa;}@media print{@page{margin:10mm;}.no-print{display:none!important;}body{print-color-adjust:exact;-webkit-print-color-adjust:exact;}}';
+
+  // Build full-screen overlay
+  const overlay=document.createElement("div");
+  overlay.id="r_print_overlay";
+  overlay.style.cssText="position:fixed;inset:0;z-index:99999;background:#fff;display:flex;flex-direction:column;";
+
+  // Top bar
+  const bar=document.createElement("div");
+  bar.className="no-print";
+  bar.style.cssText="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#111;border-bottom:2px solid #00D48A;flex-shrink:0;";
+
+  const title=document.createElement("span");
+  title.style.cssText="color:#00D48A;font-weight:900;font-size:14px;font-family:Arial,sans-serif;";
+  title.textContent="⚽ "+filename;
+
+  const btnRow=document.createElement("div");
+  btnRow.style.cssText="display:flex;gap:8px;";
+
+  const printBtn=document.createElement("button");
+  printBtn.style.cssText="background:#00D48A;color:#001a0e;border:none;border-radius:10px;padding:9px 16px;font-weight:900;font-size:13px;cursor:pointer;font-family:Arial,sans-serif;";
+  printBtn.textContent="🖨 Print / PDF";
+  printBtn.onclick=()=>window.print();
+
+  const closeBtn=document.createElement("button");
+  closeBtn.style.cssText="background:#1c2030;color:#fff;border:none;border-radius:10px;padding:9px 14px;font-weight:900;font-size:16px;cursor:pointer;";
+  closeBtn.textContent="✕";
+  closeBtn.onclick=()=>overlay.remove();
+
+  btnRow.appendChild(printBtn);
+  btnRow.appendChild(closeBtn);
+  bar.appendChild(title);
+  bar.appendChild(btnRow);
+
+  // Iframe to show the report
+  const iframe=document.createElement("iframe");
+  iframe.style.cssText="flex:1;border:none;background:#fff;";
+  iframe.srcdoc='<!DOCTYPE html><html><head><meta charset="UTF-8"/><style>'+printStyles+'</style></head><body>'+htmlContent+'</body></html>';
+
+  overlay.appendChild(bar);
+  overlay.appendChild(iframe);
+  document.body.appendChild(overlay);
 }
 
 function R_StatCard({label,val,unit,color,bg}){
