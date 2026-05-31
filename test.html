@@ -2288,6 +2288,7 @@ function R_SubsTab({subs,lang,t,stadiumName}){
         <thead><tr style="background:#f5f5f5;">
           <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"العميل":"CLIENT"}</th>
           <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${t.hours.toUpperCase()}</th>
+          <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"الشهر":lang==="fr"?"MOIS":"MONTH"}</th>
           <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${t.days.toUpperCase()}</th>
           <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"الإجمالي":"TOTAL"}</th>
           <th style="padding:7px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${t.paid.toUpperCase()}</th>
@@ -2300,6 +2301,7 @@ function R_SubsTab({subs,lang,t,stadiumName}){
             return `<tr style="border-bottom:1px solid #f0f0f0;background:${i%2===0?"#fff":"#fafafa"};">
               <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-weight:700;">${s.name||"—"}</td>
               <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};color:#4a90d9;font-weight:700;">${r_fmt24(s.hour)}</td>
+              <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};color:#888;">${(R_MONTHS[lang]?.[s.month]||"")+" "+s.year}</td>
               <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};">${s.days?.length||0}</td>
               <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-weight:800;">${(s.totalPrice||0).toLocaleString()} ${t.currency}</td>
               <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};color:#00a86b;font-weight:800;">${paid.toLocaleString()} ${t.currency}</td>
@@ -2312,7 +2314,8 @@ function R_SubsTab({subs,lang,t,stadiumName}){
       ${shown.map(s=>{
         if(!s.payments.length)return "";
         return `<div style="margin-bottom:10px;border:1px solid #f0f0f0;border-radius:8px;overflow:hidden;">
-          <div style="background:#f8f8f8;padding:7px 10px;font-size:10px;font-weight:800;border-bottom:1px solid #eee;">${s.name}</div>
+          <div style="background:#f8f8f8;padding:7px 10px;font-size:10px;font-weight:800;border-bottom:1px solid #eee;display:flex;justify-content:space-between;"><span>${s.name}</span><span style="color:#888;font-size:9px;">${r_fmt24(s.hour)} · ${(R_MONTHS[lang]?.[s.month]||"")+" "+s.year}</span></div>
+          <div style="padding:6px 10px;border-bottom:1px solid #f0f0f0;"><div style="font-size:8px;color:#888;font-weight:700;margin-bottom:4px;">${lang==="ar"?"الأيام":lang==="fr"?"JOURS":"DAYS"} (${s.days?.length||0})</div><div style="display:flex;flex-wrap:wrap;gap:3px;">${(s.days||[]).map(d=>`<span style="background:#e6f0ff;color:#4a90d9;border-radius:4px;padding:2px 5px;font-size:9px;font-weight:700;">${d} ${R_MONTHS[lang]?.[s.month]||""}</span>`).join("")}</div></div>
           ${s.payments.map((p,i,arr)=>{
             const d=new Date((p.date||"")+"T12:00:00");
             const mLabel=isNaN(d)?"":`${R_MONTHS[lang]?.[d.getMonth()]||""} ${d.getFullYear()}`;
@@ -2575,14 +2578,22 @@ function R_AllTab({bookings,subs,lang,t,stadiumName}){
 
   const filteredSubs=useMemo(()=>{
     if(mode==="alltime")return subs;
-    return subs.filter(s=>{
-      const created=(s.createdAt||"").substring(0,7);
-      return created===`${year}-${String(month+1).padStart(2,"0")}`;
-    });
+    return subs.filter(s=>s.month===month&&s.year===year);
+  },[subs,mode,year,month]);
+
+  const paymentsInMonth=useMemo(()=>{
+    if(mode==="alltime")return[];
+    return subs.flatMap(s=>s.payments.filter(p=>{
+      if(!p.date)return false;
+      const d=new Date(p.date+"T12:00:00");
+      return d.getFullYear()===year&&d.getMonth()===month;
+    }).map(p=>({...p,sub:s})));
   },[subs,mode,year,month]);
 
   const totalMatchE=allBookingRows.filter(r=>r.status==="played"&&!r.subId).reduce((a,r)=>a+(r.price||0),0);
-  const totalSubE=filteredSubs.reduce((a,s)=>a+s.payments.reduce((x,p)=>x+(p.amount||0),0),0);
+  const totalSubE=mode==="alltime"
+    ?subs.reduce((a,s)=>a+s.payments.reduce((x,p)=>x+(p.amount||0),0),0)
+    :subs.reduce((a,s)=>a+s.payments.filter(p=>{if(!p.date)return false;const d=new Date(p.date+"T12:00:00");return d.getFullYear()===year&&d.getMonth()===month;}).reduce((x,p)=>x+(p.amount||0),0),0);
   const totalUnpaid=filteredSubs.reduce((a,s)=>a+Math.max(0,(s.totalPrice||0)-s.payments.reduce((x,p)=>x+(p.amount||0),0)),0);
   const total=totalMatchE+totalSubE;
   const played=allBookingRows.filter(r=>r.status==="played").length;
@@ -2633,7 +2644,7 @@ function R_AllTab({bookings,subs,lang,t,stadiumName}){
           <div style="font-size:8px;color:#e05555aa;">${t.currency}</div>
         </div>
       </div>
-      <div style="font-size:10px;font-weight:800;color:#333;letter-spacing:0.5px;margin-bottom:6px;">${t.lastMatches.toUpperCase()} (${allBookingRows.length})</div>
+      <div style="font-size:10px;font-weight:800;color:#333;letter-spacing:0.5px;margin-bottom:6px;">${lang==="ar"?"المباريات":lang==="fr"?"MATCHS":"MATCHES"} (${allBookingRows.length})</div>
       <table style="width:100%;border-collapse:collapse;font-size:10px;margin-bottom:14px;">
         <thead><tr style="background:#f5f5f5;">
           <th style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"التاريخ":"DATE"}</th>
@@ -2661,6 +2672,7 @@ function R_AllTab({bookings,subs,lang,t,stadiumName}){
         <thead><tr style="background:#f5f5f5;">
           <th style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"العميل":"CLIENT"}</th>
           <th style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"الساعة":"H"}</th>
+          <th style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"الشهر":lang==="fr"?"MOIS":"MONTH"}</th>
           <th style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"الإجمالي":"TOTAL"}</th>
           <th style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${t.paid.toUpperCase()}</th>
           <th style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"الحالة":lang==="fr"?"STATUT":"STATUS"}</th>
@@ -2672,13 +2684,41 @@ function R_AllTab({bookings,subs,lang,t,stadiumName}){
             return `<tr style="border-bottom:1px solid #f0f0f0;background:${i%2===0?"#fff":"#fafafa"};">
               <td style="padding:5px 8px;text-align:${isRTL?"right":"left"};font-weight:700;">${s.name||"—"}</td>
               <td style="padding:5px 8px;text-align:${isRTL?"right":"left"};color:#4a90d9;font-weight:700;">${r_fmt24(s.hour)}</td>
+              <td style="padding:5px 8px;text-align:${isRTL?"right":"left"};color:#888;">${(R_MONTHS[lang]?.[s.month]||"")+" "+s.year}</td>
               <td style="padding:5px 8px;text-align:${isRTL?"right":"left"};font-weight:800;">${(s.totalPrice||0).toLocaleString()}</td>
               <td style="padding:5px 8px;text-align:${isRTL?"right":"left"};color:#00a86b;font-weight:800;">${paid.toLocaleString()}</td>
               <td style="padding:5px 8px;"><span style="background:${rem===0?"#e6f9f2":"#fff0f0"};color:${rem===0?"#00a86b":"#e05555"};border-radius:4px;padding:1px 5px;font-size:8px;font-weight:700;">${rem===0?t.settled:`${rem.toLocaleString()} ${t.remaining}`}</span></td>
-            </tr>`;
+            </tr>
+            <tr><td colspan="6" style="padding:4px 8px 8px;background:#f9fbff;border-bottom:1px solid #f0f0f0;"><div style="font-size:8px;color:#888;font-weight:700;margin-bottom:4px;">${lang==="ar"?"الأيام":lang==="fr"?"JOURS":"DAYS"} (${s.days?.length||0})</div><div style="display:flex;flex-wrap:wrap;gap:3px;">${(s.days||[]).map(d=>`<span style="background:#e6f0ff;color:#4a90d9;border-radius:4px;padding:2px 5px;font-size:9px;font-weight:700;">${d} ${R_MONTHS[lang]?.[s.month]||""}</span>`).join("")}</div></td></tr>`;
           }).join("")}
         </tbody>
       </table>
+      ${mode==="bymonth"&&filteredSubs.length>0?`
+      <div style="font-size:10px;font-weight:800;color:#333;letter-spacing:0.5px;margin-top:16px;margin-bottom:8px;">${lang==="ar"?"اشتراكات الشهر":lang==="fr"?"ABONNEMENTS DU MOIS":"MONTH SUBSCRIPTIONS"} (${filteredSubs.length})</div>
+      ${filteredSubs.map(s=>{
+        const spaid=s.payments.reduce((a,p)=>a+(p.amount||0),0);
+        const srem=Math.max(0,(s.totalPrice||0)-spaid);
+        const monthPays=s.payments.filter(p=>{if(!p.date)return false;const d=new Date(p.date+"T12:00:00");return d.getFullYear()===year&&d.getMonth()===month;});
+        return `<div style="margin-bottom:10px;border:1px solid #f0f0f0;border-radius:8px;overflow:hidden;">
+          <div style="background:#f8f8f8;padding:7px 10px;font-size:10px;font-weight:800;border-bottom:1px solid #eee;display:flex;justify-content:space-between;"><span>${s.name}</span><span style="color:#888;font-size:9px;">${r_fmt24(s.hour)} · ${(R_MONTHS[lang]?.[s.month]||"")+" "+s.year}</span></div>
+          <div style="padding:6px 10px;border-bottom:1px solid #f0f0f0;"><div style="font-size:8px;color:#888;font-weight:700;margin-bottom:4px;">${lang==="ar"?"الأيام":lang==="fr"?"JOURS":"DAYS"} (${s.days?.length||0})</div><div style="display:flex;flex-wrap:wrap;gap:3px;">${(s.days||[]).map(d=>`<span style="background:#e6f0ff;color:#4a90d9;border-radius:4px;padding:2px 5px;font-size:9px;font-weight:700;">${d} ${R_MONTHS[lang]?.[s.month]||""}</span>`).join("")}</div></div>
+          <div style="padding:5px 10px;display:flex;gap:14px;border-bottom:${monthPays.length>0?"1px solid #f0f0f0":"none"};">
+            <span style="font-size:9px;color:#333;">${lang==="ar"?"الإجمالي":lang==="fr"?"Total":"Total"}: <b>${(s.totalPrice||0).toLocaleString()} ${t.currency}</b></span>
+            <span style="font-size:9px;color:#00a86b;">${lang==="ar"?"مدفوع":lang==="fr"?"Payé":"Paid"}: <b>${spaid.toLocaleString()} ${t.currency}</b></span>
+            <span style="font-size:9px;color:${srem>0?"#e05555":"#00a86b"};">${lang==="ar"?"متبقي":lang==="fr"?"Restant":"Remaining"}: <b>${srem.toLocaleString()} ${t.currency}</b></span>
+          </div>
+          ${monthPays.length>0?`<div style="padding:5px 10px;">${monthPays.map(p=>`<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #f5f5f5;"><span style="font-size:9px;color:#555;">${p.date}</span><span style="font-size:10px;font-weight:800;color:#00a86b;">+${(p.amount||0).toLocaleString()} ${t.currency}</span></div>`).join("")}</div>`:""}
+        </div>`;
+      }).join("")}
+      `:""}
+      ${mode==="bymonth"&&paymentsInMonth.filter(p=>!filteredSubs.find(s=>s.id===p.sub.id)).length>0?`
+      <div style="font-size:10px;font-weight:800;color:#333;letter-spacing:0.5px;margin-top:8px;margin-bottom:8px;">${lang==="ar"?"مدفوعات أخرى مستلمة هذا الشهر":lang==="fr"?"AUTRES PAIEMENTS REÇUS CE MOIS":"OTHER PAYMENTS THIS MONTH"}</div>
+      ${paymentsInMonth.filter(p=>!filteredSubs.find(s=>s.id===p.sub.id)).map(p=>`
+        <div style="margin-bottom:6px;border:1px solid #f0f0f0;border-radius:8px;overflow:hidden;">
+          <div style="background:#f8f8f8;padding:6px 10px;font-size:10px;font-weight:800;border-bottom:1px solid #eee;display:flex;justify-content:space-between;"><span>${p.sub.name}</span><span style="color:#d4a017;font-size:9px;">${r_fmt24(p.sub.hour)} · ${(R_MONTHS[lang]?.[p.sub.month]||"")+" "+p.sub.year}</span></div>
+          <div style="padding:5px 10px;display:flex;justify-content:space-between;"><span style="font-size:9px;color:#555;">${p.date}</span><span style="font-size:10px;font-weight:800;color:#00a86b;">+${(p.amount||0).toLocaleString()} ${t.currency}</span></div>
+        </div>`).join("")}
+      `:""}
       <div style="border-top:1px solid #eee;margin-top:14px;padding-top:10px;display:flex;justify-content:space-between;font-size:8px;color:#ccc;">
         <span>StadBook · ${t.reportAll}</span><span>${stadiumName}</span>
       </div>
@@ -2726,7 +2766,7 @@ function R_AllTab({bookings,subs,lang,t,stadiumName}){
       </div>
       <div style={{background:CARD,borderRadius:14,border:`1px solid ${BORDER}`,overflow:"hidden"}}>
         <div style={{padding:"10px 14px",borderBottom:`1px solid ${BORDER}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-          <div style={{fontSize:9,color:"#555",fontWeight:700,letterSpacing:0.5}}>{t.lastMatches.toUpperCase()}</div>
+          <div style={{fontSize:9,color:"#555",fontWeight:700,letterSpacing:0.5}}>{lang==="ar"?"المباريات":lang==="fr"?"MATCHS":"MATCHES"}</div>
           <div style={{fontSize:9,color:G,fontWeight:700}}>{allBookingRows.length} total</div>
         </div>
         {allBookingRows.slice(0,8).map((r,i)=>{
@@ -2760,7 +2800,8 @@ function R_AllTab({bookings,subs,lang,t,stadiumName}){
             <div key={s.id||i} style={{padding:"9px 14px",borderBottom:i<Math.min(6,filteredSubs.length)-1?`1px solid ${BORDER}22`:"none",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
               <div>
                 <div style={{fontWeight:800,fontSize:12,color:"#fff"}}>{s.name}</div>
-                <div style={{fontSize:9,color:"#444",marginTop:1}}>{paid.toLocaleString()} / {(s.totalPrice||0).toLocaleString()} {t.currency}</div>
+                <div style={{fontSize:9,color:"#555",marginTop:1}}>{r_fmt24(s.hour)} · {R_MONTHS[lang][s.month]} {s.year}</div>
+                <div style={{fontSize:9,color:"#444"}}>{paid.toLocaleString()} / {(s.totalPrice||0).toLocaleString()} {t.currency}</div>
               </div>
               <R_Tag color={rem===0?G:"#ff5555"}>{rem===0?t.settled:`${rem.toLocaleString()} ${t.remaining}`}</R_Tag>
             </div>
