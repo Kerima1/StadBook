@@ -2071,21 +2071,16 @@ function r_fmtShort(dk,lang){const d=new Date(dk+"T12:00:00");const locale=lang=
 function r_fmtMonthYear(y,m,lang){return new Date(y,m,1).toLocaleDateString(lang==="ar"?"ar-MA":lang==="fr"?"fr-FR":"en-GB",{month:"long",year:"numeric"});}
 
 function r_openPrint(htmlContent,filename){
-  const styles='*{box-sizing:border-box;margin:0;padding:0;}body{font-family:Arial,sans-serif;background:#fff;color:#111;padding:20px;}table{width:100%;border-collapse:collapse;font-size:11px;}th{padding:7px 8px;font-size:8px;font-weight:800;color:#888;background:#f5f5f5;}td{padding:6px 8px;border-bottom:1px solid #f0f0f0;}tr:nth-child(even) td{background:#fafafa;}@media print{@page{margin:10mm;}body{print-color-adjust:exact;-webkit-print-color-adjust:exact;}}';
-  const full='<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>'+filename+'</title><style>'+styles+'</style></head><body>'+htmlContent+'</body></html>';
+  const styles='*{box-sizing:border-box;margin:0;padding:0;}body{font-family:Arial,sans-serif;background:#fff;color:#111;padding:72px 20px 20px;}table{width:100%;border-collapse:collapse;font-size:11px;}th{padding:7px 8px;font-size:8px;font-weight:800;color:#888;background:#f5f5f5;}td{padding:6px 8px;border-bottom:1px solid #f0f0f0;}tr:nth-child(even) td{background:#fafafa;}.top-bar{position:fixed;top:0;left:0;right:0;z-index:999;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#111;border-bottom:2px solid #00D48A;}.top-bar .app-title{color:#00D48A;font-weight:900;font-size:15px;}.top-bar .btn-print{background:#00D48A;color:#001a0e;border:none;border-radius:10px;padding:9px 16px;font-weight:900;font-size:13px;cursor:pointer;margin-right:8px;}.top-bar .btn-close{background:#333;color:#fff;border:none;border-radius:10px;padding:9px 14px;font-weight:900;font-size:16px;cursor:pointer;}@media print{.top-bar{display:none!important;}body{padding:20px!important;}@page{margin:10mm;}body{print-color-adjust:exact;-webkit-print-color-adjust:exact;}}';
+  const bar='<div class="top-bar"><span class="app-title">⚽ StadBook</span><div><button class="btn-print" onclick="window.print()">🖨 Print / PDF</button><button class="btn-close" onclick="window.close()">✕ Close</button></div></div>';
+  const full='<!DOCTYPE html><html><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>'+filename+'</title><style>'+styles+'</style></head><body>'+bar+htmlContent+'</body></html>';
   const isIOS=/iP(hone|ad|od)/.test(navigator.userAgent)||(/Macintosh/.test(navigator.userAgent)&&navigator.maxTouchPoints>1);
   if(isIOS){
-    // iOS: open new window, write content, trigger print — works in both Safari and PWA
     const w=window.open("","_blank","");
-    if(w){
-      w.document.write(full);
-      w.document.close();
-      w.focus();
-      setTimeout(()=>w.print(),400);
-    }
+    if(w){w.document.write(full);w.document.close();w.focus();}
     return;
   }
-  // Android / PC / Desktop: original one-click blob download
+  // Android / PC: one-click blob download as before
   const blob=new Blob([full],{type:"text/html"});
   const url=URL.createObjectURL(blob);
   const a=document.createElement("a");
