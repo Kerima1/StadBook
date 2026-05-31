@@ -2074,15 +2074,23 @@ function r_openPrint(htmlContent,filename){
   const full='<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>'+filename+'</title>'+
     '<style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:Arial,sans-serif;background:#fff;color:#111;padding:20px;}table{width:100%;border-collapse:collapse;font-size:11px;}th{padding:7px 8px;font-size:8px;font-weight:800;color:#888;background:#f5f5f5;}td{padding:6px 8px;border-bottom:1px solid #f0f0f0;}tr:nth-child(even) td{background:#fafafa;}@media print{@page{margin:10mm;}body{print-color-adjust:exact;-webkit-print-color-adjust:exact;}}</style>'+
     '</head><body>'+htmlContent+'</body></html>';
-  // Use base64 data URI — works in Safari, PWA standalone, and all browsers without opening a new tab or navigating away
-  const b64=btoa(unescape(encodeURIComponent(full)));
+  const blob=new Blob([full],{type:"text/html"});
+  const url=URL.createObjectURL(blob);
+  // PWA standalone mode: blob anchor clicks navigate away and break the app.
+  // Open in Safari browser instead so the PWA stays alive.
+  const isPWA=window.navigator.standalone===true;
+  if(isPWA){
+    window.open(url,"_blank");
+    setTimeout(()=>URL.revokeObjectURL(url),3000);
+    return;
+  }
+  // Normal Safari/browser: original behavior — shows download prompt, stays in app
   const a=document.createElement("a");
-  a.href="data:text/html;base64,"+b64;
-  a.download=filename+".html";
+  a.href=url;a.download=filename+".html";
   a.style.display="none";
   document.body.appendChild(a);
   a.click();
-  setTimeout(()=>document.body.removeChild(a),500);
+  setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},1000);
 }
 
 function R_StatCard({label,val,unit,color,bg}){
