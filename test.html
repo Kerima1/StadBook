@@ -100,7 +100,7 @@ function getMonthGrid(y,m){const f=new Date(y,m,1),c=[];for(let i=0;i<f.getDay()
 // ── TRANSLATIONS ─────────────────────────────────────────────────────────────
 const T={
   en:{
-    appName:"StadBook",home:"Home",schedule:"Schedule",earnings:"Earnings",settings:"Settings",reports:"Reports",tabPlanning:"Planning",tabSubs:"Subscriptions",tabEarnings:"Earnings",tabAll:"All",from:"From",to:"To",pickRange:"Period",subLabel:"Subscription",matches:"matches",noMatches:"No matches for this period.",totalSubs:"Total",remaining:"Remaining",filterAll:"All",filterActive:"Active",filterArchived:"Archived",hours:"Hour",days:"matches",settled:"✓ Settled",pickMonth:"Month",totalMonth:"Month total",matchEarn:"Matches",subEarn:"Subscriptions",perDay:"Per day",noEarnings:"No earnings this month.",allTime:"All time",byMonth:"By month",totalGeneral:"Grand Total",totalMatches:"Matches played",totalSubsCount:"Subscriptions",unpaid:"Unpaid",lastMatches:"Recent matches",allSubs:"Subscriptions",more:"more",dlPdf:"Download PDF",reportPlanning:"Planning Report",reportSubs:"Subscriptions Report",reportEarnings:"Earnings Report",reportAll:"Full Report",generatedOn:"Generated on",since:"Since the beginning",paymentDetail:"Payment details",noData:"No data.",
+    appName:"StadBook",home:"Home",schedule:"Schedule",earnings:"Earnings",settings:"Settings",reports:"Reports",
     price:"Price / hr",currency:"MRU",book:"Book",cancel:"Cancel",play:"Played",confirm:"Confirm",
     playerName:"Player / Team",phone:"Phone number",todayEarnings:"Today's Earnings",
     booked:"Reserved",played:"Played",day:"Day",week:"Week",month:"Month",save:"Save",edit:"Edit",
@@ -135,7 +135,7 @@ const T={
     subDelConfirm:"Delete this subscription?",maxAmount:"Maximum",
   },
   fr:{
-    appName:"StadBook",home:"Accueil",schedule:"Planning",earnings:"Recettes",settings:"Paramètres",reports:"Rapports",tabPlanning:"Planning",tabSubs:"Abonnements",tabEarnings:"Recettes",tabAll:"Tout",from:"Du",to:"Au",pickRange:"Période",subLabel:"Abonnement",matches:"matchs",noMatches:"Aucun match sur cette période.",totalSubs:"Total",remaining:"Restant",filterAll:"Tous",filterActive:"Actifs",filterArchived:"Archivés",hours:"Heure",days:"matchs",settled:"✓ Soldé",pickMonth:"Mois",totalMonth:"Total du mois",matchEarn:"Matches",subEarn:"Abonnements",perDay:"Par jour",noEarnings:"Aucune recette ce mois.",allTime:"Tout le temps",byMonth:"Par mois",totalGeneral:"Total Général",totalMatches:"Matchs joués",totalSubsCount:"Abonnements",unpaid:"Non payé",lastMatches:"Derniers matchs",allSubs:"Abonnements",more:"autres",dlPdf:"Télécharger PDF",reportPlanning:"Rapport Planning",reportSubs:"Rapport Abonnements",reportEarnings:"Rapport Recettes",reportAll:"Rapport Complet",generatedOn:"Généré le",since:"Depuis le début",paymentDetail:"Détail des paiements",noData:"Aucune donnée.",
+    appName:"StadBook",home:"Accueil",schedule:"Planning",earnings:"Recettes",settings:"Paramètres",reports:"Rapports",
     price:"Prix / h",currency:"MRU",book:"Réserver",cancel:"Annuler",play:"Joué",confirm:"Confirmer",
     playerName:"Joueur / Équipe",phone:"Numéro de téléphone",todayEarnings:"Recettes du Jour",
     booked:"Réservé",played:"Joué",day:"Jour",week:"Semaine",month:"Mois",save:"Enregistrer",edit:"Modifier",
@@ -170,7 +170,7 @@ const T={
     subDelConfirm:"Supprimer cet abonnement ?",maxAmount:"Maximum",
   },
   ar:{
-    appName:"ستاد بوك",home:"الرئيسية",schedule:"الجدول",earnings:"الأرباح",settings:"الإعدادات",reports:"التقارير",tabPlanning:"الجدول",tabSubs:"الاشتراكات",tabEarnings:"الأرباح",tabAll:"الكل",from:"من",to:"إلى",pickRange:"الفترة",subLabel:"اشتراك",matches:"مباريات",noMatches:"لا توجد مباريات في هذه الفترة.",totalSubs:"الإجمالي",remaining:"متبقي",filterAll:"الكل",filterActive:"نشط",filterArchived:"مؤرشف",hours:"الساعة",days:"مباريات",settled:"✓ مسدد",pickMonth:"الشهر",totalMonth:"مجموع الشهر",matchEarn:"المباريات",subEarn:"الاشتراكات",perDay:"يومياً",noEarnings:"لا أرباح هذا الشهر.",allTime:"كل الوقت",byMonth:"حسب الشهر",totalGeneral:"الإجمالي العام",totalMatches:"مباريات ملعوبة",totalSubsCount:"اشتراكات",unpaid:"غير مدفوع",lastMatches:"آخر المباريات",allSubs:"الاشتراكات",more:"أخرى",dlPdf:"تحميل PDF",reportPlanning:"تقرير الجدول",reportSubs:"تقرير الاشتراكات",reportEarnings:"تقرير الأرباح",reportAll:"التقرير الكامل",generatedOn:"تم الإنشاء في",since:"منذ البداية",paymentDetail:"تفاصيل المدفوعات",noData:"لا توجد بيانات.",
+    appName:"ستاد بوك",home:"الرئيسية",schedule:"الجدول",earnings:"الأرباح",settings:"الإعدادات",reports:"التقارير",
     price:"السعر / س",currency:"أوقية",book:"احجز",cancel:"إلغاء",play:"تم اللعب",confirm:"تأكيد",
     playerName:"اللاعب / الفريق",phone:"رقم الهاتف",todayEarnings:"أرباح اليوم",
     booked:"محجوز",played:"تم اللعب",day:"يوم",week:"أسبوع",month:"شهر",save:"حفظ",edit:"تعديل",
@@ -217,7 +217,6 @@ const EarnIcon=()=><svg width="22" height="22" viewBox="0 0 24 24" fill="none" s
 const SettIcon=()=><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>;
 const Check=({size=22,color=G})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none"><polyline points="4,13 9,18 20,6" stroke={color} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/></svg>;
 const ReportIcon=()=><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="12" width="4" height="9"/><rect x="10" y="7" width="4" height="14"/><rect x="17" y="3" width="4" height="18"/><line x1="1" y1="22" x2="23" y2="22"/></svg>;
-const GridIcon=()=><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>;
 const SubIcon=()=><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>;
 const PenIcon=()=><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>;
 const BinIcon=()=><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>;
@@ -1025,7 +1024,7 @@ function StadBookApp({lang,setLang,user,uid}){
   const playSlot=async(dk,h)=>await saveBookings({...bookings,[dk]:{...(bookings[dk]||{}),[h]:{...bookings[dk][h],status:"played"}}});
   const goToDay=d=>{setSelectedDate(new Date(d));setCalView("day");setTab("schedule");};
 
-  const NAV=[{id:"home",icon:<HomeIcon/>,label:t.home},{id:"schedule",icon:<CalIcon/>,label:t.schedule},{id:"earnings",icon:<EarnIcon/>,label:t.earnings},{id:"subs",icon:<SubIcon/>,label:t.subs},{id:"settings",icon:<SettIcon/>,label:t.settings},{id:"reports",icon:<ReportIcon/>,label:t.reports}];
+  const NAV=[{id:"home",icon:<HomeIcon/>,label:t.home},{id:"schedule",icon:<CalIcon/>,label:t.schedule},{id:"earnings",icon:<EarnIcon/>,label:t.earnings},{id:"subs",icon:<SubIcon/>,label:t.subs},{id:"reports",icon:<ReportIcon/>,label:t.reports},{id:"settings",icon:<SettIcon/>,label:t.settings}];
 
   const SlotCard=({h,dk})=>{
     const slot=getSlot(dk,h),isPlayed=slot?.status==="played",isReserved=slot?.status==="reserved";
@@ -1877,7 +1876,7 @@ db.collection("bookings").doc(uid).update({
           <div style={{fontSize:18,fontWeight:900,color:G}}>⚽ {t.appName} <span style={{fontSize:12,color:"#444",fontWeight:600}}>· {stadiumName}</span></div>
         </div>
         <div style={{flex:1,overflowY:"auto",paddingBottom:90}}>
-          {tab==="home"&&<HomeTab/>}{tab==="schedule"&&<ScheduleTab/>}{tab==="earnings"&&<EarningsTab/>}{tab==="subs"&&<SubsTab/>}{tab==="settings"&&<SettingsTab/>}{tab==="reports"&&<ReportsTab bookings={bookings} subs={subsData} lang={lang} t={t} stadiumName={userData?.stadiumName||""}/>}{tab==="reports"&&<ReportsTab bookings={bookings} subs={subsData} lang={lang} t={t} stadiumName={userData?.stadiumName||""}/>}
+          {tab==="home"&&<HomeTab/>}{tab==="schedule"&&<ScheduleTab/>}{tab==="earnings"&&<EarningsTab/>}{tab==="subs"&&<SubsTab/>}{tab==="settings"&&<SettingsTab/>}{tab==="reports"&&<ReportsTab lang={lang} user={user} uid={uid}/>}
         </div>
         {/* Bottom nav */}
         <div style={{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:430,zIndex:30}}>
@@ -1984,36 +1983,136 @@ db.collection("bookings").doc(uid).update({
     </>
   );
 }
-const DlIcon=()=><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>;
-const MONTHS_RPT={
+
+// ══════════════════════════════════════════════════════════════════
+// REPORTS TAB — merged from reports.html (all components renamed
+// with R_ prefix to avoid conflicts with index.html components)
+// ══════════════════════════════════════════════════════════════════
+
+const R_MONTHS={
   fr:["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"],
   en:["January","February","March","April","May","June","July","August","September","October","November","December"],
   ar:["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"],
 };
 
-function rptToKey(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;}
-function fmtRptDate(dk,lang){
-  const d=new Date(dk+"T12:00:00");
-  const locale=lang==="ar"?"ar-MA":lang==="fr"?"fr-FR":"en-GB";
-  return d.toLocaleDateString(locale,{weekday:"long",day:"numeric",month:"long",year:"numeric"});
-}
-function fmtRptShort(dk,lang){
-  const d=new Date(dk+"T12:00:00");
-  const locale=lang==="ar"?"ar-MA":lang==="fr"?"fr-FR":"en-GB";
-  return d.toLocaleDateString(locale,{weekday:"short",day:"numeric",month:"short"});
-}
-function fmtMonthYear(y,m,lang){
-  return new Date(y,m,1).toLocaleDateString(lang==="ar"?"ar-MA":lang==="fr"?"fr-FR":"en-GB",{month:"long",year:"numeric"});
+const R_T={
+  fr:{
+    appName:"Rapports",currency:"MRU",noData:"Aucune donnée.",
+    tabPlanning:"Planning",tabSubs:"Abonnements",tabEarnings:"Recettes",tabAll:"Tout",
+    from:"Du",to:"Au",pickRange:"Période",
+    played:"Joué ✓",reserved:"Réservé",subLabel:"Abonnement",
+    totalEarnings:"Recettes",totalPlayed:"Joués",totalReserved:"Réservés",
+    matches:"matchs",noMatches:"Aucun match sur cette période.",
+    totalSubs:"Total",paid:"Payé",remaining:"Restant",
+    filterAll:"Tous",filterActive:"Actifs",filterArchived:"Archivés",
+    payments:"Paiements",hours:"Heure",days:"matchs",
+    active:"Actif",archived:"Archivé",settled:"✓ Soldé",noSubs:"Aucun abonnement.",
+    pickMonth:"Mois",totalMonth:"Total du mois",matchEarn:"Matches",subEarn:"Abonnements",
+    perDay:"Par jour",noEarnings:"Aucune recette ce mois.",
+    allTime:"Tout le temps",byMonth:"Par mois",
+    totalGeneral:"Total Général",totalMatches:"Matchs joués",totalSubsCount:"Abonnements",
+    unpaid:"Non payé",lastMatches:"Derniers matchs",allSubs:"Abonnements",more:"autres",
+    dlPdf:"Télécharger PDF",generating:"Génération...",
+    reportPlanning:"Rapport Planning",reportSubs:"Rapport Abonnements",
+    reportEarnings:"Rapport Recettes",reportAll:"Rapport Complet",
+    generatedOn:"Généré le",since:"Depuis le début",monthlyReport:"Rapport mensuel",
+    paymentDetail:"Détail des paiements",
+  },
+  en:{
+    appName:"Reports",currency:"MRU",noData:"No data.",
+    tabPlanning:"Planning",tabSubs:"Subscriptions",tabEarnings:"Earnings",tabAll:"All",
+    from:"From",to:"To",pickRange:"Period",
+    played:"Played ✓",reserved:"Reserved",subLabel:"Subscription",
+    totalEarnings:"Earnings",totalPlayed:"Played",totalReserved:"Reserved",
+    matches:"matches",noMatches:"No matches for this period.",
+    totalSubs:"Total",paid:"Paid",remaining:"Remaining",
+    filterAll:"All",filterActive:"Active",filterArchived:"Archived",
+    payments:"Payments",hours:"Hour",days:"matches",
+    active:"Active",archived:"Archived",settled:"✓ Settled",noSubs:"No subscriptions.",
+    pickMonth:"Month",totalMonth:"Month total",matchEarn:"Matches",subEarn:"Subscriptions",
+    perDay:"Per day",noEarnings:"No earnings this month.",
+    allTime:"All time",byMonth:"By month",
+    totalGeneral:"Grand Total",totalMatches:"Matches played",totalSubsCount:"Subscriptions",
+    unpaid:"Unpaid",lastMatches:"Recent matches",allSubs:"Subscriptions",more:"more",
+    dlPdf:"Download PDF",generating:"Generating...",
+    reportPlanning:"Planning Report",reportSubs:"Subscriptions Report",
+    reportEarnings:"Earnings Report",reportAll:"Full Report",
+    generatedOn:"Generated on",since:"Since the beginning",monthlyReport:"Monthly Report",
+    paymentDetail:"Payment details",
+  },
+  ar:{
+    appName:"التقارير",currency:"أوقية",noData:"لا توجد بيانات.",
+    tabPlanning:"الجدول",tabSubs:"الاشتراكات",tabEarnings:"الأرباح",tabAll:"الكل",
+    from:"من",to:"إلى",pickRange:"الفترة",
+    played:"تم اللعب ✓",reserved:"محجوز",subLabel:"اشتراك",
+    totalEarnings:"الأرباح",totalPlayed:"ملعوب",totalReserved:"محجوز",
+    matches:"مباريات",noMatches:"لا توجد مباريات في هذه الفترة.",
+    totalSubs:"الإجمالي",paid:"مدفوع",remaining:"متبقي",
+    filterAll:"الكل",filterActive:"نشط",filterArchived:"مؤرشف",
+    payments:"المدفوعات",hours:"الساعة",days:"مباريات",
+    active:"نشط",archived:"مؤرشف",settled:"✓ مسدد",noSubs:"لا توجد اشتراكات.",
+    pickMonth:"الشهر",totalMonth:"مجموع الشهر",matchEarn:"المباريات",subEarn:"الاشتراكات",
+    perDay:"يومياً",noEarnings:"لا أرباح هذا الشهر.",
+    allTime:"كل الوقت",byMonth:"حسب الشهر",
+    totalGeneral:"الإجمالي العام",totalMatches:"مباريات ملعوبة",totalSubsCount:"اشتراكات",
+    unpaid:"غير مدفوع",lastMatches:"آخر المباريات",allSubs:"الاشتراكات",more:"أخرى",
+    dlPdf:"تحميل PDF",generating:"جارٍ الإنشاء...",
+    reportPlanning:"تقرير الجدول",reportSubs:"تقرير الاشتراكات",
+    reportEarnings:"تقرير الأرباح",reportAll:"التقرير الكامل",
+    generatedOn:"تم الإنشاء في",since:"منذ البداية",monthlyReport:"التقرير الشهري",
+    paymentDetail:"تفاصيل المدفوعات",
+  },
+};
+
+function r_toKey(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;}
+function r_fmt24(h){return `${String(h).padStart(2,"0")}:00`;}
+function r_fmtDate(dk,lang){const d=new Date(dk+"T12:00:00");const locale=lang==="ar"?"ar-MA":lang==="fr"?"fr-FR":"en-GB";return d.toLocaleDateString(locale,{weekday:"long",day:"numeric",month:"long",year:"numeric"});}
+function r_fmtShort(dk,lang){const d=new Date(dk+"T12:00:00");const locale=lang==="ar"?"ar-MA":lang==="fr"?"fr-FR":"en-GB";return d.toLocaleDateString(locale,{weekday:"short",day:"numeric",month:"short"});}
+function r_fmtMonthYear(y,m,lang){return new Date(y,m,1).toLocaleDateString(lang==="ar"?"ar-MA":lang==="fr"?"fr-FR":"en-GB",{month:"long",year:"numeric"});}
+
+function r_openPrint(htmlContent,filename){
+  const full='<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>'+filename+'</title>'+
+    '<style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:Arial,sans-serif;background:#fff;color:#111;padding:20px;}table{width:100%;border-collapse:collapse;font-size:11px;}th{padding:7px 8px;font-size:8px;font-weight:800;color:#888;background:#f5f5f5;}td{padding:6px 8px;border-bottom:1px solid #f0f0f0;}tr:nth-child(even) td{background:#fafafa;}@media print{@page{margin:10mm;}body{print-color-adjust:exact;-webkit-print-color-adjust:exact;}}</style>'+
+    '</head><body>'+htmlContent+'</body></html>';
+  const blob=new Blob([full],{type:"text/html"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;a.download=filename+".html";
+  document.body.appendChild(a);a.click();
+  document.body.removeChild(a);URL.revokeObjectURL(url);
 }
 
+function R_StatCard({label,val,unit,color,bg}){
+  return(
+    <div style={{background:bg,borderRadius:12,padding:"11px 8px",border:`1px solid ${BORDER}`,textAlign:"center"}}>
+      <div style={{fontSize:7,color:"#555",fontWeight:700,letterSpacing:0.3,marginBottom:4}}>{label.toUpperCase()}</div>
+      <div style={{fontSize:18,fontWeight:900,color}}>{val}</div>
+      {unit&&<div style={{fontSize:8,color:"#444",marginTop:2}}>{unit}</div>}
+    </div>
+  );
+}
+function R_Tag({color,children}){
+  return <span style={{background:`${color}18`,border:`1px solid ${color}33`,borderRadius:5,padding:"2px 7px",fontSize:9,fontWeight:700,color,whiteSpace:"nowrap"}}>{children}</span>;
+}
+function R_Empty({text}){
+  return <div style={{background:CARD,borderRadius:14,padding:"30px 20px",border:`1px solid ${BORDER}`,textAlign:"center",color:"#333",fontSize:13,fontWeight:700}}>{text}</div>;
+}
+function R_PdfBtn({label,gen,onClick}){
+  return(
+    <button onClick={onClick} disabled={gen}
+      style={{width:"100%",background:gen?"#0b2018":G,color:gen?G:"#001a0e",border:gen?`1px solid ${G}44`:"none",borderRadius:14,padding:"14px",fontWeight:900,fontSize:14,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
+      {gen?"...":label}
+    </button>
+  );
+}
 
-function RPTPlanningTab({bookings,lang,t,stadiumName}){
-  const today=rptToKey(new Date());
-  const [from,setFrom]=React.useState(today);
-  const [to,setTo]=React.useState(today);
-  const [gen,setGen]=React.useState(false);
+// ── REPORTS: Planning Tab ─────────────────────────────────────────
+function R_PlanningTab({bookings,lang,t,stadiumName}){
+  const today=r_toKey(new Date());
+  const [from,setFrom]=useState(today);
+  const [to,setTo]=useState(today);
 
-  const rows=React.React.React.useMemo(()=>{
+  const rows=useMemo(()=>{
     const arr=[];
     Object.entries(bookings).forEach(([dk,slots])=>{
       if(dk<from||dk>to)return;
@@ -2032,7 +2131,7 @@ function RPTPlanningTab({bookings,lang,t,stadiumName}){
   const pdfContent=()=>{
     const isRTL=lang==="ar";
     const locale=lang==="ar"?"ar-MA":lang==="fr"?"fr-FR":"en-GB";
-    const period=from===to?fmtRptDate(from,lang):`${fmtRptDate(from,lang)} → ${fmtRptDate(to,lang)}`;
+    const period=from===to?r_fmtDate(from,lang):`${r_fmtDate(from,lang)} → ${r_fmtDate(to,lang)}`;
     return `<div style="font-family:${isRTL?"Cairo":"Nunito"},sans-serif;direction:${isRTL?"rtl":"ltr"};padding:20px;background:#fff;color:#111;">
       <div style="border-bottom:3px solid #00D48A;padding-bottom:14px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:flex-end;">
         <div><div style="font-size:22px;font-weight:900;color:#00D48A;">⚽ StadBook</div>
@@ -2069,14 +2168,14 @@ function RPTPlanningTab({bookings,lang,t,stadiumName}){
         </tr></thead>
         <tbody>
           ${rows.map((r,i)=>{
-            const played=r.status==="played";const isSub=!!r.subId;
+            const isP=r.status==="played";const isSub=!!r.subId;
             return `<tr style="border-bottom:1px solid #f0f0f0;background:${i%2===0?"#fff":"#fafafa"};">
-              <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};color:#888;">${fmtRptShort(r.dk,lang)}</td>
-              <td style="padding:6px 8px;color:#4a90d9;font-weight:700;">${fmt24(r.hour)}</td>
+              <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};color:#888;">${r_fmtShort(r.dk,lang)}</td>
+              <td style="padding:6px 8px;color:#4a90d9;font-weight:700;">${r_fmt24(r.hour)}</td>
               <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-weight:700;">${r.name||"—"}</td>
               <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};color:#aaa;">${r.phone||"—"}</td>
               <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-weight:800;color:#00D48A;">${isSub?"—":`${r.price||0} ${t.currency}`}</td>
-              <td style="padding:6px 8px;"><span style="background:${played?"#e6f9f2":isSub?"#fff8e0":"#fff0f0"};color:${played?"#00a86b":isSub?"#d4a017":"#e05555"};border-radius:4px;padding:2px 6px;font-size:9px;font-weight:700;">${isSub?t.subLabel:played?t.played:t.reserved}</span></td>
+              <td style="padding:6px 8px;"><span style="background:${isP?"#e6f9f2":isSub?"#fff8e0":"#fff0f0"};color:${isP?"#00a86b":isSub?"#d4a017":"#e05555"};border-radius:4px;padding:2px 6px;font-size:9px;font-weight:700;">${isSub?t.subLabel:isP?t.played:t.reserved}</span></td>
             </tr>`;
           }).join("")}
         </tbody>
@@ -2087,14 +2186,8 @@ function RPTPlanningTab({bookings,lang,t,stadiumName}){
     </div>`;
   };
 
-  const generate=()=>{
-    if(!rows.length)return;
-    openPrint(pdfContent(),`StadBook_Planning_${from}_${to}`);
-  };
-
   return(
     <div style={{padding:"14px 12px",display:"flex",flexDirection:"column",gap:10}}>
-      {/* Date range */}
       <div style={{background:CARD,borderRadius:14,padding:"12px 14px",border:`1px solid ${BORDER}`}}>
         <div style={{fontSize:9,color:"#555",fontWeight:700,letterSpacing:0.5,marginBottom:8}}>{t.pickRange.toUpperCase()}</div>
         <div style={{display:"flex",gap:8,alignItems:"center"}}>
@@ -2112,22 +2205,16 @@ function RPTPlanningTab({bookings,lang,t,stadiumName}){
               onFocus={e=>e.target.style.borderColor=G} onBlur={e=>e.target.style.borderColor=BORDER}/>
           </div>
         </div>
-        {from&&<div style={{fontSize:10,color:"#444",marginTop:6,fontWeight:600}}>{from===to?fmtRptDate(from,lang):`${fmtRptShort(from,lang)} → ${fmtRptShort(to,lang)}`}</div>}
+        {from&&<div style={{fontSize:10,color:"#444",marginTop:6,fontWeight:600}}>{from===to?r_fmtDate(from,lang):`${r_fmtShort(from,lang)} → ${r_fmtShort(to,lang)}`}</div>}
       </div>
-
-      {/* Summary */}
       {rows.length>0&&(
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6}}>
-          <RPTStatCard label={t.totalEarnings} val={earned.toLocaleString()} unit={t.currency} color={G} bg="#071510"/>
-          <RPTStatCard label={t.totalPlayed} val={played} unit={t.matches} color="#7eb8ff" bg="#0a0e1f"/>
-          <RPTStatCard label={t.totalReserved} val={reserved} unit={t.matches} color="#ffd700" bg="#1a1400"/>
+          <R_StatCard label={t.totalEarnings} val={earned.toLocaleString()} unit={t.currency} color={G} bg="#071510"/>
+          <R_StatCard label={t.totalPlayed} val={played} unit={t.matches} color="#7eb8ff" bg="#0a0e1f"/>
+          <R_StatCard label={t.totalReserved} val={reserved} unit={t.matches} color="#ffd700" bg="#1a1400"/>
         </div>
       )}
-
-      {/* Matches */}
-      {rows.length===0?(
-        <RPTEmpty text={t.noMatches}/>
-      ):(
+      {rows.length===0?(<R_Empty text={t.noMatches}/>):(
         <div style={{background:CARD,borderRadius:14,border:`1px solid ${BORDER}`,overflow:"hidden"}}>
           <div style={{padding:"10px 14px",borderBottom:`1px solid ${BORDER}`,fontSize:9,color:"#555",fontWeight:700,letterSpacing:0.5}}>
             {t.tabPlanning.toUpperCase()} · {rows.length} {t.matches.toUpperCase()}
@@ -2142,7 +2229,7 @@ function RPTPlanningTab({bookings,lang,t,stadiumName}){
                   <span style={{fontSize:7,fontWeight:700,color:isPlayed?isSub?"#d4a01766":`${G}66`:"#333"}}>{r.hour>=12?"PM":"AM"}</span>
                 </div>
                 <div style={{flex:1,minWidth:0}}>
-                  <div style={{fontSize:9,color:"#444",marginBottom:1}}>{fmtRptShort(r.dk,lang)}</div>
+                  <div style={{fontSize:9,color:"#444",marginBottom:1}}>{r_fmtShort(r.dk,lang)}</div>
                   <div style={{fontWeight:800,fontSize:13,color:isPlayed?"#777":"#fff",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.name||"—"}</div>
                   {r.phone&&<div style={{fontSize:10,color:"#444",marginTop:1}}>📞 {r.phone}</div>}
                   <div style={{fontSize:10,marginTop:1,fontWeight:700,color:isPlayed?isSub?"#d4a017":`${G}88`:"#7eb8ff"}}>
@@ -2157,17 +2244,14 @@ function RPTPlanningTab({bookings,lang,t,stadiumName}){
           })}
         </div>
       )}
-      {rows.length>0&&<RPTPdfBtn label={t.dlPdf} gen={false} onClick={generate}/>}
+      {rows.length>0&&<R_PdfBtn label={t.dlPdf} gen={false} onClick={()=>r_openPrint(pdfContent(),`StadBook_Planning_${from}_${to}`)}/>}
     </div>
   );
 }
 
-// ═══════════════════════════════════════════════
-// TAB 2 — SUBSCRIPTIONS
-// ═══════════════════════════════════════════════
-function RPTSubsTab({subs,lang,t,stadiumName}){
-  const [filter,setFilter]=React.useState("all");
-  const [gen,setGen]=React.useState(false);
+// ── REPORTS: Subscriptions Tab ────────────────────────────────────
+function R_SubsTab({subs,lang,t,stadiumName}){
+  const [filter,setFilter]=useState("all");
 
   const shown=filter==="active"?subs.filter(s=>!s.archived):filter==="archived"?subs.filter(s=>s.archived):subs;
   const totalPaid=subs.reduce((a,s)=>a+s.payments.reduce((x,p)=>x+(p.amount||0),0),0);
@@ -2215,7 +2299,7 @@ function RPTSubsTab({subs,lang,t,stadiumName}){
             const rem=Math.max(0,(s.totalPrice||0)-paid);
             return `<tr style="border-bottom:1px solid #f0f0f0;background:${i%2===0?"#fff":"#fafafa"};">
               <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-weight:700;">${s.name||"—"}</td>
-              <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};color:#4a90d9;font-weight:700;">${fmt24(s.hour)}</td>
+              <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};color:#4a90d9;font-weight:700;">${r_fmt24(s.hour)}</td>
               <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};">${s.days?.length||0}</td>
               <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-weight:800;">${(s.totalPrice||0).toLocaleString()} ${t.currency}</td>
               <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};color:#00a86b;font-weight:800;">${paid.toLocaleString()} ${t.currency}</td>
@@ -2231,7 +2315,7 @@ function RPTSubsTab({subs,lang,t,stadiumName}){
           <div style="background:#f8f8f8;padding:7px 10px;font-size:10px;font-weight:800;border-bottom:1px solid #eee;">${s.name}</div>
           ${s.payments.map((p,i,arr)=>{
             const d=new Date((p.date||"")+"T12:00:00");
-            const mLabel=isNaN(d)?"":`${MONTHS_RPT[lang]?.[d.getMonth()]||""} ${d.getFullYear()}`;
+            const mLabel=isNaN(d)?"":`${R_MONTHS[lang]?.[d.getMonth()]||""} ${d.getFullYear()}`;
             return `<div style="padding:5px 10px;display:flex;justify-content:space-between;border-bottom:${i<arr.length-1?"1px solid #f5f5f5":"none"};">
               <div style="display:flex;align-items:center;gap:6px;">
                 <div style="width:5px;height:5px;border-radius:50%;background:#00D48A;"></div>
@@ -2249,27 +2333,19 @@ function RPTSubsTab({subs,lang,t,stadiumName}){
     </div>`;
   };
 
-  const generate=()=>{
-    if(!shown.length)return;
-    openPrint(pdfContent(),"StadBook_Abonnements");
-  };
-
   return(
     <div style={{padding:"14px 12px",display:"flex",flexDirection:"column",gap:10}}>
-      {/* Summary */}
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6}}>
-        <RPTStatCard label={t.totalSubs} val={subs.length} unit="" color={G} bg="#071510"/>
-        <RPTStatCard label={t.paid} val={totalPaid.toLocaleString()} unit={t.currency} color="#00b8ff" bg="#0a1828"/>
-        <RPTStatCard label={t.remaining} val={totalRem.toLocaleString()} unit={t.currency} color="#ff9955" bg="#1f1208"/>
+        <R_StatCard label={t.totalSubs} val={subs.length} unit="" color={G} bg="#071510"/>
+        <R_StatCard label={t.paid} val={totalPaid.toLocaleString()} unit={t.currency} color="#00b8ff" bg="#0a1828"/>
+        <R_StatCard label={t.remaining} val={totalRem.toLocaleString()} unit={t.currency} color="#ff9955" bg="#1f1208"/>
       </div>
-      {/* Filter */}
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6}}>
         {[["all",`${t.filterAll} (${subs.length})`],["active",`${t.filterActive} (${subs.filter(s=>!s.archived).length})`],["archived",`${t.filterArchived} (${subs.filter(s=>s.archived).length})`]].map(([v,l])=>(
-          <button key={v} onClick={()=>setFilter(v)} style={{padding:"9px 4px",borderRadius:10,border:"none",fontWeight:800,fontSize:10,background:filter===v?G:CARD,color:filter===v?G_DARK:"#555"}}>{l}</button>
+          <button key={v} onClick={()=>setFilter(v)} style={{padding:"9px 4px",borderRadius:10,border:"none",fontWeight:800,fontSize:10,background:filter===v?G:CARD,color:filter===v?"#001a0e":"#555"}}>{l}</button>
         ))}
       </div>
-      {/* Cards */}
-      {shown.length===0?<RPTEmpty text={t.noSubs}/>:(
+      {shown.length===0?<R_Empty text={t.noSubs}/>:(
         <div style={{display:"flex",flexDirection:"column",gap:10}}>
           {shown.map(s=>{
             const paid=s.payments.reduce((a,p)=>a+(p.amount||0),0);
@@ -2290,20 +2366,19 @@ function RPTSubsTab({subs,lang,t,stadiumName}){
                   </div>
                 </div>
                 <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:8}}>
-                  <RPTTag color="#7eb8ff">{fmt24(s.hour)}</RPTTag>
-                  <RPTTag color="#aaa">{s.days?.length||0} {t.days}</RPTTag>
-                  <RPTTag color={full?G:"#ff9955"}>{full?t.settled:`${rem.toLocaleString()} ${t.currency} ${t.remaining}`}</RPTTag>
+                  <R_Tag color="#7eb8ff">{r_fmt24(s.hour)}</R_Tag>
+                  <R_Tag color="#aaa">{s.days?.length||0} {t.days}</R_Tag>
+                  <R_Tag color={full?G:"#ff9955"}>{full?t.settled:`${rem.toLocaleString()} ${t.currency} ${t.remaining}`}</R_Tag>
                 </div>
                 <div style={{background:"#1c2030",borderRadius:6,height:6,overflow:"hidden",marginBottom:6}}>
                   <div style={{background:`linear-gradient(90deg,${G},#00a86b)`,height:"100%",width:`${pct}%`,borderRadius:6}}/>
                 </div>
-                {/* Payments list */}
                 {s.payments.length>0&&(
                   <div style={{borderTop:`1px solid ${BORDER}88`,paddingTop:8,marginTop:4}}>
                     <div style={{fontSize:8,color:"#444",fontWeight:700,letterSpacing:0.3,marginBottom:5}}>{t.payments.toUpperCase()}</div>
                     {s.payments.map((p,i)=>{
                       const d=new Date((p.date||"")+"T12:00:00");
-                      const mLabel=isNaN(d)?"":`${MONTHS_RPT[lang]?.[d.getMonth()]||""} ${d.getFullYear()}`;
+                      const mLabel=isNaN(d)?"":`${R_MONTHS[lang]?.[d.getMonth()]||""} ${d.getFullYear()}`;
                       return(
                         <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"4px 0",borderBottom:i<s.payments.length-1?`1px solid ${BORDER}44`:"none"}}>
                           <div style={{display:"flex",alignItems:"center",gap:6}}>
@@ -2322,22 +2397,19 @@ function RPTSubsTab({subs,lang,t,stadiumName}){
           })}
         </div>
       )}
-      {shown.length>0&&<RPTPdfBtn label={t.dlPdf} gen={false} onClick={generate}/>}
+      {shown.length>0&&<R_PdfBtn label={t.dlPdf} gen={false} onClick={()=>r_openPrint(pdfContent(),"StadBook_Abonnements")}/>}
     </div>
   );
 }
 
-// ═══════════════════════════════════════════════
-// TAB 3 — EARNINGS
-// ═══════════════════════════════════════════════
-function RPTEarningsTab({bookings,subs,lang,t,stadiumName}){
+// ── REPORTS: Earnings Tab ─────────────────────────────────────────
+function R_EarningsTab({bookings,subs,lang,t,stadiumName}){
   const now=new Date();
-  const [year,setYear]=React.useState(now.getFullYear());
-  const [month,setMonth]=React.useState(now.getMonth());
-  const [gen,setGen]=React.useState(false);
+  const [year,setYear]=useState(now.getFullYear());
+  const [month,setMonth]=useState(now.getMonth());
   const locale=lang==="ar"?"ar-MA":lang==="fr"?"fr-FR":"en-GB";
 
-  const daysData=React.React.React.useMemo(()=>{
+  const daysData=useMemo(()=>{
     const map={};
     Object.entries(bookings).forEach(([dk,slots])=>{
       const d=new Date(dk+"T12:00:00");
@@ -2365,7 +2437,7 @@ function RPTEarningsTab({bookings,subs,lang,t,stadiumName}){
   const totalMatchE=daysData.reduce((a,[,d])=>a+d.matchE,0);
   const totalSubE=daysData.reduce((a,[,d])=>a+d.subE,0);
   const total=totalMatchE+totalSubE;
-  const mLabel=fmtMonthYear(year,month,lang);
+  const mLabel=r_fmtMonthYear(year,month,lang);
 
   const prevM=()=>{if(month===0){setMonth(11);setYear(y=>y-1);}else setMonth(m=>m-1);};
   const nextM=()=>{if(month===11){setMonth(0);setYear(y=>y+1);}else setMonth(m=>m+1);};
@@ -2405,7 +2477,7 @@ function RPTEarningsTab({bookings,subs,lang,t,stadiumName}){
         </tr></thead>
         <tbody>
           ${daysData.map(([dk,d],i)=>`<tr style="border-bottom:1px solid #f0f0f0;background:${i%2===0?"#fff":"#fafafa"};">
-            <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-weight:700;">${fmtRptShort(dk,lang)}</td>
+            <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-weight:700;">${r_fmtShort(dk,lang)}</td>
             <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};color:#00a86b;font-weight:700;">${d.matchE>0?d.matchE.toLocaleString()+" "+t.currency:"—"}</td>
             <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};color:#00b8ff;font-weight:700;">${d.subE>0?d.subE.toLocaleString()+" "+t.currency:"—"}</td>
             <td style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-weight:900;">${(d.matchE+d.subE).toLocaleString()} ${t.currency}</td>
@@ -2424,14 +2496,8 @@ function RPTEarningsTab({bookings,subs,lang,t,stadiumName}){
     </div>`;
   };
 
-  const generate=()=>{
-    if(!daysData.length)return;
-    openPrint(pdfContent(),`StadBook_${year}-${String(month+1).padStart(2,"0")}`);
-  };
-
   return(
     <div style={{padding:"14px 12px",display:"flex",flexDirection:"column",gap:10}}>
-      {/* Month picker */}
       <div style={{background:CARD,borderRadius:14,padding:"12px 14px",border:`1px solid ${BORDER}`}}>
         <div style={{fontSize:9,color:"#555",fontWeight:700,letterSpacing:0.5,marginBottom:8}}>{t.pickMonth.toUpperCase()}</div>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
@@ -2440,13 +2506,11 @@ function RPTEarningsTab({bookings,subs,lang,t,stadiumName}){
           <button onClick={nextM} style={{background:"#1c2030",border:"none",borderRadius:8,padding:"7px 14px",color:"#888",fontWeight:900,fontSize:18}}>›</button>
         </div>
       </div>
-      {/* Big total */}
       <div style={{background:"linear-gradient(135deg,#071510,#0e2a1e)",borderRadius:16,padding:"18px",border:`1px solid ${G}44`,textAlign:"center"}}>
         <div style={{fontSize:9,color:`${G}88`,fontWeight:700,letterSpacing:0.8,marginBottom:4}}>{t.totalMonth.toUpperCase()}</div>
         <div style={{fontSize:40,fontWeight:900,color:G,lineHeight:1}}>{total.toLocaleString()}</div>
         <div style={{fontSize:13,color:`${G}77`,marginTop:4}}>{t.currency}</div>
       </div>
-      {/* Split */}
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
         <div style={{background:"linear-gradient(135deg,#0a1220,#0e1a2e)",borderRadius:14,padding:"13px",border:"1px solid #00b8ff44",textAlign:"center"}}>
           <div style={{fontSize:8,color:"#00b8ff88",fontWeight:700,marginBottom:5}}>{t.subEarn.toUpperCase()}</div>
@@ -2459,22 +2523,21 @@ function RPTEarningsTab({bookings,subs,lang,t,stadiumName}){
           <div style={{fontSize:10,color:`${G}55`}}>{t.currency}</div>
         </div>
       </div>
-      {/* Day by day */}
-      {daysData.length===0?<RPTEmpty text={t.noEarnings}/>:(
+      {daysData.length===0?<R_Empty text={t.noEarnings}/>:(
         <div style={{background:CARD,borderRadius:14,border:`1px solid ${BORDER}`,overflow:"hidden"}}>
           <div style={{padding:"10px 14px",borderBottom:`1px solid ${BORDER}`,fontSize:9,color:"#555",fontWeight:700,letterSpacing:0.5}}>{t.perDay.toUpperCase()}</div>
           {daysData.map(([dk,d],i)=>(
             <div key={dk} style={{padding:"11px 14px",borderBottom:i<daysData.length-1?`1px solid ${BORDER}22`:"none"}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:d.subPays.length>0?5:0}}>
                 <div>
-                  <div style={{fontWeight:800,fontSize:13}}>{fmtRptShort(dk,lang)}</div>
+                  <div style={{fontWeight:800,fontSize:13}}>{r_fmtShort(dk,lang)}</div>
                   {d.matchCount>0&&<div style={{fontSize:10,color:"#444",marginTop:1}}>⚽ {d.matchCount} {t.matches}</div>}
                 </div>
                 <div style={{fontSize:16,fontWeight:900,color:"#fff"}}>{(d.matchE+d.subE).toLocaleString()} <span style={{fontSize:9,color:"#444"}}>{t.currency}</span></div>
               </div>
               <div style={{display:"flex",gap:5,flexWrap:"wrap",marginTop:4}}>
-                {d.matchE>0&&<RPTTag color={G}>⚽ {d.matchE.toLocaleString()} {t.currency}</RPTTag>}
-                {d.subPays.map((p,pi)=><RPTTag key={pi} color="#00b8ff">📋 {p.name}: {(p.amount||0).toLocaleString()} {t.currency}</RPTTag>)}
+                {d.matchE>0&&<R_Tag color={G}>⚽ {d.matchE.toLocaleString()} {t.currency}</R_Tag>}
+                {d.subPays.map((p,pi)=><R_Tag key={pi} color="#00b8ff">📋 {p.name}: {(p.amount||0).toLocaleString()} {t.currency}</R_Tag>)}
               </div>
             </div>
           ))}
@@ -2484,23 +2547,20 @@ function RPTEarningsTab({bookings,subs,lang,t,stadiumName}){
           </div>
         </div>
       )}
-      {daysData.length>0&&<RPTPdfBtn label={t.dlPdf} gen={false} onClick={generate}/>}
+      {daysData.length>0&&<R_PdfBtn label={t.dlPdf} gen={false} onClick={()=>r_openPrint(pdfContent(),`StadBook_${year}-${String(month+1).padStart(2,"0")}`)}/>}
     </div>
   );
 }
 
-// ═══════════════════════════════════════════════
-// TAB 4 — ALL
-// ═══════════════════════════════════════════════
-function RPTAllTab({bookings,subs,lang,t,stadiumName}){
+// ── REPORTS: All Tab ──────────────────────────────────────────────
+function R_AllTab({bookings,subs,lang,t,stadiumName}){
   const now=new Date();
-  const [mode,setMode]=React.useState("alltime"); // alltime | bymonth
-  const [year,setYear]=React.useState(now.getFullYear());
-  const [month,setMonth]=React.useState(now.getMonth());
-  const [gen,setGen]=React.useState(false);
+  const [mode,setMode]=useState("alltime");
+  const [year,setYear]=useState(now.getFullYear());
+  const [month,setMonth]=useState(now.getMonth());
   const locale=lang==="ar"?"ar-MA":lang==="fr"?"fr-FR":"en-GB";
 
-  const allBookingRows=React.React.React.useMemo(()=>{
+  const allBookingRows=useMemo(()=>{
     const arr=[];
     Object.entries(bookings).forEach(([dk,slots])=>{
       Object.entries(slots).forEach(([h,slot])=>{
@@ -2513,7 +2573,7 @@ function RPTAllTab({bookings,subs,lang,t,stadiumName}){
     return arr.sort((a,b)=>b.dk.localeCompare(a.dk)||a.hour-b.hour);
   },[bookings,mode,year,month]);
 
-  const filteredSubs=React.React.React.useMemo(()=>{
+  const filteredSubs=useMemo(()=>{
     if(mode==="alltime")return subs;
     return subs.filter(s=>{
       const created=(s.createdAt||"").substring(0,7);
@@ -2526,7 +2586,7 @@ function RPTAllTab({bookings,subs,lang,t,stadiumName}){
   const totalUnpaid=filteredSubs.reduce((a,s)=>a+Math.max(0,(s.totalPrice||0)-s.payments.reduce((x,p)=>x+(p.amount||0),0)),0);
   const total=totalMatchE+totalSubE;
   const played=allBookingRows.filter(r=>r.status==="played").length;
-  const mLabel=fmtMonthYear(year,month,lang);
+  const mLabel=r_fmtMonthYear(year,month,lang);
 
   const prevM=()=>{if(month===0){setMonth(11);setYear(y=>y-1);}else setMonth(m=>m-1);};
   const nextM=()=>{if(month===11){setMonth(0);setYear(y=>y+1);}else setMonth(m=>m+1);};
@@ -2576,21 +2636,21 @@ function RPTAllTab({bookings,subs,lang,t,stadiumName}){
       <div style="font-size:10px;font-weight:800;color:#333;letter-spacing:0.5px;margin-bottom:6px;">${t.lastMatches.toUpperCase()} (${allBookingRows.length})</div>
       <table style="width:100%;border-collapse:collapse;font-size:10px;margin-bottom:14px;">
         <thead><tr style="background:#f5f5f5;">
-          <th style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"التاريخ":lang==="fr"?"DATE":"DATE"}</th>
+          <th style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"التاريخ":"DATE"}</th>
           <th style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"الساعة":"H"}</th>
-          <th style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"العميل":lang==="fr"?"CLIENT":"CLIENT"}</th>
+          <th style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"العميل":"CLIENT"}</th>
           <th style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${t.currency}</th>
           <th style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"الحالة":lang==="fr"?"STATUT":"STATUS"}</th>
         </tr></thead>
         <tbody>
           ${allBookingRows.slice(0,50).map((r,i)=>{
-            const played=r.status==="played";const isSub=!!r.subId;
+            const isP=r.status==="played";const isSub=!!r.subId;
             return `<tr style="border-bottom:1px solid #f0f0f0;background:${i%2===0?"#fff":"#fafafa"};">
-              <td style="padding:5px 8px;text-align:${isRTL?"right":"left"};color:#888;">${fmtRptShort(r.dk,lang)}</td>
-              <td style="padding:5px 8px;text-align:${isRTL?"right":"left"};color:#4a90d9;font-weight:700;">${fmt24(r.hour)}</td>
+              <td style="padding:5px 8px;text-align:${isRTL?"right":"left"};color:#888;">${r_fmtShort(r.dk,lang)}</td>
+              <td style="padding:5px 8px;text-align:${isRTL?"right":"left"};color:#4a90d9;font-weight:700;">${r_fmt24(r.hour)}</td>
               <td style="padding:5px 8px;text-align:${isRTL?"right":"left"};font-weight:700;">${r.name||"—"}</td>
               <td style="padding:5px 8px;text-align:${isRTL?"right":"left"};color:#00a86b;font-weight:700;">${isSub?"—":`${r.price||0}`}</td>
-              <td style="padding:5px 8px;"><span style="background:${played?"#e6f9f2":isSub?"#fff8e0":"#fff0f0"};color:${played?"#00a86b":isSub?"#d4a017":"#e05555"};border-radius:4px;padding:1px 5px;font-size:8px;font-weight:700;">${isSub?t.subLabel:played?t.played:t.reserved}</span></td>
+              <td style="padding:5px 8px;"><span style="background:${isP?"#e6f9f2":isSub?"#fff8e0":"#fff0f0"};color:${isP?"#00a86b":isSub?"#d4a017":"#e05555"};border-radius:4px;padding:1px 5px;font-size:8px;font-weight:700;">${isSub?t.subLabel:isP?t.played:t.reserved}</span></td>
             </tr>`;
           }).join("")}
           ${allBookingRows.length>50?`<tr><td colspan="5" style="padding:8px;text-align:center;color:#bbb;font-size:9px;">... ${allBookingRows.length-50} ${t.more}</td></tr>`:""}
@@ -2599,7 +2659,7 @@ function RPTAllTab({bookings,subs,lang,t,stadiumName}){
       <div style="font-size:10px;font-weight:800;color:#333;letter-spacing:0.5px;margin-bottom:6px;">${t.allSubs.toUpperCase()} (${filteredSubs.length})</div>
       <table style="width:100%;border-collapse:collapse;font-size:10px;">
         <thead><tr style="background:#f5f5f5;">
-          <th style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"العميل":lang==="fr"?"CLIENT":"CLIENT"}</th>
+          <th style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"العميل":"CLIENT"}</th>
           <th style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"الساعة":"H"}</th>
           <th style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"الإجمالي":"TOTAL"}</th>
           <th style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${t.paid.toUpperCase()}</th>
@@ -2611,7 +2671,7 @@ function RPTAllTab({bookings,subs,lang,t,stadiumName}){
             const rem=Math.max(0,(s.totalPrice||0)-paid);
             return `<tr style="border-bottom:1px solid #f0f0f0;background:${i%2===0?"#fff":"#fafafa"};">
               <td style="padding:5px 8px;text-align:${isRTL?"right":"left"};font-weight:700;">${s.name||"—"}</td>
-              <td style="padding:5px 8px;text-align:${isRTL?"right":"left"};color:#4a90d9;font-weight:700;">${fmt24(s.hour)}</td>
+              <td style="padding:5px 8px;text-align:${isRTL?"right":"left"};color:#4a90d9;font-weight:700;">${r_fmt24(s.hour)}</td>
               <td style="padding:5px 8px;text-align:${isRTL?"right":"left"};font-weight:800;">${(s.totalPrice||0).toLocaleString()}</td>
               <td style="padding:5px 8px;text-align:${isRTL?"right":"left"};color:#00a86b;font-weight:800;">${paid.toLocaleString()}</td>
               <td style="padding:5px 8px;"><span style="background:${rem===0?"#e6f9f2":"#fff0f0"};color:${rem===0?"#00a86b":"#e05555"};border-radius:4px;padding:1px 5px;font-size:8px;font-weight:700;">${rem===0?t.settled:`${rem.toLocaleString()} ${t.remaining}`}</span></td>
@@ -2625,19 +2685,12 @@ function RPTAllTab({bookings,subs,lang,t,stadiumName}){
     </div>`;
   };
 
-  const generate=()=>{
-    openPrint(pdfContent(),"StadBook_Complet");
-  };
-
   return(
     <div style={{padding:"14px 12px",display:"flex",flexDirection:"column",gap:10}}>
-      {/* Mode toggle */}
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
-        <button onClick={()=>setMode("alltime")} style={{padding:"11px",borderRadius:12,border:"none",fontWeight:800,fontSize:12,background:mode==="alltime"?G:CARD,color:mode==="alltime"?G_DARK:"#555"}}>🕐 {t.allTime}</button>
-        <button onClick={()=>setMode("bymonth")} style={{padding:"11px",borderRadius:12,border:`1px solid ${BORDER}`,fontWeight:800,fontSize:12,background:mode==="bymonth"?G:CARD,color:mode==="bymonth"?G_DARK:"#555"}}>📅 {t.byMonth}</button>
+        <button onClick={()=>setMode("alltime")} style={{padding:"11px",borderRadius:12,border:"none",fontWeight:800,fontSize:12,background:mode==="alltime"?G:CARD,color:mode==="alltime"?"#001a0e":"#555"}}>🕐 {t.allTime}</button>
+        <button onClick={()=>setMode("bymonth")} style={{padding:"11px",borderRadius:12,border:`1px solid ${BORDER}`,fontWeight:800,fontSize:12,background:mode==="bymonth"?G:CARD,color:mode==="bymonth"?"#001a0e":"#555"}}>📅 {t.byMonth}</button>
       </div>
-
-      {/* Month picker (only if bymonth) */}
       {mode==="bymonth"&&(
         <div style={{background:CARD,borderRadius:14,padding:"12px 14px",border:`1px solid ${BORDER}`}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
@@ -2647,8 +2700,6 @@ function RPTAllTab({bookings,subs,lang,t,stadiumName}){
           </div>
         </div>
       )}
-
-      {/* Big total */}
       <div style={{background:"linear-gradient(135deg,#071510,#0e2a1e)",borderRadius:16,padding:"16px",border:`1px solid ${G}44`}}>
         <div style={{fontSize:9,color:`${G}88`,fontWeight:700,letterSpacing:0.8,marginBottom:8}}>{mode==="alltime"?t.since.toUpperCase():mLabel.toUpperCase()}</div>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
@@ -2668,15 +2719,11 @@ function RPTAllTab({bookings,subs,lang,t,stadiumName}){
           </div>
         </div>
       </div>
-
-      {/* Stats */}
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6}}>
-        <RPTStatCard label={t.totalMatches} val={played} unit="" color="#7eb8ff" bg="#0a0e1f"/>
-        <RPTStatCard label={t.totalSubsCount} val={filteredSubs.length} unit="" color={G} bg="#071510"/>
-        <RPTStatCard label={t.unpaid} val={totalUnpaid.toLocaleString()} unit={t.currency} color="#ff5555" bg="#1f0e0e"/>
+        <R_StatCard label={t.totalMatches} val={played} unit="" color="#7eb8ff" bg="#0a0e1f"/>
+        <R_StatCard label={t.totalSubsCount} val={filteredSubs.length} unit="" color={G} bg="#071510"/>
+        <R_StatCard label={t.unpaid} val={totalUnpaid.toLocaleString()} unit={t.currency} color="#ff5555" bg="#1f0e0e"/>
       </div>
-
-      {/* Matches section */}
       <div style={{background:CARD,borderRadius:14,border:`1px solid ${BORDER}`,overflow:"hidden"}}>
         <div style={{padding:"10px 14px",borderBottom:`1px solid ${BORDER}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
           <div style={{fontSize:9,color:"#555",fontWeight:700,letterSpacing:0.5}}>{t.lastMatches.toUpperCase()}</div>
@@ -2687,11 +2734,11 @@ function RPTAllTab({bookings,subs,lang,t,stadiumName}){
           return(
             <div key={i} style={{padding:"9px 14px",borderBottom:i<Math.min(8,allBookingRows.length)-1?`1px solid ${BORDER}22`:"none",display:"flex",alignItems:"center",gap:8}}>
               <div style={{minWidth:36,height:36,borderRadius:8,background:isPlayed?isSub?"#d4a01722":`${G}22`:"#1c2030",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-                <span style={{fontSize:11,fontWeight:900,color:isPlayed?isSub?"#d4a017":G:"#555"}}>{fmt24(r.hour).slice(0,2)}</span>
+                <span style={{fontSize:11,fontWeight:900,color:isPlayed?isSub?"#d4a017":G:"#555"}}>{r_fmt24(r.hour).slice(0,2)}</span>
               </div>
               <div style={{flex:1,minWidth:0}}>
                 <div style={{fontWeight:800,fontSize:12,color:isPlayed?"#888":"#fff",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.name||"—"}</div>
-                <div style={{fontSize:9,color:"#444"}}>{fmtRptShort(r.dk,lang)} · {isSub?t.subLabel:isPlayed?t.played:t.reserved}{!isSub?` · ${r.price||0} ${t.currency}`:""}</div>
+                <div style={{fontSize:9,color:"#444"}}>{r_fmtShort(r.dk,lang)} · {isSub?t.subLabel:isPlayed?t.played:t.reserved}{!isSub?` · ${r.price||0} ${t.currency}`:""}</div>
               </div>
               {isPlayed&&<span style={{fontSize:10,color:G,flexShrink:0}}>✓</span>}
             </div>
@@ -2701,8 +2748,6 @@ function RPTAllTab({bookings,subs,lang,t,stadiumName}){
           <div style={{padding:"8px 14px",background:"#071510",borderTop:`1px solid ${G}22`,textAlign:"center",fontSize:9,color:`${G}66`,fontWeight:700}}>+ {allBookingRows.length-8} {t.more}</div>
         )}
       </div>
-
-      {/* Subs section */}
       <div style={{background:CARD,borderRadius:14,border:`1px solid ${BORDER}`,overflow:"hidden"}}>
         <div style={{padding:"10px 14px",borderBottom:`1px solid ${BORDER}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
           <div style={{fontSize:9,color:"#555",fontWeight:700,letterSpacing:0.5}}>{t.allSubs.toUpperCase()}</div>
@@ -2717,7 +2762,7 @@ function RPTAllTab({bookings,subs,lang,t,stadiumName}){
                 <div style={{fontWeight:800,fontSize:12,color:"#fff"}}>{s.name}</div>
                 <div style={{fontSize:9,color:"#444",marginTop:1}}>{paid.toLocaleString()} / {(s.totalPrice||0).toLocaleString()} {t.currency}</div>
               </div>
-              <RPTTag color={rem===0?G:"#ff5555"}>{rem===0?t.settled:`${rem.toLocaleString()} ${t.remaining}`}</RPTTag>
+              <R_Tag color={rem===0?G:"#ff5555"}>{rem===0?t.settled:`${rem.toLocaleString()} ${t.remaining}`}</R_Tag>
             </div>
           );
         })}
@@ -2725,54 +2770,71 @@ function RPTAllTab({bookings,subs,lang,t,stadiumName}){
           <div style={{padding:"8px 14px",background:"#071510",borderTop:`1px solid ${G}22`,textAlign:"center",fontSize:9,color:`${G}66`,fontWeight:700}}>+ {filteredSubs.length-6} {t.more}</div>
         )}
       </div>
-
-      <RPTPdfBtn label={t.dlPdf} gen={false} onClick={generate}/>
+      <R_PdfBtn label={t.dlPdf} gen={false} onClick={()=>r_openPrint(pdfContent(),"StadBook_Complet")}/>
     </div>
   );
 }
 
-// ── Shared components ─────────────────────────────────────────────────────────
-function RPTStatCard({label,val,unit,color,bg}){
+// ── REPORTS: Main container ───────────────────────────────────────
+function ReportsTab({lang,user,uid}){
+  const t=R_T[lang]||R_T.fr;
+  const [subTab,setSubTab]=useState("planning");
+  const [bookings,setBookings]=useState({});
+  const [subsData,setSubsData]=useState([]);
+  const [userData,setUserData]=useState(null);
+  const [loading,setLoading]=useState(true);
+
+  useEffect(()=>{
+    let b=false,s=false,u=false;
+    const done=()=>{if(b&&s&&u)setLoading(false);};
+    const u1=db.collection("bookings").doc(uid).onSnapshot(snap=>{setBookings(snap.exists?snap.data().data||{}:{});b=true;done();});
+    const u2=db.collection("subs").doc(uid).onSnapshot(snap=>{setSubsData(snap.exists?snap.data().list||[]:[]);s=true;done();});
+    const u3=db.collection("users").doc(uid).onSnapshot(snap=>{setUserData(snap.exists?snap.data():null);u=true;done();});
+    return()=>{u1();u2();u3();};
+  },[uid]);
+
+  const stadiumName=userData?.stadiumName||"";
+  const SUBTABS=[
+    {id:"planning",label:t.tabPlanning},
+    {id:"subs",label:t.tabSubs},
+    {id:"earnings",label:t.tabEarnings},
+    {id:"all",label:t.tabAll},
+  ];
+
+  const isRTL=lang==="ar";
   return(
-    <div style={{background:bg,borderRadius:12,padding:"11px 8px",border:`1px solid ${BORDER}`,textAlign:"center"}}>
-      <div style={{fontSize:7,color:"#555",fontWeight:700,letterSpacing:0.3,marginBottom:4}}>{label.toUpperCase()}</div>
-      <div style={{fontSize:18,fontWeight:900,color}}>{val}</div>
-      {unit&&<div style={{fontSize:8,color:"#444",marginTop:2}}>{unit}</div>}
+    <div style={{display:"flex",flexDirection:"column",fontFamily:isRTL?"'Cairo',sans-serif":"'Nunito',sans-serif",direction:isRTL?"rtl":"ltr",background:BG,minHeight:"100%"}}>
+      {/* Sub-tab bar */}
+      <div style={{background:CARD,padding:"6px 10px",borderBottom:`1px solid ${BORDER}`,display:"flex",gap:4,position:"sticky",top:57,zIndex:19}}>
+        {SUBTABS.map(tb=>{
+          const active=subTab===tb.id;
+          return(
+            <button key={tb.id} onClick={()=>setSubTab(tb.id)}
+              style={{flex:1,background:active?G:"#0D0F18",borderRadius:10,padding:"9px 2px",border:active?"none":`1px solid ${BORDER}`,fontWeight:900,fontSize:9,color:active?"#001a0e":"#444",letterSpacing:0.2,transition:"background 0.15s",fontFamily:"inherit"}}>
+              {tb.label.toUpperCase()}
+            </button>
+          );
+        })}
+      </div>
+      {/* Content */}
+      <div>
+        {loading?(
+          <div style={{display:"flex",alignItems:"center",justifyContent:"center",padding:"80px 0"}}>
+            <div style={{width:32,height:32,border:`3px solid #00D48A`,borderTopColor:"transparent",borderRadius:"50%",animation:"spin 0.8s linear infinite"}}/>
+          </div>
+        ):(
+          <div style={{animation:"fadeIn 0.25s ease forwards"}}>
+            {subTab==="planning"&&<R_PlanningTab bookings={bookings} lang={lang} t={t} stadiumName={stadiumName}/>}
+            {subTab==="subs"&&<R_SubsTab subs={subsData} lang={lang} t={t} stadiumName={stadiumName}/>}
+            {subTab==="earnings"&&<R_EarningsTab bookings={bookings} subs={subsData} lang={lang} t={t} stadiumName={stadiumName}/>}
+            {subTab==="all"&&<R_AllTab bookings={bookings} subs={subsData} lang={lang} t={t} stadiumName={stadiumName}/>}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
-function RPTTag({color,children}){
-  return <span style={{background:`${color}18`,border:`1px solid ${color}33`,borderRadius:5,padding:"2px 7px",fontSize:9,fontWeight:700,color,whiteSpace:"nowrap"}}>{children}</span>;
-}
-function RPTEmpty({text}){
-  return <div style={{background:CARD,borderRadius:14,padding:"30px 20px",border:`1px solid ${BORDER}`,textAlign:"center",color:"#333",fontSize:13,fontWeight:700}}>{text}</div>;
-}
-function RPTPdfBtn({label,gen,onClick}){
-  return(
-    <button onClick={onClick} disabled={gen}
-      style={{width:"100%",background:gen?"#0b2018":G,color:gen?G:G_DARK,border:gen?`1px solid ${G}44`:"none",borderRadius:14,padding:"14px",fontWeight:900,fontSize:14,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
-      {gen?<Spin s={18}/>:<DlIcon/>}
-      {gen?T.fr.generating:label}
-    </button>
-  );
-}
 
-
-function openPrint(htmlContent,filename){
-  const full='<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>'+filename+'</title>'+
-    '<style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:Arial,sans-serif;background:#fff;color:#111;padding:20px;}table{width:100%;border-collapse:collapse;font-size:11px;}th{padding:7px 8px;font-size:8px;font-weight:800;color:#888;background:#f5f5f5;}td{padding:6px 8px;border-bottom:1px solid #f0f0f0;}tr:nth-child(even) td{background:#fafafa;}@media print{@page{margin:10mm;}body{print-color-adjust:exact;-webkit-print-color-adjust:exact;}}</style>'+
-    '</head><body>'+htmlContent+'</body></html>';
-  const blob=new Blob([full],{type:"text/html"});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement("a");
-  a.href=url;
-  a.download=filename+".html";
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
-function ReportsTab({bookings,subs,lang,t,stadiumName}){const[rtab,setRtab]=React.useState("planning");const RTABS=[{id:"planning",label:t.tabPlanning,icon:<CalIcon/>},{id:"subs",label:t.tabSubs,icon:<SubIcon/>},{id:"earnings",label:t.tabEarnings,icon:<EarnIcon/>},{id:"all",label:t.tabAll,icon:<GridIcon/>}];return(<div style={{display:"flex",flexDirection:"column"}}><div style={{background:"#111420",padding:"6px 10px",borderBottom:"1px solid #1c2030",display:"flex",gap:4,position:"sticky",top:57,zIndex:19}}>{RTABS.map(tb=>{const active=rtab===tb.id;return(<button key={tb.id} onClick={()=>setRtab(tb.id)} style={{flex:1,background:active?"#00D48A":"#0D0F18",borderRadius:10,padding:"8px 2px",border:active?"none":"1px solid #1c2030",display:"flex",flexDirection:"column",alignItems:"center",gap:2,cursor:"pointer"}}><div style={{color:active?"#001a0e":"#444",lineHeight:0}}>{tb.icon}</div><span style={{fontSize:7,fontWeight:900,color:active?"#001a0e":"#444",letterSpacing:0.2}}>{tb.label.toUpperCase()}</span></button>);})}</div><div>{rtab==="planning"&&<RPTPlanningTab bookings={bookings} lang={lang} t={t} stadiumName={stadiumName}/>}{rtab==="subs"&&<RPTSubsTab subs={subs} lang={lang} t={t} stadiumName={stadiumName}/>}{rtab==="earnings"&&<RPTEarningsTab bookings={bookings} subs={subs} lang={lang} t={t} stadiumName={stadiumName}/>}{rtab==="all"&&<RPTAllTab bookings={bookings} subs={subs} lang={lang} t={t} stadiumName={stadiumName}/>}</div></div>);}
 ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
 </script>
 
