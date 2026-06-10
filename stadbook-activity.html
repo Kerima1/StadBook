@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+<meta name="theme-color" content="#0D0F18"/>
+<link rel="apple-touch-icon" href="apple-touch-icon.png"/>
+<link rel="icon" type="image/svg+xml" href="icon.svg"/>
+<link rel="shortcut icon" href="apple-touch-icon.png"/>
+<title>StadBook Activite</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#0D0F18;font-family:'Nunito',sans-serif;}
+input,button{font-family:inherit;outline:none;}
+button{cursor:pointer;}
+::-webkit-scrollbar{width:0;}
+@keyframes spin{to{transform:rotate(360deg);}}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyBsXXdzbcN-32NQh7wDTVB8oHhyZVnOM1A",
+  authDomain:"stadbook-ade2e.firebaseapp.com",
+  projectId:"stadbook-ade2e",
+  storageBucket:"stadbook-ade2e.firebasestorage.app",
+  messagingSenderId:"95034341479",
+  appId:"1:95034341479:web:a92c479b8b23cb8be0bcc2"
+});
+const auth=firebase.auth();
+const db=firebase.firestore();
+</script>
+<script type="text/babel">
+const {useState,useEffect}=React;
+const G="#00D48A",BG="#0D0F18",CARD="#111420",BORDER="#1c2030";
+const ADMIN_EMAIL="fatimetousidiboba@gmail.com";
+
+const T={
+  fr:{
+    title:"Activite",login:"Connexion",email:"Email",password:"Mot de passe",
+    loginBtn:"Se connecter",errorAccess:"Acces admin uniquement.",
+    loading:"Chargement...",signOut:"Deconnexion",noUsers:"Aucun utilisateur",
+    active:"Actif",inactive:"Inactif",totalUsers:"UTILISATEURS",usedApp:"ONT UTILISE",
+    usedBadge:"UTILISE",notUsedBadge:"NON UTILISE",
+    bookingsCount:"reservation(s)",subsCount:"abonnement(s)",live:"En direct",
+  },
+  en:{
+    title:"Activity",login:"Sign In",email:"Email",password:"Password",
+    loginBtn:"Sign In",errorAccess:"Admin access only.",
+    loading:"Loading...",signOut:"Sign Out",noUsers:"No users",
+    active:"Active",inactive:"Inactive",totalUsers:"USERS",usedApp:"USED THE APP",
+    usedBadge:"USED",notUsedBadge:"NOT USED",
+    bookingsCount:"booking(s)",subsCount:"subscription(s)",live:"Live",
+  },
+  ar:{
+    title:"النشاط",login:"تسجيل الدخول",email:"البريد الالكتروني",password:"كلمة المرور",
+    loginBtn:"تسجيل الدخول",errorAccess:"للمشرف فقط.",
+    loading:"جارٍ التحميل...",signOut:"تسجيل الخروج",noUsers:"لا يوجد مستخدمون",
+    active:"نشط",inactive:"غير نشط",totalUsers:"المستخدمون",usedApp:"استخدموا التطبيق",
+    usedBadge:"مستخدم",notUsedBadge:"غير مستخدم",
+    bookingsCount:"حجز/حجوزات",subsCount:"اشتراك/اشتراكات",live:"مباشر",
+  },
+};
+
+const FLAGS={fr:"🇫🇷",en:"🇬🇧",ar:"🇲🇷"};
+const LANG_LABELS={fr:"FR",en:"EN",ar:"AR"};
+
+function LoginScreen({lang,setLang,onError,error}){
+  const t=T[lang],isRTL=lang==="ar";
+  const [email,setEmail]=useState("");
+  const [password,setPassword]=useState("");
+  const [loading,setLoading]=useState(false);
+  const handleLogin=async()=>{
+    setLoading(true);
+    try{await auth.signInWithEmailAndPassword(email,password);}
+    catch(e){onError(t.errorAccess);}
+    setLoading(false);
+  };
+  return(
+    <div style={{fontFamily:isRTL?"'Cairo',sans-serif":"'Nunito',sans-serif",direction:isRTL?"rtl":"ltr",background:BG,minHeight:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:24}}>
+      <div style={{fontSize:48,marginBottom:8}}>⚽</div>
+      <div style={{fontSize:26,fontWeight:900,color:G,marginBottom:4}}>StadBook</div>
+      <div style={{fontSize:12,color:"#444",marginBottom:32}}>{t.title}</div>
+      <div style={{display:"flex",gap:8,marginBottom:24}}>{["fr","en","ar"].map(l=>(<button key={l} onClick={()=>setLang(l)} style={{background:lang===l?G:CARD,border:"1.5px solid "+(lang===l?G:BORDER),borderRadius:10,padding:"6px 12px",fontWeight:800,fontSize:12,color:lang===l?"#001a0e":"#555"}}>{FLAGS[l]} {LANG_LABELS[l]}</button>))}</div>
+      <div style={{background:CARD,borderRadius:20,padding:"24px 20px",width:"100%",maxWidth:360,border:"1px solid "+BORDER}}>
+        <div style={{marginBottom:14}}><div style={{fontSize:10,color:"#555",fontWeight:700,marginBottom:6}}>{t.email.toUpperCase()}</div><input value={email} onChange={e=>setEmail(e.target.value)} type="email" style={{width:"100%",background:BG,border:"2px solid "+BORDER,borderRadius:12,padding:"12px 14px",color:"#fff",fontSize:15}} onFocus={e=>e.target.style.borderColor=G} onBlur={e=>e.target.style.borderColor=BORDER}/></div>
+        <div style={{marginBottom:20}}><div style={{fontSize:10,color:"#555",fontWeight:700,marginBottom:6}}>{t.password.toUpperCase()}</div><input value={password} onChange={e=>setPassword(e.target.value)} type="password" onKeyDown={e=>e.key==="Enter"&&handleLogin()} style={{width:"100%",background:BG,border:"2px solid "+BORDER,borderRadius:12,padding:"12px 14px",color:"#fff",fontSize:15}} onFocus={e=>e.target.style.borderColor=G} onBlur={e=>e.target.style.borderColor=BORDER}/></div>
+        {error&&<div style={{background:"#1f0e0e",border:"1px solid #2e1414",borderRadius:10,padding:"10px 14px",color:"#ff5555",fontSize:13,marginBottom:14,fontWeight:700}}>{error}</div>}
+        <button onClick={handleLogin} disabled={loading} style={{width:"100%",background:G,color:"#001a0e",border:"none",borderRadius:12,padding:"14px",fontWeight:900,fontSize:15,opacity:loading?0.7:1}}>{loading?t.loading:t.loginBtn}</button>
+      </div>
+    </div>
+  );
+}
+
+function ActivityScreen({lang,setLang}){
+  const t=T[lang],isRTL=lang==="ar";
+  const [users,setUsers]=useState([]);
+  const [bookingsMap,setBookingsMap]=useState({});
+  const [subsMap,setSubsMap]=useState({});
+
+  useEffect(()=>{
+    const unsub=db.collection("users").onSnapshot(snap=>{
+      setUsers(snap.docs.map(d=>({id:d.id,...d.data()})));
+    });
+    return unsub;
+  },[]);
+
+  useEffect(()=>{
+    const unsubs=[];
+    users.forEach(u=>{
+      const unsubB=db.collection("bookings").doc(u.id).onSnapshot(snap=>{
+        let count=0;
+        if(snap.exists){
+          const data=snap.data().data||{};
+          Object.keys(data).forEach(dk=>{
+            const slots=data[dk]||{};
+            count+=Object.keys(slots).filter(k=>!isNaN(Number(k))).length;
+          });
+        }
+        setBookingsMap(prev=>({...prev,[u.id]:count}));
+      },()=>{});
+      const unsubS=db.collection("subs").doc(u.id).onSnapshot(snap=>{
+        const count=snap.exists?(snap.data().list||[]).length:0;
+        setSubsMap(prev=>({...prev,[u.id]:count}));
+      },()=>{});
+      unsubs.push(unsubB,unsubS);
+    });
+    return ()=>unsubs.forEach(fn=>fn());
+  },[users]);
+
+  const enriched=users.map(u=>{
+    const bookingCount=bookingsMap[u.id]||0;
+    const subCount=subsMap[u.id]||0;
+    return {...u,bookingCount,subCount,hasData:(bookingCount>0||subCount>0)};
+  });
+
+  const total=enriched.length;
+  const usedCount=enriched.filter(u=>u.hasData).length;
+
+  enriched.sort((a,b)=>{
+    if(a.hasData!==b.hasData) return (b.hasData?1:0)-(a.hasData?1:0);
+    if(!!a.active!==!!b.active) return (b.active?1:0)-(a.active?1:0);
+    return (a.stadiumName||"").localeCompare(b.stadiumName||"");
+  });
+
+  return(
+    <div style={{fontFamily:isRTL?"'Cairo',sans-serif":"'Nunito',sans-serif",direction:isRTL?"rtl":"ltr",maxWidth:430,margin:"0 auto",minHeight:"100vh",background:BG,color:"#f0f0f0",paddingBottom:40}}>
+      <div style={{background:CARD,padding:"14px 16px",borderBottom:"1px solid "+BORDER,position:"sticky",top:0,zIndex:10,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <div><div style={{fontSize:18,fontWeight:900,color:G}}>⚽ StadBook</div><div style={{fontSize:10,color:"#444",fontWeight:700,letterSpacing:1}}>{t.title.toUpperCase()}</div></div>
+        <div style={{display:"flex",gap:6,alignItems:"center"}}>
+          {["fr","en","ar"].map(l=>(<button key={l} onClick={()=>setLang(l)} style={{background:lang===l?G:"#1c2030",border:"none",borderRadius:8,padding:"5px 8px",fontWeight:800,fontSize:10,color:lang===l?"#001a0e":"#555"}}>{FLAGS[l]} {LANG_LABELS[l]}</button>))}
+          <button onClick={()=>auth.signOut()} style={{background:"#1f0e0e",color:"#ff5555",border:"1px solid #2e1414",borderRadius:8,padding:"6px 10px",fontWeight:700,fontSize:11,marginLeft:4}}>{t.signOut}</button>
+        </div>
+      </div>
+
+      <div style={{padding:"16px 14px 40px"}}>
+        <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:4}}>
+          <div style={{width:8,height:8,borderRadius:"50%",background:G,animation:"pulse 1.5s ease infinite"}}/>
+          <div style={{fontSize:11,color:"#444",fontWeight:700}}>{t.live}</div>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,margin:"10px 0 16px"}}>
+          <div style={{background:CARD,borderRadius:14,padding:"12px",border:"1px solid "+BORDER,textAlign:"center"}}>
+            <div style={{fontSize:9,color:"#444",fontWeight:700,marginBottom:4}}>{t.totalUsers}</div>
+            <div style={{fontSize:24,fontWeight:900,color:"#fff"}}>{total}</div>
+          </div>
+          <div style={{background:CARD,borderRadius:14,padding:"12px",border:"1px solid "+BORDER,textAlign:"center"}}>
+            <div style={{fontSize:9,color:"#444",fontWeight:700,marginBottom:4}}>{t.active.toUpperCase()}</div>
+            <div style={{fontSize:24,fontWeight:900,color:G}}>{enriched.filter(u=>u.active).length}</div>
+          </div>
+          <div style={{background:CARD,borderRadius:14,padding:"12px",border:"1px solid "+BORDER,textAlign:"center"}}>
+            <div style={{fontSize:9,color:"#444",fontWeight:700,marginBottom:4}}>{t.usedApp}</div>
+            <div style={{fontSize:24,fontWeight:900,color:"#00b8ff"}}>{usedCount}</div>
+          </div>
+        </div>
+        {enriched.length===0&&<div style={{textAlign:"center",color:"#333",padding:"30px 0"}}>{t.noUsers}</div>}
+        <div style={{display:"flex",flexDirection:"column",gap:10}}>
+          {enriched.map(u=>(
+            <div key={u.id} style={{background:CARD,borderRadius:14,padding:"14px",border:"1.5px solid "+(u.hasData?G+"66":BORDER)}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+                <div>
+                  <div style={{fontWeight:900,fontSize:15,color:"#fff"}}>⚽ {u.stadiumName||"-"}</div>
+                  <div style={{fontSize:12,color:"#444",marginTop:2}}>{u.email}</div>
+                </div>
+                <div style={{display:"flex",flexDirection:"column",gap:6,alignItems:"flex-end"}}>
+                  <span style={{fontSize:10,fontWeight:800,padding:"3px 9px",borderRadius:20,background:u.active?G+"22":"#ff995522",color:u.active?G:"#ff9955"}}>{u.active?t.active:t.inactive}</span>
+                  <span style={{fontSize:10,fontWeight:800,padding:"3px 9px",borderRadius:20,background:u.hasData?"#00b8ff22":"#33333355",color:u.hasData?"#00b8ff":"#888"}}>{u.hasData?t.usedBadge:t.notUsedBadge}</span>
+                </div>
+              </div>
+              {u.hasData&&<div style={{fontSize:11,color:"#555",marginTop:8}}>📅 {u.bookingCount} {t.bookingsCount} · 📋 {u.subCount} {t.subsCount}</div>}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function App(){
+  const [lang,setLang]=useState("fr");
+  const [authUser,setAuthUser]=useState(undefined);
+  const [error,setError]=useState("");
+  useEffect(()=>{const unsub=auth.onAuthStateChanged(u=>setAuthUser(u));return unsub;},[]);
+  if(authUser===undefined) return(<div style={{background:BG,minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}}><div style={{width:36,height:36,border:"3px solid "+G,borderTopColor:"transparent",borderRadius:"50%",animation:"spin 0.8s linear infinite"}}/></div>);
+  if(!authUser) return <LoginScreen lang={lang} setLang={setLang} onError={setError} error={error}/>;
+  if(authUser.email!==ADMIN_EMAIL){auth.signOut();return <div style={{background:BG,minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",color:"#ff5555",fontSize:16,fontWeight:800}}>{T[lang].errorAccess}</div>;}
+  return <ActivityScreen lang={lang} setLang={setLang}/>;
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
