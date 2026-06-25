@@ -1736,8 +1736,8 @@ db.collection("bookings").doc(uid).update({
       );
     }
 
-    const activeSubs=subsData.filter(s=>!s.archived);
-    const archivedSubs=subsData.filter(s=>s.archived);
+	const activeSubs=subsData.filter(s=>!s.archived).sort((a,b)=>b.id.localeCompare(a.id));
+    const archivedSubs=subsData.filter(s=>s.archived).sort((a,b)=>b.id.localeCompare(a.id));
 
     // LIST VIEW
     return(
