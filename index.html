@@ -2673,7 +2673,6 @@ function R_AllTab({bookings,subs,lang,t,stadiumName}){
               <td style="padding:5px 8px;"><span style="background:${isP?"#e6f9f2":isSub?"#fff8e0":"#fff0f0"};color:${isP?"#00a86b":isSub?"#d4a017":"#e05555"};border-radius:4px;padding:1px 5px;font-size:8px;font-weight:700;">${isSub?t.subLabel:isP?t.played:t.reserved}</span></td>
             </tr>`;
           }).join("")}
-          ${allBookingRows.length>50?`<tr><td colspan="5" style="padding:8px;text-align:center;color:#bbb;font-size:9px;">... ${allBookingRows.length-50} ${t.more}</td></tr>`:""}
         </tbody>
       </table>
       <div style="font-size:10px;font-weight:800;color:#333;letter-spacing:0.5px;margin-bottom:6px;">${t.allSubs.toUpperCase()} (${filteredSubs.length})</div>
