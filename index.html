@@ -1191,7 +1191,7 @@ const EarningsTab=()=>{
     const totalMonthE=matchMonthE+subMonthE;
     const totalAllE=matchAllE+subAllE;
 
-    const fmtM=v=>{if(v<1000000)return v.toLocaleString();const m=Math.floor(v/1000000);const d=Math.floor((v%1000000)/100000);return d>0?`${m},${d}M`:`${m}M`;};     const statCard=(label,value,color,bg,border)=>(
+	const statCard=(label,value,color,bg,border)=>(
       <div style={{background:bg,borderRadius:18,padding:"20px 18px",border:`1px solid ${border}`,marginBottom:12}}>
         <div style={{fontSize:10,color:color+"99",fontWeight:700,letterSpacing:0.8,marginBottom:8}}>{label.toUpperCase()}</div>
         <div style={{fontSize:38,fontWeight:900,color:color,lineHeight:1}}>{value}</div>
@@ -2065,6 +2065,7 @@ const R_T={
 };
 
 function r_toKey(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;}
+function fmtM(v){if(v<1000000)return v.toLocaleString();const m=Math.floor(v/1000000);const d=Math.floor((v%1000000)/100000);return d>0?`${m},${d}M`:`${m}M`;}
 function r_fmt24(h){return `${String(h).padStart(2,"0")}:00`;}
 function r_fmtDate(dk,lang){const d=new Date(dk+"T12:00:00");const locale=lang==="ar"?"ar-MA":lang==="fr"?"fr-FR":"en-GB";return d.toLocaleDateString(locale,{weekday:"long",day:"numeric",month:"long",year:"numeric"});}
 function r_fmtShort(dk,lang){const d=new Date(dk+"T12:00:00");const locale=lang==="ar"?"ar-MA":lang==="fr"?"fr-FR":"en-GB";return d.toLocaleDateString(locale,{weekday:"short",day:"numeric",month:"short"});}
@@ -2152,7 +2153,7 @@ function R_PlanningTab({bookings,lang,t,stadiumName}){
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;">
         <div style="border:1.5px solid #00D48A22;border-radius:8px;padding:10px;text-align:center;background:#00D48A08;">
           <div style="font-size:7px;color:#888;font-weight:700;margin-bottom:3px;">${t.totalEarnings.toUpperCase()}</div>
-          <div style="font-size:20px;font-weight:900;color:#00D48A;">${earned.toLocaleString()}</div>
+          <div style="font-size:20px;font-weight:900;color:#00D48A;">${fmtM(earned)}</div>
           <div style="font-size:8px;color:#aaa;">${t.currency}</div>
         </div>
         <div style="border:1.5px solid #4a90d922;border-radius:8px;padding:10px;text-align:center;background:#4a90d908;">
@@ -2218,7 +2219,7 @@ function R_PlanningTab({bookings,lang,t,stadiumName}){
       </div>
       {rows.length>0&&(
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6}}>
-          <R_StatCard label={t.totalEarnings} val={earned.toLocaleString()} unit={t.currency} color={G} bg="#071510"/>
+          <R_StatCard label={t.totalEarnings} val={fmtM(earned)} unit={t.currency} color={G} bg="#071510"/>
           <R_StatCard label={t.totalPlayed} val={played} unit={t.matches} color="#7eb8ff" bg="#0a0e1f"/>
           <R_StatCard label={t.totalReserved} val={reserved} unit={t.matches} color="#ffd700" bg="#1a1400"/>
         </div>
@@ -2285,12 +2286,12 @@ function R_SubsTab({subs,lang,t,stadiumName}){
         </div>
         <div style="border:1.5px solid #00b8ff22;border-radius:8px;padding:10px;text-align:center;background:#00b8ff08;">
           <div style="font-size:7px;color:#888;font-weight:700;margin-bottom:3px;">${t.paid.toUpperCase()}</div>
-          <div style="font-size:20px;font-weight:900;color:#00b8ff;">${totalPaid.toLocaleString()}</div>
+          <div style="font-size:20px;font-weight:900;color:#00b8ff;">${fmtM(totalPaid)}</div>
           <div style="font-size:8px;color:#aaa;">${t.currency}</div>
         </div>
         <div style="border:1.5px solid #e0555522;border-radius:8px;padding:10px;text-align:center;background:#e0555508;">
           <div style="font-size:7px;color:#888;font-weight:700;margin-bottom:3px;">${t.remaining.toUpperCase()}</div>
-          <div style="font-size:20px;font-weight:900;color:#e05555;">${totalRem.toLocaleString()}</div>
+          <div style="font-size:20px;font-weight:900;color:#e05555;">${fmtM(totalRem)}</div>
           <div style="font-size:8px;color:#aaa;">${t.currency}</div>
         </div>
       </div>
@@ -2350,8 +2351,8 @@ function R_SubsTab({subs,lang,t,stadiumName}){
     <div style={{padding:"14px 12px",display:"flex",flexDirection:"column",gap:10}}>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6}}>
         <R_StatCard label={t.totalSubs} val={subs.length} unit="" color={G} bg="#071510"/>
-        <R_StatCard label={t.paid} val={totalPaid.toLocaleString()} unit={t.currency} color="#00b8ff" bg="#0a1828"/>
-        <R_StatCard label={t.remaining} val={totalRem.toLocaleString()} unit={t.currency} color="#ff9955" bg="#1f1208"/>
+        <R_StatCard label={t.paid} val={fmtM(totalPaid)} unit={t.currency} color="#00b8ff" bg="#0a1828"/>
+        <R_StatCard label={t.remaining} val={fmtM(totalRem)} unit={t.currency} color="#ff9955" bg="#1f1208"/>
       </div>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6}}>
         {[["all",`${t.filterAll} (${subs.length})`],["active",`${t.filterActive} (${subs.filter(s=>!s.archived).length})`],["archived",`${t.filterArchived} (${subs.filter(s=>s.archived).length})`]].map(([v,l])=>(
@@ -2626,16 +2627,16 @@ function R_AllTab({bookings,subs,lang,t,stadiumName}){
       <div style="background:linear-gradient(135deg,#f0fdf8,#e6f9f2);border:2px solid #00D48A33;border-radius:12px;padding:14px;margin-bottom:12px;">
         <div style="display:flex;justify-content:space-between;align-items:center;">
           <div><div style="font-size:9px;color:#00a86b;font-weight:700;margin-bottom:3px;">${t.totalGeneral.toUpperCase()}</div>
-          <div style="font-size:32px;font-weight:900;color:#00a86b;line-height:1;">${total.toLocaleString()}</div>
+          <div style="font-size:32px;font-weight:900;color:#00a86b;line-height:1;">${fmtM(total)}</div>
           <div style="font-size:10px;color:#00a86b88;">${t.currency}</div></div>
           <div style="display:flex;flex-direction:column;gap:6px;">
             <div style="background:#fff;border-radius:8px;padding:6px 10px;border:1px solid #00D48A22;">
               <div style="font-size:7px;color:#888;font-weight:700;">${t.matchEarn.toUpperCase()}</div>
-              <div style="font-size:13px;font-weight:900;color:#00a86b;">${totalMatchE.toLocaleString()} ${t.currency}</div>
+              <div style="font-size:13px;font-weight:900;color:#00a86b;">${fmtM(totalMatchE)} ${t.currency}</div>
             </div>
             <div style="background:#fff;border-radius:8px;padding:6px 10px;border:1px solid #00b8ff22;">
               <div style="font-size:7px;color:#888;font-weight:700;">${t.subEarn.toUpperCase()}</div>
-              <div style="font-size:13px;font-weight:900;color:#00b8ff;">${totalSubE.toLocaleString()} ${t.currency}</div>
+              <div style="font-size:13px;font-weight:900;color:#00b8ff;">${fmtM(totalSubE)} ${t.currency}</div>
             </div>
           </div>
         </div>
@@ -2651,7 +2652,7 @@ function R_AllTab({bookings,subs,lang,t,stadiumName}){
         </div>
         <div style="border:1px solid #ffe0e0;border-radius:8px;padding:8px;text-align:center;background:#fff8f8;">
           <div style="font-size:7px;color:#e05555;font-weight:700;margin-bottom:3px;">${t.unpaid.toUpperCase()}</div>
-          <div style="font-size:16px;font-weight:900;color:#e05555;">${totalUnpaid.toLocaleString()}</div>
+          <div style="font-size:16px;font-weight:900;color:#e05555;">${fmtM(totalUnpaid)}</div>
           <div style="font-size:8px;color:#e05555aa;">${t.currency}</div>
         </div>
       </div>
@@ -2755,17 +2756,17 @@ function R_AllTab({bookings,subs,lang,t,stadiumName}){
         <div style={{fontSize:9,color:`${G}88`,fontWeight:700,letterSpacing:0.8,marginBottom:8}}>{mode==="alltime"?t.since.toUpperCase():mLabel.toUpperCase()}</div>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
           <div>
-            <div style={{fontSize:36,fontWeight:900,color:G,lineHeight:1}}>{total.toLocaleString()}</div>
+            <div style={{fontSize:36,fontWeight:900,color:G,lineHeight:1}}>{fmtM(total)}</div>
             <div style={{fontSize:12,color:`${G}66`,marginTop:2}}>{t.currency}</div>
           </div>
           <div style={{display:"flex",flexDirection:"column",gap:6}}>
             <div style={{background:"#0D0F18",borderRadius:8,padding:"6px 10px",border:`1px solid ${G}33`}}>
               <div style={{fontSize:7,color:"#444",fontWeight:700}}>MATCHES</div>
-              <div style={{fontSize:13,fontWeight:900,color:G}}>{totalMatchE.toLocaleString()} {t.currency}</div>
+              <div style={{fontSize:13,fontWeight:900,color:G}}>{fmtM(totalMatchE)} {t.currency}</div>
             </div>
             <div style={{background:"#0D0F18",borderRadius:8,padding:"6px 10px",border:"1px solid #00b8ff33"}}>
               <div style={{fontSize:7,color:"#444",fontWeight:700}}>ABONNEMENTS</div>
-              <div style={{fontSize:13,fontWeight:900,color:"#00b8ff"}}>{totalSubE.toLocaleString()} {t.currency}</div>
+              <div style={{fontSize:13,fontWeight:900,color:"#00b8ff"}}>{fmtM(totalSubE)} {t.currency}</div>
             </div>
           </div>
         </div>
@@ -2773,7 +2774,7 @@ function R_AllTab({bookings,subs,lang,t,stadiumName}){
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6}}>
         <R_StatCard label={t.totalMatches} val={played} unit="" color="#7eb8ff" bg="#0a0e1f"/>
         <R_StatCard label={t.totalSubsCount} val={filteredSubs.length} unit="" color={G} bg="#071510"/>
-        <R_StatCard label={t.unpaid} val={totalUnpaid.toLocaleString()} unit={t.currency} color="#ff5555" bg="#1f0e0e"/>
+        <R_StatCard label={t.unpaid} val={fmtM(totalUnpaid)} unit={t.currency} color="#ff5555" bg="#1f0e0e"/>
       </div>
       <div style={{background:CARD,borderRadius:14,border:`1px solid ${BORDER}`,overflow:"hidden"}}>
         <div style={{padding:"10px 14px",borderBottom:`1px solid ${BORDER}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
