@@ -2663,7 +2663,7 @@ function R_AllTab({bookings,subs,lang,t,stadiumName}){
           <th style="padding:6px 8px;text-align:${isRTL?"right":"left"};font-size:8px;color:#888;">${lang==="ar"?"الحالة":lang==="fr"?"STATUT":"STATUS"}</th>
         </tr></thead>
         <tbody>
-          ${allBookingRows.slice(0,50).map((r,i)=>{
+          ${allBookingRows.map((r,i)=>{
             const isP=r.status==="played";const isSub=!!r.subId;
             return `<tr style="border-bottom:1px solid #f0f0f0;background:${i%2===0?"#fff":"#fafafa"};">
               <td style="padding:5px 8px;text-align:${isRTL?"right":"left"};color:#888;">${r_fmtShort(r.dk,lang)}</td>
