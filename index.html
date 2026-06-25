@@ -2228,7 +2228,7 @@ function R_PlanningTab({bookings,lang,t,stadiumName}){
           <div style={{padding:"10px 14px",borderBottom:`1px solid ${BORDER}`,fontSize:9,color:"#555",fontWeight:700,letterSpacing:0.5}}>
             {t.tabPlanning.toUpperCase()} · {rows.length} {t.matches.toUpperCase()}
           </div>
-          {rows.map((r,i)=>{
+          {rows.slice(0,8).map((r,i)=>{
             const isPlayed=r.status==="played";const isSub=!!r.subId;
             const hd=r.hour===0?12:r.hour>12?r.hour-12:r.hour;
             return(
@@ -2251,6 +2251,7 @@ function R_PlanningTab({bookings,lang,t,stadiumName}){
               </div>
             );
           })}
+		   {rows.length>8&&<div style={{padding:"8px 14px",background:"#071510",borderTop:`1px solid ${G}22`,textAlign:"center",fontSize:9,color:`${G}66`,fontWeight:700}}>+ {rows.length-8} {t.more}</div>}
         </div>
       )}
       {rows.length>0&&<R_PdfBtn label={t.dlPdf} gen={false} onClick={()=>r_openPrint(pdfContent(),`StadBook_Planning_${from}_${to}`)}/>}
@@ -2359,7 +2360,7 @@ function R_SubsTab({subs,lang,t,stadiumName}){
       </div>
       {shown.length===0?<R_Empty text={t.noSubs}/>:(
         <div style={{display:"flex",flexDirection:"column",gap:10}}>
-          {shown.map(s=>{
+          {shown.slice(0,6).map(s=>{
             const paid=s.payments.reduce((a,p)=>a+(p.amount||0),0);
             const rem=Math.max(0,(s.totalPrice||0)-paid);
             const pct=s.totalPrice>0?Math.min(100,Math.round(paid/s.totalPrice*100)):0;
@@ -2407,6 +2408,7 @@ function R_SubsTab({subs,lang,t,stadiumName}){
               </div>
             );
           })}
+		  {shown.length>6&&<div style={{padding:"8px 14px",background:"#071510",borderTop:`1px solid ${G}22`,textAlign:"center",fontSize:9,color:`${G}66`,fontWeight:700}}>+ {shown.length-6} {t.more}</div>}
         </div>
       )}
       {shown.length>0&&<R_PdfBtn label={t.dlPdf} gen={false} onClick={()=>r_openPrint(pdfContent(),"StadBook_Abonnements")}/>}
@@ -2673,6 +2675,7 @@ function R_AllTab({bookings,subs,lang,t,stadiumName}){
               <td style="padding:5px 8px;"><span style="background:${isP?"#e6f9f2":isSub?"#fff8e0":"#fff0f0"};color:${isP?"#00a86b":isSub?"#d4a017":"#e05555"};border-radius:4px;padding:1px 5px;font-size:8px;font-weight:700;">${isSub?t.subLabel:isP?t.played:t.reserved}</span></td>
             </tr>`;
           }).join("")}
+
         </tbody>
       </table>
       <div style="font-size:10px;font-weight:800;color:#333;letter-spacing:0.5px;margin-bottom:6px;">${t.allSubs.toUpperCase()} (${filteredSubs.length})</div>
@@ -2736,8 +2739,8 @@ function R_AllTab({bookings,subs,lang,t,stadiumName}){
   return(
     <div style={{padding:"14px 12px",display:"flex",flexDirection:"column",gap:10}}>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
-        <button onClick={()=>setMode("alltime")} style={{padding:"11px",borderRadius:12,border:"none",fontWeight:800,fontSize:12,background:mode==="alltime"?G:CARD,color:mode==="alltime"?"#001a0e":"#555"}}>🕐 {t.allTime}</button>
-        <button onClick={()=>setMode("bymonth")} style={{padding:"11px",borderRadius:12,border:`1px solid ${BORDER}`,fontWeight:800,fontSize:12,background:mode==="bymonth"?G:CARD,color:mode==="bymonth"?"#001a0e":"#555"}}>📅 {t.byMonth}</button>
+        <button onClick={()=>setMode("alltime")} style={{padding:"11px",borderRadius:12,border:"none",fontWeight:800,fontSize:12,background:mode==="alltime"?G:CARD,color:mode==="alltime"?"#001a0e":"#555"}}>{t.allTime}</button>
+        <button onClick={()=>setMode("bymonth")} style={{padding:"11px",borderRadius:12,border:`1px solid ${BORDER}`,fontWeight:800,fontSize:12,background:mode==="bymonth"?G:CARD,color:mode==="bymonth"?"#001a0e":"#555"}}>{t.byMonth}</button>
       </div>
       {mode==="bymonth"&&(
         <div style={{background:CARD,borderRadius:14,padding:"12px 14px",border:`1px solid ${BORDER}`}}>
