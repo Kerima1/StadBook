@@ -992,16 +992,16 @@ function StadBookApp({lang,setLang,user,uid}){
   const confirmBook=async()=>{
     if(!bookName.trim()||!bookPhone.trim()||!bookPrice) return;
     const nb={...bookings,[dateKey]:{...(bookings[dateKey]||{}),[modal]:{name:bookName.trim(),phone:bookPhone.trim(),price:Number(bookPrice),status:"reserved"}}};
-    await saveBookings(nb);
-    setBookName("");setBookPhone("");setBookPrice("");setModal(null);
+	setBookName("");setBookPhone("");setBookPrice("");setModal(null);
+		saveBookings(nb);
   };
 
   const confirmEdit=async()=>{
     if(!editModal||!bookName.trim()||!bookPhone.trim()||!bookPrice) return;
     const {dk,h}=editModal;
     const nb={...bookings,[dk]:{...(bookings[dk]||{}),[h]:{...bookings[dk][h],name:bookName.trim(),phone:bookPhone.trim(),price:Number(bookPrice)}}};
-    await saveBookings(nb);
     setBookName("");setBookPhone("");setBookPrice("");setEditModal(null);
+    saveBookings(nb);
   };
 
   const cancelSlot=async(dk,h)=>{
@@ -1946,7 +1946,7 @@ db.collection("bookings").doc(uid).update({
               <div style={{fontSize:13,color:"#ff5555",textAlign:"center",marginBottom:22}}>{fmt24(confirmCancelSlot.h)} · {new Date(confirmCancelSlot.dk+"T12:00:00").toLocaleDateString(localeStr,{day:"numeric",month:"short"})}</div>
               <div style={{display:"flex",gap:10}}>
                 <button onClick={()=>setConfirmCancelSlot(null)} style={{flex:1,background:"#1c2030",color:"#888",border:"none",borderRadius:12,padding:"13px",fontWeight:700,fontSize:14}}>{t.cancel}</button>
-                <button onClick={async()=>{await cancelSlot(confirmCancelSlot.dk,confirmCancelSlot.h);setConfirmCancelSlot(null);}} style={{flex:1,background:"#1f0e0e",color:"#ff5555",border:"1px solid #2e1414",borderRadius:12,padding:"13px",fontWeight:900,fontSize:14}}>🗑️</button>
+                <button onClick={()=>{const {dk,h}=confirmCancelSlot;setConfirmCancelSlot(null);cancelSlot(dk,h);}} style={{flex:1,background:"#1f0e0e",color:"#ff5555",border:"1px solid #2e1414",borderRadius:12,padding:"13px",fontWeight:900,fontSize:14}}>🗑️</button>
               </div>
             </div>
           </div>
