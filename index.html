@@ -309,7 +309,7 @@ function SubFormFields({data,onChange,t,lang,bookedDays,playedDays}){
 
 // ── APP ROOT ──────────────────────────────────────────────────────────────────
 function App(){
-  const [lang,setLang]=useState("fr");
+  const [lang,setLang]=useState(localStorage.getItem("sb_lang")||"fr");
   const [authUser,setAuthUser]=useState(undefined);
   const [userDoc,setUserDoc]=useState(null);
   const [contactInfo,setContactInfo]=useState({whatsapp:"",messages:{fr:"Besoin d'accès ? Contactez-nous sur WhatsApp.",en:"Need access? Contact us on WhatsApp.",ar:"تريد الوصول؟ تواصل معنا على واتساب."}});
@@ -349,10 +349,11 @@ function App(){
     </div>
   );
 
-  if(!authUser) return <AuthScreen lang={lang} setLang={setLang} contactInfo={contactInfo}/>;
-  if(authUser.email===ADMIN_EMAIL) return <AdminPanel lang={lang} setLang={setLang} contactInfo={contactInfo} setContactInfo={setContactInfo}/>;
-  if(!userDoc||!userDoc.active) return <PendingScreen lang={lang} setLang={setLang} contactInfo={contactInfo}/>;
-  return <StadBookApp lang={lang} setLang={setLang} user={userDoc} uid={authUser.uid}/>;
+  const handleSetLang=l=>{setLang(l);localStorage.setItem("sb_lang",l);};
+  if(!authUser) return <AuthScreen lang={lang} setLang={handleSetLang} contactInfo={contactInfo}/>;
+  if(authUser.email===ADMIN_EMAIL) return <AdminPanel lang={lang} setLang={handleSetLang} contactInfo={contactInfo} setContactInfo={setContactInfo}/>;
+  if(!userDoc||!userDoc.active) return <PendingScreen lang={lang} setLang={handleSetLang} contactInfo={contactInfo}/>;
+  return <StadBookApp lang={lang} setLang={handleSetLang} user={userDoc} uid={authUser.uid}/>;
 }
 
 // ── AUTH ──────────────────────────────────────────────────────────────────────
