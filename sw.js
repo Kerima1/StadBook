@@ -1,4 +1,4 @@
-const CACHE = "stadbook-v4";
+const CACHE = "stadbook-v5";
 const SHELL = [
   "/StadBook/",
   "/StadBook/index.html",
