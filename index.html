@@ -430,7 +430,7 @@ function AuthScreen({lang,setLang,contactInfo}){
       </div>
       <div style={{margin:"12px 16px 0",background:`linear-gradient(135deg,${gc}15,${gc}08)`,borderRadius:16,padding:"14px 16px",border:`1.5px solid ${gc}55`,animation:"pulse 3s ease infinite"}}>
         <div style={{fontSize:11,color:gc,fontWeight:800,marginBottom:6}}>📞 {t.contactCard}</div>
-        <div style={{fontSize:15,fontWeight:900,color:"#fff"}}>WhatsApp: {contactInfo.whatsapp||t.noPhone}</div>
+        <div style={{fontSize:15,fontWeight:900,color:"#fff"}}>WhatsApp: {contactInfo.whatsapp ? <a href={`https://wa.me/${contactInfo.whatsapp.replace(/\D/g,'')}`} target="_blank" rel="noopener" style={{color:"#fff",textDecoration:"none"}}>{contactInfo.whatsapp}</a> : t.noPhone}</div>
         <div style={{fontSize:12,color:"#666",marginTop:4}}>{lang==="ar"?"تواصل معنا على واتساب لتفعيل حسابك.":lang==="fr"?"Contactez-nous sur WhatsApp pour activer votre compte.":"Contact us on WhatsApp to activate your account."}</div>
       </div>
 
@@ -474,7 +474,7 @@ function AuthScreen({lang,setLang,contactInfo}){
               <div style={{fontSize:32,marginBottom:12}}>📞</div>
               <div style={{fontSize:14,color:"#aaa",marginBottom:12,lineHeight:1.6}}>{t.forgotDesc}</div>
               <div style={{fontSize:20,fontWeight:900,color:G}}>WhatsApp</div>
-              <div style={{fontSize:22,fontWeight:900,color:"#fff",marginTop:6}}>{contactInfo.whatsapp||""}</div>
+              {contactInfo.whatsapp && (                 <a href={`https://wa.me/${contactInfo.whatsapp.replace(/\D/g,'')}`} target="_blank" rel="noopener" style={{fontSize:22,fontWeight:900,color:"#fff",marginTop:6,textDecoration:"none",display:"block"}}>{contactInfo.whatsapp}</a>               )}
             </div>
             <button onClick={()=>{setMode("login");setError("");setSuccess("");}} style={{width:"100%",background:"#1c2030",border:"none",color:"#888",borderRadius:12,padding:"13px",fontWeight:700,fontSize:14}}>← {t.back}</button>
           </>
@@ -537,7 +537,7 @@ function PendingScreen({lang,setLang,contactInfo}){
       <div style={{fontSize:22,fontWeight:900,color:"#fff",marginBottom:10,textAlign:"center"}}>{t.pendingTitle}</div>
       <div style={{fontSize:14,color:"#555",textAlign:"center",lineHeight:1.6,marginBottom:24,maxWidth:320}}>{t.pendingDesc}</div>
       <div style={{background:CARD,borderRadius:16,padding:"16px 20px",border:`1px solid ${G}33`,marginBottom:24,width:"100%",maxWidth:360,textAlign:"center"}}>
-        <div style={{fontSize:13,color:G,fontWeight:800,marginBottom:4}}>WhatsApp: {contactInfo.whatsapp}</div>
+        <div style={{fontSize:13,color:G,fontWeight:800,marginBottom:4}}>WhatsApp: {contactInfo.whatsapp && <a href={`https://wa.me/${contactInfo.whatsapp.replace(/\D/g,'')}`} target="_blank" rel="noopener" style={{color:G,textDecoration:"none"}}>{contactInfo.whatsapp}</a>}</div>
         <div style={{fontSize:12,color:"#555"}}>{lang==="ar"?"تواصل معنا على واتساب لتفعيل اشتراكك.":lang==="fr"?"Contactez-nous sur WhatsApp pour activer votre abonnement.":"Contact us on WhatsApp to activate your subscription."}</div>
       </div>
       <button onClick={()=>auth.signOut()} style={{background:"#1c2030",color:"#888",border:`1px solid ${BORDER}`,borderRadius:12,padding:"12px 24px",fontWeight:700,fontSize:14}}>{t.signOut}</button>
