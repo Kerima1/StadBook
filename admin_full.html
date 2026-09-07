@@ -295,7 +295,7 @@ function MainScreen({lang,setLang}){
   useEffect(()=>{
     if(!lockDay||!payments||users.length===0) return;
     const now=new Date();
-    if(now.getDate()!==lockDay) return;
+    if(now.getDate()<lockDay) return;
     const mk=now.getFullYear()+"-"+now.getMonth();
     users.forEach(u=>{
       if(u.active&&!(payments[mk]&&payments[mk][u.id])){
