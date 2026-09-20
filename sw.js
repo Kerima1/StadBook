@@ -1,16 +1,22 @@
-const CACHE = "stadbook-v5";
+const CACHE = "stadbook-v6";
 const SHELL = [
-  "/StadBook/",
-  "/StadBook/index.html",
-  "/StadBook/manifest.json",
-  "/StadBook/icon.svg",
-  "/StadBook/apple-touch-icon.png"
+  "./",
+  "index.html",
+  "manifest.json",
+  "icon.svg",
+  "apple-touch-icon.png"
 ];
 
 self.addEventListener("install", function(e) {
+  // Precache the shell, but don't let ONE failed file kill the whole install —
+  // this is exactly what was silently breaking offline support before.
   e.waitUntil(
     caches.open(CACHE).then(function(c) {
-      return c.addAll(SHELL);
+      return Promise.all(
+        SHELL.map(function(url) {
+          return c.add(url).catch(function() {});
+        })
+      );
     }).then(function() {
       return self.skipWaiting();
     })
@@ -35,30 +41,18 @@ self.addEventListener("fetch", function(e) {
   if (url.indexOf("identitytoolkit.googleapis.com") >= 0) return;
   if (url.indexOf("securetoken.googleapis.com") >= 0) return;
 
+  // Network-first: always try to get the latest version, so updates show up
+  // without needing to reinstall. Only fall back to cache if offline.
   e.respondWith(
-    caches.match(e.request).then(function(cached) {
-      if (cached) {
-        // Return cached, update in background
-        fetch(e.request).then(function(response) {
-          if (response && response.status === 200) {
-            caches.open(CACHE).then(function(c) {
-              c.put(e.request, response);
-            });
-          }
-        }).catch(function() {});
-        return cached;
+    fetch(e.request).then(function(response) {
+      if (response && response.status === 200) {
+        var clone = response.clone();
+        caches.open(CACHE).then(function(c) { c.put(e.request, clone); });
       }
-      // Not cached - fetch from network and cache it
-      return fetch(e.request).then(function(response) {
-        if (response && response.status === 200) {
-          var clone = response.clone();
-          caches.open(CACHE).then(function(c) {
-            c.put(e.request, clone);
-          });
-        }
-        return response;
-      }).catch(function() {
-        return caches.match("/StadBook/index.html");
+      return response;
+    }).catch(function() {
+      return caches.match(e.request).then(function(cached) {
+        return cached || caches.match("index.html");
       });
     })
   );
