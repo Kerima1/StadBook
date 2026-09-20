@@ -8,8 +8,6 @@ const SHELL = [
 ];
 
 self.addEventListener("install", function(e) {
-  // Precache the shell, but don't let ONE failed file kill the whole install —
-  // this is exactly what was silently breaking offline support before.
   e.waitUntil(
     caches.open(CACHE).then(function(c) {
       return Promise.all(
@@ -41,11 +39,12 @@ self.addEventListener("fetch", function(e) {
   if (url.indexOf("identitytoolkit.googleapis.com") >= 0) return;
   if (url.indexOf("securetoken.googleapis.com") >= 0) return;
 
-  // Network-first: always try to get the latest version, so updates show up
-  // without needing to reinstall. Only fall back to cache if offline.
   e.respondWith(
     fetch(e.request).then(function(response) {
-      if (response && response.status === 200) {
+      // CDN scripts (React/Firebase/Babel) load without CORS permission, so
+      // the browser reports them as "opaque" instead of status 200 — even
+      // though they loaded fine. Without this check, they never get cached.
+      if (response && (response.status === 200 || response.type === "opaque")) {
         var clone = response.clone();
         caches.open(CACHE).then(function(c) { c.put(e.request, clone); });
       }
